@@ -1,0 +1,32 @@
+node_modules/
+dist/
+.next/
+.turbo/
+*.tsbuildinfo
+
+# env
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Prisma
+apps/api/prisma/*.db
+
+# Test
+coverage/
+
+# Sentry
+.sentryclirc
+
+# Vercel
+.vercel/

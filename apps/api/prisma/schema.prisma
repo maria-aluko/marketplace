@@ -1,0 +1,261 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+// ─── Users ───────────────────────────────────────────────────────────────────
+
+model User {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phone     String    @unique
+  role      UserRole  @default(CLIENT)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  authIdentities AuthIdentity[]
+  vendor         Vendor?
+  reviews        Review[]
+  refreshTokens  RefreshToken[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  CLIENT
+  VENDOR
+  ADMIN
+
+  @@map("user_role")
+}
+
+// ─── Auth Identities ─────────────────────────────────────────────────────────
+
+model AuthIdentity {
+  id         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String       @map("user_id") @db.Uuid
+  provider   AuthProvider
+  providerId String       @map("provider_id")
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@map("auth_identities")
+}
+
+enum AuthProvider {
+  PHONE
+  GOOGLE
+  FACEBOOK
+
+  @@map("auth_provider")
+}
+
+// ─── OTP Requests ────────────────────────────────────────────────────────────
+
+model OtpRequest {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phone     String
+  codeHash  String   @map("code_hash")
+  attempts  Int      @default(0)
+  expiresAt DateTime @map("expires_at")
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([phone, createdAt])
+  @@map("otp_requests")
+}
+
+// ─── Refresh Tokens ──────────────────────────────────────────────────────────
+
+model RefreshToken {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// ─── Vendors ─────────────────────────────────────────────────────────────────
+
+model Vendor {
+  id                   String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId               String       @unique @map("user_id") @db.Uuid
+  slug                 String       @unique
+  businessName         String       @map("business_name")
+  category             VendorCategory
+  description          String
+  area                 String
+  address              String?
+  priceFrom            Decimal?     @map("price_from") @db.Decimal(10, 2)
+  priceTo              Decimal?     @map("price_to") @db.Decimal(10, 2)
+  whatsappNumber       String?      @map("whatsapp_number")
+  instagramHandle      String?      @map("instagram_handle")
+  coverImageUrl        String?      @map("cover_image_url")
+  status               VendorStatus @default(DRAFT)
+  avgRating            Float        @default(0) @map("avg_rating")
+  reviewCount          Int          @default(0) @map("review_count")
+  profileCompleteScore Float        @default(0) @map("profile_complete_score")
+  createdAt            DateTime     @default(now()) @map("created_at")
+  updatedAt            DateTime     @updatedAt @map("updated_at")
+  deletedAt            DateTime?    @map("deleted_at")
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  portfolio VendorPortfolio[]
+  reviews   Review[]
+  disputes  Dispute[]
+
+  @@index([status, avgRating])
+  @@index([category, area])
+  @@map("vendors")
+}
+
+enum VendorStatus {
+  DRAFT
+  PENDING
+  ACTIVE
+  CHANGES_REQUESTED
+  SUSPENDED
+
+  @@map("vendor_status")
+}
+
+enum VendorCategory {
+  CATERER
+  PHOTOGRAPHER
+  VIDEOGRAPHER
+  VENUE
+  DECORATOR
+  MC
+  DJ
+  MAKEUP_ARTIST
+  PLANNER
+  OTHER
+
+  @@map("vendor_category")
+}
+
+// ─── Vendor Portfolio ────────────────────────────────────────────────────────
+
+model VendorPortfolio {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vendorId  String    @map("vendor_id") @db.Uuid
+  mediaUrl  String    @map("media_url")
+  mediaType MediaType @map("media_type")
+  caption   String?
+  sortOrder Int       @default(0) @map("sort_order")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@map("vendor_portfolio")
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+
+  @@map("media_type")
+}
+
+// ─── Reviews ─────────────────────────────────────────────────────────────────
+
+model Review {
+  id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vendorId  String       @map("vendor_id") @db.Uuid
+  clientId  String       @map("client_id") @db.Uuid
+  rating    Int
+  body      String
+  status    ReviewStatus @default(PENDING)
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+  deletedAt DateTime?    @map("deleted_at")
+
+  vendor  Vendor       @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  client  User         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  reply   VendorReply?
+  dispute Dispute?
+
+  @@index([vendorId, status])
+  @@map("reviews")
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REMOVED
+
+  @@map("review_status")
+}
+
+// ─── Vendor Replies ──────────────────────────────────────────────────────────
+
+model VendorReply {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reviewId  String   @unique @map("review_id") @db.Uuid
+  body      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@map("vendor_replies")
+}
+
+// ─── Disputes ────────────────────────────────────────────────────────────────
+
+model Dispute {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reviewId     String        @unique @map("review_id") @db.Uuid
+  vendorId     String        @map("vendor_id") @db.Uuid
+  reason       String
+  status       DisputeStatus @default(OPEN)
+  adminDecision String?      @map("admin_decision")
+  policyClause  String?      @map("policy_clause")
+  appealReason  String?      @map("appeal_reason")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@map("disputes")
+}
+
+enum DisputeStatus {
+  OPEN
+  DECIDED
+  APPEALED
+  CLOSED
+
+  @@map("dispute_status")
+}
+
+// ─── Admin Log ───────────────────────────────────────────────────────────────
+
+model AdminLog {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  adminId    String   @map("admin_id") @db.Uuid
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id") @db.Uuid
+  details    Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([entityType, entityId])
+  @@index([adminId])
+  @@map("admin_log")
+}

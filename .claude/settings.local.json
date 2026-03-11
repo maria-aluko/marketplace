@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(which pnpm:*)",
+      "Bash(pnpm approve-builds:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm turbo:*)",
+      "Bash(pnpm --filter @eventtrust/api exec prisma generate 2>&1)",
+      "Bash(npx tsc:*)",
+      "Bash(npx vitest:*)",
+      "Bash(cd /c/Users/maria/Desktop/Projects/naijaDev/apps/web && pnpm add class-variance-authority clsx tailwind-merge lucide-react @radix-ui/react-slot @radix-ui/react-label @radix-ui/react-dialog @radix-ui/react-separator @radix-ui/react-toast 2>&1 | tail -5)"
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-api:
+    runs-on: ubuntu-latest
+    # Railway auto-deploys from GitHub — this job is a placeholder
+    # Configure Railway to watch apps/api/** for changes
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "Railway auto-deploys from main branch"
+
+  deploy-web:
+    runs-on: ubuntu-latest
+    # Vercel auto-deploys from GitHub — this job is a placeholder
+    # Configure Vercel project root to apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "Vercel auto-deploys from main branch"
