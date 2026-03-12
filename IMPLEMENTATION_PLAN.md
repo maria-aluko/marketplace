@@ -62,12 +62,16 @@ Full Prisma schema at `apps/api/prisma/schema.prisma`. Key models:
 | AuthIdentity | Multi-provider auth (phone now, Google/Facebook later) |
 | OtpRequest | Code hash, attempts counter, expiry |
 | RefreshToken | Token hash, revocation tracking |
-| Vendor | Profile, status machine, ratings, soft-delete |
+| Vendor | Profile, status machine, ratings, subscriptionTier, soft-delete |
+| Listing | ListingType (SERVICE\|RENTAL), category, description, photos, vendorId |
+| ListingRentalDetails | quantity, pricePerDay, depositAmount, DeliveryOption, condition — 1:1 with Listing |
 | VendorPortfolio | Media items (max 10 images, 2 videos) |
 | Review | Rating, body (min 50 chars), status, soft-delete |
 | VendorReply | One reply per review, editable 48hrs |
 | Dispute | Status machine (open → decided → appealed → closed) |
 | AdminLog | Append-only audit trail |
+
+Key enums: `ListingType` (SERVICE\|RENTAL), `RentalCategory` (tent\|chairs_tables\|cooking_equipment\|generator\|lighting\|other_rental), `DeliveryOption` (pickup_only\|delivery_only\|both), `SubscriptionTier` (free\|pro\|pro_plus)
 
 ---
 
@@ -155,7 +159,33 @@ Types:   pnpm turbo run typecheck — clean
 
 ---
 
-### Phase 2: Portfolio, Reviews, Search (Weeks 4–7)
+### Phase 2: Listings + Portfolio + Reviews + Search (Weeks 4–8)
+
+#### Track A — Listings (new scope)
+
+**Shared package:**
+- [ ] `ListingType`, `RentalCategory`, `DeliveryOption`, `SubscriptionTier` enums
+- [ ] `CreateServiceListingPayload`, `CreateRentalListingPayload`, `ListingResponse` types
+- [ ] `createServiceListingSchema`, `createRentalListingSchema` Zod schemas
+
+**Backend:**
+- [ ] Prisma: `Listing` model + `ListingRentalDetails` 1:1 model + migration
+- [ ] Prisma: `subscriptionTier` field on Vendor (schema-only, default `free`)
+- [ ] `ListingsModule` — create/update/delete service listing (owner only)
+- [ ] `ListingsModule` — create/update/delete rental listing (owner only, with rental details)
+- [ ] `ListingsModule` — GET /listings/:id (public)
+- [ ] Search: extend `SearchModule` to query `listings` table, filter by `listingType`, `rentalCategory`
+
+**Frontend:**
+- [ ] Vendor dashboard — listing management UI (add service / add rental)
+- [ ] Listing detail page (SSR, photos, WhatsApp contact button)
+
+**Tests:**
+- [ ] Unit: ListingsService (ownership, rental detail CRUD, quantity validation)
+
+---
+
+#### Track B — Portfolio, Reviews, Search (existing Phase 2 scope)
 
 **Shared package:**
 - [ ] Portfolio types, review types, search types, remaining Zod schemas
@@ -169,14 +199,14 @@ Types:   pnpm turbo run typecheck — clean
 - [ ] `ReviewsModule` — ReviewScoreService.recalculate()
 - [ ] `ReviewsModule` — Vendor reply (one per review, 48h edit window)
 - [ ] `SearchModule` — Ranked SQL query with 4-factor scoring
-- [ ] `SearchModule` — Filters (category, area, keyword, verified-only)
+- [ ] `SearchModule` — Filters (category, area, keyword, verified-only, listingType)
 - [ ] `SearchModule` — Cursor pagination
 - [ ] `NotificationsModule` — Resend email + Termii SMS templates (internal only)
 - [ ] Admin endpoints: review queue, approve, remove
 
 **Frontend:**
-- [ ] Vendor profile page (SSR, badges, gallery, reviews, enquiry button, share button)
-- [ ] Search page (filters, vendor cards, infinite scroll)
+- [ ] Vendor profile page (SSR, badges, gallery, listings, reviews, enquiry button, share button)
+- [ ] Search page (filters, listing cards, infinite scroll)
 - [ ] Client review submission flow
 - [ ] Vendor dashboard (edit profile, portfolio management, view reviews)
 - [ ] Portfolio upload UI (drag-and-drop, progress, Cloudinary direct upload)
@@ -186,19 +216,20 @@ Types:   pnpm turbo run typecheck — clean
 **Tests:**
 - [ ] Unit: PortfolioService (limits, ownership)
 - [ ] Unit: ReviewsService (duplicate check, scoring)
-- [ ] Unit: SearchService (ranking, filters, exclusions)
+- [ ] Unit: SearchService (ranking, filters, exclusions, listingType filter)
 - [ ] Unit: VendorReply (48h window)
 - [ ] E2E: Full review flow (client OTP → submit → admin approve → score update)
 - [ ] E2E: Search ranking
 - [ ] E2E: Portfolio upload
-- [ ] Frontend: Vendor card, search states, review form, portfolio upload
-- [ ] Playwright: Search → click vendor → verify content
+- [ ] Frontend: Listing card, search states, review form, portfolio upload
+- [ ] Playwright: Search → click listing → verify content
 - [ ] Playwright: Submit review flow
 
 **Exit criteria:**
 ```bash
 pnpm turbo run test && pnpm turbo run test:e2e
-# Search returns ranked results with correct ordering
+# Search returns ranked results with correct ordering, filterable by listing type
+# Vendor can create service + rental listings from dashboard
 # Review flow works end-to-end, score updates on vendor profile
 # Portfolio upload works on mobile 4G
 # WhatsApp share shows preview card
@@ -206,16 +237,25 @@ pnpm turbo run test && pnpm turbo run test:e2e
 
 ---
 
-### Phase 3: Trust Layer + Disputes (Weeks 8–10)
+### Phase 3: Vendor Business Tools + Trust Layer (Weeks 9–12)
 
-**Backend:**
+**Subscription enforcement:**
+- [ ] `SubscriptionsModule` — tier enforcement (listing/photo limits by tier: free=1 listing+3 photos, pro=10+20, pro_plus=unlimited)
+
+**Vendor business tools:**
+- [ ] CRM: customer records (name, event date, contact, quote status, notes) per vendor
+- [ ] Booking calendar: date-based availability for service vendors
+- [ ] Inventory management: quantityBooked tracking for rental vendors
+- [ ] Invoicing: PDF generation, payment link, receipt
+
+**Trust layer (disputes + admin):**
 - [ ] `DisputesModule` — Submit dispute (vendor only, within 72h)
 - [ ] `DisputesModule` — Evidence upload
 - [ ] `DisputesModule` — Admin decide (with policy clause + audit)
 - [ ] `DisputesModule` — Appeal (one, within 48h)
 - [ ] `DisputesModule` — Status machine
 - [ ] `AdminModule` — Full queues (vendors, reviews, disputes)
-- [ ] `AdminModule` — Analytics endpoint
+- [ ] `AdminModule` — Analytics endpoint (rental listing count, service listing count, avg listings per vendor)
 - [ ] `AdminModule` — All actions call AuditService
 - [ ] Dispute email notifications (opened, evidence, decided, appealed)
 - [ ] CORS hardened for production
@@ -223,12 +263,14 @@ pnpm turbo run test && pnpm turbo run test:e2e
 **Frontend:**
 - [ ] Dispute form + evidence upload
 - [ ] Admin dashboard (vendor queue, review queue, dispute queue, analytics)
+- [ ] Vendor dashboard: CRM, calendar, inventory, invoicing
 - [ ] Public policy page (static)
 - [ ] Transparency report page
 - [ ] PWA: manifest.json, service worker, Android install prompt
 
 **Tests:**
 - [ ] Unit: DisputesService (72h window, evidence parties, appeal limits)
+- [ ] Unit: SubscriptionsService (tier limit enforcement)
 - [ ] Unit: Admin analytics
 - [ ] E2E: Full dispute lifecycle (review → dispute → evidence → decide → appeal → close)
 - [ ] E2E: Audit log completeness
@@ -239,6 +281,7 @@ pnpm turbo run test && pnpm turbo run test:e2e
 pnpm turbo run test && pnpm turbo run test:e2e
 # Full dispute lifecycle works end-to-end
 # Every admin action logged in audit_log
+# Free tier vendors blocked from creating >1 listing
 # PWA installs on Android Chrome
 # Service worker caches vendor profiles for offline viewing
 ```
@@ -355,6 +398,9 @@ SENTRY_AUTH_TOKEN
 | Metric | Target | V2-justified |
 |--------|--------|-------------|
 | Active verified vendors | 50+ | 100+ |
+| Service listings created | 50+ | 200+ |
+| Rental listings created | 20+ | 100+ |
+| Avg listings per vendor | 1.5+ | 3+ |
 | Client review submissions | 30+ | 100+ |
 | Monthly unique visitors | 500+ | 2,000+ |
 | Vendor enquiry clicks | 100+ | 500+ |

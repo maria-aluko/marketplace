@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-EventTrust Nigeria — a verified event vendor directory for Lagos. Mobile-first PWA for clients to find trustworthy caterers, photographers, and venues. Vendors sign up with phone OTP, get verified by admins, and build trust through reviewed portfolios and client reviews.
+EventTrust Nigeria — a verified event vendor marketplace for services and equipment rentals in Lagos. Mobile-first PWA for clients to find trustworthy caterers, photographers, venues, and equipment rental vendors (tents, chairs, generators, lighting). Vendors sign up with phone OTP, get verified by admins, and build trust through reviewed portfolios, client reviews, and multiple service/rental listings.
 
 ## Architecture
 
@@ -64,10 +64,14 @@ apps/api/src/
 │   ├── vendors.controller.ts  # POST /vendors, PATCH /vendors/:id, POST /vendors/:id/submit, GET /vendors/:id, PATCH /vendors/:id/status
 │   ├── vendors.service.ts     # create, update, submitForReview, findById, findBySlug
 │   └── services/vendor-status.service.ts  # transition() with audit logging
+├── listings/         # (Phase 2) Service + rental listing CRUD
+│   ├── listings.controller.ts   # POST /listings, PATCH /listings/:id, DELETE /listings/:id, GET /listings/:id
+│   ├── listings.service.ts      # create, update, delete, findById
+│   └── dto/                     # CreateServiceListingDto, CreateRentalListingDto
 ├── portfolio/        # (Phase 2) Cloudinary signed URL, upload confirmation
 ├── reviews/          # (Phase 2) Submission, scoring, replies
 ├── disputes/         # (Phase 3) Dispute workflow, evidence, decisions
-├── search/           # (Phase 2) Ranked search with SQL scoring
+├── search/           # (Phase 2) Ranked search with SQL scoring across listings
 ├── admin/            # (Phase 3) Moderation queues, analytics
 ├── notifications/    # (Phase 2) Resend email + Termii SMS (internal only)
 └── common/
@@ -85,14 +89,24 @@ Modules are self-contained (own controller, service, DTOs). No direct cross-modu
 | In Shared | NOT in Shared |
 |-----------|---------------|
 | Enums (VendorStatus, UserRole, etc.) | Prisma client/generated types (backend only) |
-| API request/response type interfaces | NestJS decorators, guards, pipes |
-| Business rule constants (limits, weights) | React components, hooks |
-| Zod validation schemas | Environment config shapes |
-| Lagos areas list | Service implementations |
+| `ListingType` enum: `service \| rental` | NestJS decorators, guards, pipes |
+| `RentalCategory` enum: `tent \| chairs_tables \| cooking_equipment \| generator \| lighting \| other_rental` | React components, hooks |
+| `DeliveryOption` enum: `pickup_only \| delivery_only \| both` | Environment config shapes |
+| `SubscriptionTier` enum: `free \| pro \| pro_plus` | Service implementations |
+| API request/response type interfaces | — |
+| `CreateServiceListingPayload`, `CreateRentalListingPayload`, `ListingResponse` types | — |
+| `createServiceListingSchema`, `createRentalListingSchema` Zod schemas | — |
+| Business rule constants (limits, weights) | — |
+| Zod validation schemas | — |
+| Lagos areas list | — |
 
 ## Key Business Rules
 
 - **Vendor status machine:** `draft → pending → active | changes_requested | suspended`. All transitions go through a single `VendorStatusService.transition()` method with mandatory audit logging.
+- **Listing ownership:** A vendor can create multiple listings (services and rentals). Each listing belongs to exactly one vendor.
+- **Rental quantity:** `quantityAvailable` tracks total stock. Future inventory management will track `quantityBooked` vs `quantityAvailable`.
+- **Listing visibility:** Only listings under `status = 'active'` vendors appear in search results.
+- **Subscription tiers:** `free | pro | pro_plus` stored on Vendor. Tier limits (listing count, photo count) enforced in `ListingsService`. Schema-ready from Phase 2; business logic in Phase 3.
 - **Reviews:** One per vendor per client per calendar year. Min 50 chars (DB constraint). Vendor gets one reply per review, editable within 48hrs. Soft deletes only.
 - **Disputes:** Vendor can raise within 72hrs of review approval. Status: `open → decided → appealed → closed`. One appeal allowed.
 - **Search ranking (ORDER BY in SQL):** `avg_rating * 0.5 + (LEAST(review_count, 50)/50 * 0.3) + (profile_complete_score * 0.1) + (recency_score * 0.1)`. Only `status = 'active'` vendors shown.
@@ -103,7 +117,10 @@ Modules are self-contained (own controller, service, DTOs). No direct cross-modu
 
 Prisma ORM connecting to Supabase Postgres. Schema at `apps/api/prisma/schema.prisma`.
 
-Key tables: `users`, `auth_identities`, `vendors`, `vendor_portfolio`, `otp_requests`, `refresh_tokens`, `reviews`, `vendor_replies`, `disputes`, `admin_log`.
+Key tables: `users`, `auth_identities`, `vendors`, `listings`, `listing_rental_details`, `vendor_portfolio`, `otp_requests`, `refresh_tokens`, `reviews`, `vendor_replies`, `disputes`, `admin_log`.
+
+- `listings` — polymorphic listing (type: SERVICE | RENTAL), owned by a Vendor
+- `listing_rental_details` — rental-specific fields (quantity, pricePerDay, depositAmount, deliveryOption, condition) — 1:1 with Listing
 
 - Soft-delete middleware (Prisma client extension) on: User, Vendor, Review
 - `admin_log` is append-only — never update or delete rows
