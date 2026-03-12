@@ -17,7 +17,8 @@
       "Bash(cd apps/api && npx prisma generate 2>&1)",
       "Bash(cd C:/Users/maria/Desktop/Projects/naijaDev/apps/api && npx prisma generate 2>&1)",
       "Bash(cd C:/Users/maria/Desktop/Projects/naijaDev/apps/api && pnpm vitest run 2>&1)",
-      "Bash(cd C:/Users/maria/Desktop/Projects/naijaDev/apps/web && pnpm vitest run 2>&1)"
+      "Bash(cd C:/Users/maria/Desktop/Projects/naijaDev/apps/web && pnpm vitest run 2>&1)",
+      "Bash(cd C:/Users/maria/Desktop/Projects/naijaDev/apps/api && pnpm test 2>&1)"
     ]
   }
 }

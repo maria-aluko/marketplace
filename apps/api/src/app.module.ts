@@ -9,6 +9,11 @@ import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { VendorsModule } from './vendors/vendors.module';
 import { ListingsModule } from './listings/listings.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { PortfolioModule } from './portfolio/portfolio.module';
+import { ReviewsModule } from './reviews/reviews.module';
+import { AdminModule } from './admin/admin.module';
+import { SearchModule } from './search/search.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { CsrfMiddleware } from './common/middleware/csrf.middleware';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
@@ -36,6 +41,11 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
     AuthModule,
     VendorsModule,
     ListingsModule,
+    NotificationsModule,
+    PortfolioModule,
+    ReviewsModule,
+    AdminModule,
+    SearchModule,
   ],
   providers: [
     {

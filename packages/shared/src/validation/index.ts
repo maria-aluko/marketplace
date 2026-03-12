@@ -144,7 +144,7 @@ export const searchVendorsSchema = z.object({
   category: z.nativeEnum(VendorCategory).optional(),
   area: z.string().optional(),
   verifiedOnly: z.coerce.boolean().optional().default(false),
-  cursor: z.string().uuid().optional(),
+  cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(50).optional().default(20),
 });
 
