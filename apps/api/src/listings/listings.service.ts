@@ -202,6 +202,19 @@ export class ListingsService {
     return listing ? this.toResponse(listing) : null;
   }
 
+  async findAll(): Promise<ListingResponse[]> {
+    const listings = await this.prisma.listing.findMany({
+      where: {
+        deletedAt: null,
+        vendor: { status: 'ACTIVE', deletedAt: null },
+      },
+      include: { rentalDetails: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return listings.map((l) => this.toResponse(l));
+  }
+
   async findByVendorId(vendorId: string): Promise<ListingResponse[]> {
     const listings = await this.prisma.listing.findMany({
       where: { vendorId, deletedAt: null },

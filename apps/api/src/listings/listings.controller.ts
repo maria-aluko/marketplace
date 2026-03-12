@@ -62,6 +62,13 @@ export class ListingsController {
   }
 
   @Public()
+  @Get()
+  async findAll() {
+    const listings = await this.listingsService.findAll();
+    return { data: listings };
+  }
+
+  @Public()
   @Get(':id')
   async findById(@Param('id') id: string) {
     const listing = await this.listingsService.findById(id);

@@ -21,7 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshUser = useCallback(async () => {
     try {
-      const res = await apiClient.get<{ user: AuthUser }>('/auth/me');
+      const res = await apiClient.get<{ user: AuthUser }>('/auth/me', { skipRefreshRetry: true });
       if (res.success && res.data) {
         setUser(res.data.user);
       } else {

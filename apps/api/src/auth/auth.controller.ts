@@ -8,6 +8,7 @@ import {
   UsePipes,
   HttpCode,
   HttpStatus,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import * as crypto from 'crypto';
@@ -85,7 +86,7 @@ export class AuthController {
   ) {
     const refreshToken = req.cookies?.[REFRESH_COOKIE_NAME];
     if (!refreshToken) {
-      throw new Error('No refresh token provided');
+      throw new UnauthorizedException('No refresh token provided');
     }
 
     const tokens = await this.authService.refreshTokens(refreshToken);

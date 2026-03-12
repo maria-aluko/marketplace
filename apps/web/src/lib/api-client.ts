@@ -93,7 +93,7 @@ class ApiClient {
     return this.refreshing;
   }
 
-  get<T>(path: string, options?: { cache?: RequestCache; next?: NextFetchRequestConfig }) {
+  get<T>(path: string, options?: { cache?: RequestCache; next?: NextFetchRequestConfig; skipRefreshRetry?: boolean }) {
     return this.request<T>('GET', path, options);
   }
 
