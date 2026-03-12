@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import type {
@@ -111,12 +107,14 @@ export class ListingsService {
 
     const listingData: Record<string, any> = {};
     if ('title' in data && data.title !== undefined) listingData.title = data.title;
-    if ('description' in data && data.description !== undefined) listingData.description = data.description;
+    if ('description' in data && data.description !== undefined)
+      listingData.description = data.description;
     if ('photos' in data && data.photos !== undefined) listingData.photos = data.photos;
 
     if (listing.listingType === 'SERVICE') {
       const serviceData = data as UpdateServiceListingPayload;
-      if (serviceData.category !== undefined) listingData.category = serviceData.category.toUpperCase();
+      if (serviceData.category !== undefined)
+        listingData.category = serviceData.category.toUpperCase();
       if (serviceData.priceFrom !== undefined) listingData.priceFrom = serviceData.priceFrom;
       if (serviceData.priceTo !== undefined) listingData.priceTo = serviceData.priceTo;
     }
@@ -126,11 +124,16 @@ export class ListingsService {
     if (listing.listingType === 'RENTAL' && listing.rentalDetails) {
       const rentalData = data as UpdateRentalListingPayload;
       const rentalUpdateData: Record<string, any> = {};
-      if (rentalData.rentalCategory !== undefined) rentalUpdateData.rentalCategory = rentalData.rentalCategory.toUpperCase();
-      if (rentalData.quantityAvailable !== undefined) rentalUpdateData.quantityAvailable = rentalData.quantityAvailable;
-      if (rentalData.pricePerDay !== undefined) rentalUpdateData.pricePerDay = rentalData.pricePerDay;
-      if (rentalData.depositAmount !== undefined) rentalUpdateData.depositAmount = rentalData.depositAmount;
-      if (rentalData.deliveryOption !== undefined) rentalUpdateData.deliveryOption = rentalData.deliveryOption.toUpperCase();
+      if (rentalData.rentalCategory !== undefined)
+        rentalUpdateData.rentalCategory = rentalData.rentalCategory.toUpperCase();
+      if (rentalData.quantityAvailable !== undefined)
+        rentalUpdateData.quantityAvailable = rentalData.quantityAvailable;
+      if (rentalData.pricePerDay !== undefined)
+        rentalUpdateData.pricePerDay = rentalData.pricePerDay;
+      if (rentalData.depositAmount !== undefined)
+        rentalUpdateData.depositAmount = rentalData.depositAmount;
+      if (rentalData.deliveryOption !== undefined)
+        rentalUpdateData.deliveryOption = rentalData.deliveryOption.toUpperCase();
       if (rentalData.condition !== undefined) rentalUpdateData.condition = rentalData.condition;
 
       updated = await this.prisma.$transaction(async (tx) => {
@@ -212,7 +215,7 @@ export class ListingsService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return listings.map((l) => this.toResponse(l));
+    return listings.map((l: any) => this.toResponse(l));
   }
 
   async findByVendorId(vendorId: string): Promise<ListingResponse[]> {
@@ -222,7 +225,7 @@ export class ListingsService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return listings.map((l) => this.toResponse(l));
+    return listings.map((l: any) => this.toResponse(l));
   }
 
   toResponse(listing: any): ListingResponse {
