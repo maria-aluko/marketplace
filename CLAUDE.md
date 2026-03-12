@@ -139,7 +139,9 @@ Key tables: `users`, `auth_identities`, `vendors`, `listings`, `listing_rental_d
 
 ### Next.js Frontend
 - Server components by default; client components only for interactive elements
-- All API calls through typed `apiClient` utility (`src/lib/api-client.ts`) — no raw `fetch()` in components
+- **Two API utilities — never use raw `fetch()` in pages or components:**
+  - **Client components:** `apiClient` (`src/lib/api-client.ts`) — handles CSRF tokens, auto-refresh on 401, `credentials: 'include'`
+  - **Server components:** `serverFetch<T>(path, options?)` (`src/lib/server-api.ts`) — lightweight fetch with Next.js caching (`revalidate`, `tags`), returns `T | null`
 - JWT in httpOnly cookies only, CSRF token in requests
 - Mobile-first CSS (375px base, scale up)
 - All forms must show loading and error states
@@ -221,10 +223,10 @@ res.cookie(CSRF_COOKIE_NAME, csrfToken, {
 });
 ```
 
-### Frontend API client with CSRF + auto-refresh
+### Frontend API client with CSRF + auto-refresh (client components)
 
 ```ts
-// apps/web/src/lib/api-client.ts
+// apps/web/src/lib/api-client.ts — use in 'use client' components only
 // Mutating requests auto-attach CSRF token from cookie
 if (['POST', 'PATCH', 'PUT', 'DELETE'].includes(method)) {
   const csrfToken = getCsrfTokenFromCookie();
@@ -235,6 +237,22 @@ if (res.status === 401 && !options?.skipRefreshRetry) {
   const refreshed = await this.attemptRefresh();
   if (refreshed) return this.request<T>(method, path, { ...options, skipRefreshRetry: true });
 }
+```
+
+### Server-side API fetch (server components)
+
+```ts
+// apps/web/src/lib/server-api.ts — use in server components and generateMetadata()
+import { serverFetch } from '@/lib/server-api';
+
+// Basic usage (default 60s revalidate)
+const listing = await serverFetch<ListingResponse>(`/listings/${id}`);
+
+// With custom caching
+const vendor = await serverFetch<VendorResponse>(`/vendors/${slug}`, {
+  revalidate: 300,
+  tags: ['vendor', slug],
+});
 ```
 
 ### Frontend auth hook usage

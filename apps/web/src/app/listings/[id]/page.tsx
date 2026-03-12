@@ -1,21 +1,7 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import type { ListingResponse } from '@eventtrust/shared';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-
-async function getListing(id: string): Promise<ListingResponse | null> {
-  try {
-    const res = await fetch(`${API_URL}/listings/${id}`, {
-      next: { revalidate: 60 },
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return json.data ?? null;
-  } catch {
-    return null;
-  }
-}
+import { serverFetch } from '@/lib/server-api';
 
 export async function generateMetadata({
   params,
@@ -23,7 +9,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const listing = await getListing(id);
+  const listing = await serverFetch<ListingResponse>(`/listings/${id}`);
   if (!listing) return { title: 'Listing Not Found' };
 
   return {
@@ -42,7 +28,7 @@ export default async function ListingDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const listing = await getListing(id);
+  const listing = await serverFetch<ListingResponse>(`/listings/${id}`);
   if (!listing) notFound();
 
   const whatsappText = encodeURIComponent(
