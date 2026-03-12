@@ -11,7 +11,8 @@
       "Bash(cd /c/Users/maria/Desktop/Projects/naijaDev/apps/web && pnpm add class-variance-authority clsx tailwind-merge lucide-react @radix-ui/react-slot @radix-ui/react-label @radix-ui/react-dialog @radix-ui/react-separator @radix-ui/react-toast 2>&1 | tail -5)",
       "Bash(find /c/Users/maria/Desktop/Projects/naijaDev/apps/api/prisma/migrations -type f -name \"*.sql\" 2>/dev/null | head -20)",
       "Bash(cd C:/Users/maria/Desktop/Projects/naijaDev/apps/api && npx prisma migrate dev --name init 2>&1)",
-      "Bash(pnpm --filter @eventtrust/shared build 2>&1 | tail -10)"
+      "Bash(pnpm --filter @eventtrust/shared build 2>&1 | tail -10)",
+      "Bash(ls -la /c/Users/maria/Desktop/Projects/naijaDev/docs/ | grep -E \"\\\\.md$\")"
     ]
   }
 }
