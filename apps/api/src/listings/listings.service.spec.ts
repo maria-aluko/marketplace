@@ -212,7 +212,10 @@ describe('ListingsService', () => {
       const listing = makeRentalListing();
       mockPrisma.listing.findFirst
         .mockResolvedValueOnce(listing)
-        .mockResolvedValueOnce({ ...listing, rentalDetails: { ...listing.rentalDetails, quantityAvailable: 20 } });
+        .mockResolvedValueOnce({
+          ...listing,
+          rentalDetails: { ...listing.rentalDetails, quantityAvailable: 20 },
+        });
       mockPrisma.listing.update.mockResolvedValue(listing);
       mockPrisma.listingRentalDetails.update.mockResolvedValue({
         ...listing.rentalDetails,
@@ -256,9 +259,7 @@ describe('ListingsService', () => {
     it('should throw NotFoundException if listing not found', async () => {
       mockPrisma.listing.findFirst.mockResolvedValue(null);
 
-      await expect(service.softDelete('listing-999', 'user-1')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.softDelete('listing-999', 'user-1')).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -284,16 +285,13 @@ describe('ListingsService', () => {
 
   describe('findByVendorId', () => {
     it('should return all listings for a vendor', async () => {
-      mockPrisma.listing.findMany.mockResolvedValue([
-        makeServiceListing(),
-        makeRentalListing(),
-      ]);
+      mockPrisma.listing.findMany.mockResolvedValue([makeServiceListing(), makeRentalListing()]);
 
       const results = await service.findByVendorId('vendor-1');
 
       expect(results).toHaveLength(2);
-      expect(results[0].listingType).toBe('service');
-      expect(results[1].listingType).toBe('rental');
+      expect(results[0]!.listingType).toBe('service');
+      expect(results[1]!.listingType).toBe('rental');
     });
 
     it('should return empty array when vendor has no listings', async () => {
