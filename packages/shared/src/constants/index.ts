@@ -70,6 +70,16 @@ export const OTP_BACKOFF_BASE_MS = 1000;
 // Slug
 export const SLUG_MAX_LENGTH = 80;
 
+// Listing limits
+export const LISTING_MAX_PHOTOS = 10;
+export const FREE_TIER_LISTING_LIMIT = 3;
+export const PRO_TIER_LISTING_LIMIT = 10;
+export const PRO_PLUS_TIER_LISTING_LIMIT = 25;
+export const LISTING_TITLE_MIN_LENGTH = 5;
+export const LISTING_TITLE_MAX_LENGTH = 120;
+export const LISTING_DESCRIPTION_MIN_LENGTH = 20;
+export const LISTING_DESCRIPTION_MAX_LENGTH = 3000;
+
 // Vendor status transitions
 export const VALID_STATUS_TRANSITIONS: Record<string, string[]> = {
   draft: ['pending'],

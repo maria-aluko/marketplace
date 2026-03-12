@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient, Prisma } from '@prisma/client';
 
-const SOFT_DELETE_MODELS: Prisma.ModelName[] = ['Vendor', 'Review', 'User'];
+const SOFT_DELETE_MODELS: Prisma.ModelName[] = ['Vendor', 'Review', 'User', 'Listing'];
 
 function createSoftDeleteExtension() {
   return Prisma.defineExtension({

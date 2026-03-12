@@ -1,4 +1,4 @@
-import { VendorStatus, UserRole, VendorCategory, ReviewStatus, DisputeStatus, MediaType } from '../enums';
+import { VendorStatus, UserRole, VendorCategory, ReviewStatus, DisputeStatus, MediaType, ListingType, RentalCategory, DeliveryOption } from '../enums';
 
 // Auth
 export interface OtpRequestPayload {
@@ -55,6 +55,55 @@ export interface VendorResponse {
   profileCompleteScore: number;
   coverImageUrl?: string;
   userId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Listing
+export interface CreateServiceListingPayload {
+  title: string;
+  description: string;
+  category: VendorCategory;
+  priceFrom?: number;   // kobo
+  priceTo?: number;     // kobo
+  photos?: string[];    // Cloudinary public_ids
+}
+
+export interface CreateRentalListingPayload {
+  title: string;
+  description: string;
+  rentalCategory: RentalCategory;
+  quantityAvailable: number;
+  pricePerDay: number;       // kobo
+  depositAmount?: number;    // kobo
+  deliveryOption: DeliveryOption;
+  condition?: string;
+  photos?: string[];
+}
+
+export interface UpdateServiceListingPayload extends Partial<CreateServiceListingPayload> {}
+export interface UpdateRentalListingPayload extends Partial<CreateRentalListingPayload> {}
+
+export interface ListingRentalDetailsResponse {
+  rentalCategory: RentalCategory;
+  quantityAvailable: number;
+  pricePerDay: number;
+  depositAmount?: number;
+  deliveryOption: DeliveryOption;
+  condition?: string;
+}
+
+export interface ListingResponse {
+  id: string;
+  vendorId: string;
+  listingType: ListingType;
+  title: string;
+  description: string;
+  category?: VendorCategory;      // service listings only
+  priceFrom?: number;
+  priceTo?: number;
+  photos: string[];
+  rentalDetails?: ListingRentalDetailsResponse;
   createdAt: string;
   updatedAt: string;
 }

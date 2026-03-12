@@ -112,10 +112,13 @@ model Vendor {
   updatedAt            DateTime     @updatedAt @map("updated_at")
   deletedAt            DateTime?    @map("deleted_at")
 
+  subscriptionTier SubscriptionTier @default(FREE) @map("subscription_tier")
+
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   portfolio VendorPortfolio[]
   reviews   Review[]
   disputes  Dispute[]
+  listings  Listing[]
 
   @@index([status, avgRating])
   @@index([category, area])
@@ -242,6 +245,79 @@ enum DisputeStatus {
   CLOSED
 
   @@map("dispute_status")
+}
+
+// ─── Listings ────────────────────────────────────────────────────────────────
+
+model Listing {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vendorId    String          @map("vendor_id") @db.Uuid
+  listingType ListingType     @map("listing_type")
+  title       String
+  description String
+  category    VendorCategory?
+  priceFrom   Int?            @map("price_from")
+  priceTo     Int?            @map("price_to")
+  photos      String[]        @default([])
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  deletedAt   DateTime?       @map("deleted_at")
+
+  vendor        Vendor                @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  rentalDetails ListingRentalDetails?
+
+  @@index([vendorId, listingType])
+  @@index([listingType, category])
+  @@map("listings")
+}
+
+model ListingRentalDetails {
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listingId         String         @unique @map("listing_id") @db.Uuid
+  rentalCategory    RentalCategory @map("rental_category")
+  quantityAvailable Int            @map("quantity_available")
+  pricePerDay       Int            @map("price_per_day")
+  depositAmount     Int?           @map("deposit_amount")
+  deliveryOption    DeliveryOption @map("delivery_option")
+  condition         String?
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@map("listing_rental_details")
+}
+
+enum ListingType {
+  SERVICE
+  RENTAL
+
+  @@map("listing_type")
+}
+
+enum RentalCategory {
+  TENT
+  CHAIRS_TABLES
+  COOKING_EQUIPMENT
+  GENERATOR
+  LIGHTING
+  OTHER_RENTAL
+
+  @@map("rental_category")
+}
+
+enum DeliveryOption {
+  PICKUP_ONLY
+  DELIVERY_ONLY
+  BOTH
+
+  @@map("delivery_option")
+}
+
+enum SubscriptionTier {
+  FREE
+  PRO
+  PRO_PLUS
+
+  @@map("subscription_tier")
 }
 
 // ─── Admin Log ───────────────────────────────────────────────────────────────

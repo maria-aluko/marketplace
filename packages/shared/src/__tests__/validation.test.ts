@@ -6,6 +6,10 @@ import {
   createVendorSchema,
   createReviewSchema,
   vendorStatusTransitionSchema,
+  createServiceListingSchema,
+  updateServiceListingSchema,
+  createRentalListingSchema,
+  updateRentalListingSchema,
 } from '../validation';
 
 describe('phoneSchema', () => {
@@ -146,5 +150,132 @@ describe('vendorStatusTransitionSchema', () => {
       newStatus: 'invalid_status',
     });
     expect(result.success).toBe(false);
+  });
+});
+
+describe('createServiceListingSchema', () => {
+  const validServiceListing = {
+    title: 'Premium Catering Service',
+    description: 'We offer full-service catering for weddings, birthdays, and corporate events.',
+    category: 'caterer',
+  };
+
+  it('accepts valid service listing', () => {
+    expect(createServiceListingSchema.safeParse(validServiceListing).success).toBe(true);
+  });
+
+  it('accepts with optional price range and photos', () => {
+    expect(createServiceListingSchema.safeParse({
+      ...validServiceListing,
+      priceFrom: 50000,
+      priceTo: 200000,
+      photos: ['img_abc123'],
+    }).success).toBe(true);
+  });
+
+  it('rejects title too short', () => {
+    expect(createServiceListingSchema.safeParse({
+      ...validServiceListing,
+      title: 'Hi',
+    }).success).toBe(false);
+  });
+
+  it('rejects description too short', () => {
+    expect(createServiceListingSchema.safeParse({
+      ...validServiceListing,
+      description: 'Too short',
+    }).success).toBe(false);
+  });
+
+  it('rejects priceFrom > priceTo', () => {
+    expect(createServiceListingSchema.safeParse({
+      ...validServiceListing,
+      priceFrom: 200000,
+      priceTo: 50000,
+    }).success).toBe(false);
+  });
+
+  it('rejects invalid category', () => {
+    expect(createServiceListingSchema.safeParse({
+      ...validServiceListing,
+      category: 'invalid_cat',
+    }).success).toBe(false);
+  });
+});
+
+describe('updateServiceListingSchema', () => {
+  it('accepts partial update', () => {
+    expect(updateServiceListingSchema.safeParse({
+      title: 'Updated Title Here',
+    }).success).toBe(true);
+  });
+
+  it('accepts empty object', () => {
+    expect(updateServiceListingSchema.safeParse({}).success).toBe(true);
+  });
+});
+
+describe('createRentalListingSchema', () => {
+  const validRentalListing = {
+    title: 'Party Tent Rental',
+    description: 'Large marquee tents available for all types of outdoor events.',
+    rentalCategory: 'tent',
+    quantityAvailable: 10,
+    pricePerDay: 15000,
+    deliveryOption: 'both',
+  };
+
+  it('accepts valid rental listing', () => {
+    expect(createRentalListingSchema.safeParse(validRentalListing).success).toBe(true);
+  });
+
+  it('accepts with optional fields', () => {
+    expect(createRentalListingSchema.safeParse({
+      ...validRentalListing,
+      depositAmount: 5000,
+      condition: 'Like new',
+      photos: ['img_tent1', 'img_tent2'],
+    }).success).toBe(true);
+  });
+
+  it('rejects missing required fields', () => {
+    expect(createRentalListingSchema.safeParse({
+      title: 'Party Tent Rental',
+      description: 'Large marquee tents available for all types of outdoor events.',
+    }).success).toBe(false);
+  });
+
+  it('rejects zero quantity', () => {
+    expect(createRentalListingSchema.safeParse({
+      ...validRentalListing,
+      quantityAvailable: 0,
+    }).success).toBe(false);
+  });
+
+  it('rejects invalid rental category', () => {
+    expect(createRentalListingSchema.safeParse({
+      ...validRentalListing,
+      rentalCategory: 'invalid',
+    }).success).toBe(false);
+  });
+
+  it('rejects invalid delivery option', () => {
+    expect(createRentalListingSchema.safeParse({
+      ...validRentalListing,
+      deliveryOption: 'invalid',
+    }).success).toBe(false);
+  });
+});
+
+describe('updateRentalListingSchema', () => {
+  it('accepts partial update', () => {
+    expect(updateRentalListingSchema.safeParse({
+      quantityAvailable: 20,
+      pricePerDay: 20000,
+    }).success).toBe(true);
+  });
+
+  it('accepts empty object', () => {
+    expect(updateRentalListingSchema.safeParse({}).success).toBe(true);
   });
 });

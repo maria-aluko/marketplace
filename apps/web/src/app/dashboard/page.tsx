@@ -59,16 +59,31 @@ export default function DashboardPage() {
         </Card>
 
         {user.vendorId ? (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Vendor Profile</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600">
-                Your vendor profile is set up. Check your vendor page for status updates.
-              </p>
-            </CardContent>
-          </Card>
+          <>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Vendor Profile</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600">
+                  Your vendor profile is set up. Check your vendor page for status updates.
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Manage Listings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="mb-4 text-sm text-gray-600">
+                  Create and manage your service and rental listings.
+                </p>
+                <Link href="/dashboard/listings">
+                  <Button variant="outline">View Listings</Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </>
         ) : (
           <Card>
             <CardHeader>

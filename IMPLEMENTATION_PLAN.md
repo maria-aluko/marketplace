@@ -161,12 +161,11 @@ Key enums: `ListingType` (SERVICE\|RENTAL), `RentalCategory` (tent\|chairs_table
 **Test summary:**
 
 ```
-Shared:  19 tests (1 file)
-API:     32 tests (5 files)
-Web:     13 tests (4 files)
-Total:   64 tests — all passing
+Shared:  35 tests (1 file)   — +16 listing schema tests
+API:     51 tests (7 files)  — +19 (ListingsService 14, ListingOwnerGuard 5)
+Web:     17 tests (5 files)  — +4 (ServiceListingForm)
+Total:   103 tests — all passing
 Build:   pnpm turbo run build — clean
-Types:   pnpm turbo run typecheck — clean
 ```
 
 ---
@@ -178,26 +177,40 @@ Types:   pnpm turbo run typecheck — clean
 **Shared package:**
 
 - [x] `ListingType`, `RentalCategory`, `DeliveryOption`, `SubscriptionTier` enums (added in Phase 1 audit)
-- [ ] `CreateServiceListingPayload`, `CreateRentalListingPayload`, `ListingResponse` types
-- [ ] `createServiceListingSchema`, `createRentalListingSchema` Zod schemas
+- [x] `CreateServiceListingPayload`, `CreateRentalListingPayload`, `ListingResponse` types + update/rental-details types
+- [x] `createServiceListingSchema`, `createRentalListingSchema`, `updateServiceListingSchema`, `updateRentalListingSchema` Zod schemas
+- [x] Listing limit constants (`LISTING_MAX_PHOTOS`, tier limits, title/description lengths)
+- [x] 16 new validation tests for listing schemas (35 total in shared)
 
 **Backend:**
 
-- [ ] Prisma: `Listing` model + `ListingRentalDetails` 1:1 model + migration
-- [ ] Prisma: `subscriptionTier` field on Vendor (schema-only, default `free`)
-- [ ] `ListingsModule` — create/update/delete service listing (owner only)
-- [ ] `ListingsModule` — create/update/delete rental listing (owner only, with rental details)
-- [ ] `ListingsModule` — GET /listings/:id (public)
-- [ ] Search: extend `SearchModule` to query `listings` table, filter by `listingType`, `rentalCategory`
+- [x] Prisma: `Listing` model + `ListingRentalDetails` 1:1 model (migration pending — run `prisma migrate dev`)
+- [x] Prisma: `subscriptionTier` field on Vendor (schema-only, default `FREE`)
+- [x] Prisma: 4 new enums (`ListingType`, `RentalCategory`, `DeliveryOption`, `SubscriptionTier`)
+- [x] `Listing` added to soft-delete extension in `PrismaService`
+- [x] `ListingOwnerGuard` — async guard with DB lookup, admin bypass
+- [x] `ListingsModule` — create/update/delete service listing (owner only via ListingOwnerGuard)
+- [x] `ListingsModule` — create/update/delete rental listing (owner only, with rental details in transaction)
+- [x] `ListingsModule` — GET /listings/:id (public), GET /vendors/:vendorId/listings (public)
+- [x] Vendor status check: only ACTIVE vendors can create listings (ForbiddenException)
+- [x] Audit logging on all listing create/update/delete operations
+- [x] Seed data updated with 2 service listings + 1 rental listing
+- [ ] Search: extend `SearchModule` to query `listings` table, filter by `listingType`, `rentalCategory` (deferred to Track B)
 
 **Frontend:**
 
-- [ ] Vendor dashboard — listing management UI (add service / add rental)
-- [ ] Listing detail page (SSR, photos, WhatsApp contact button)
+- [x] Dashboard — "Manage Listings" card linking to `/dashboard/listings`
+- [x] Vendor dashboard — listing management UI with type badges, delete, add service/rental buttons
+- [x] `ServiceListingForm` — client component with Zod validation, category dropdown
+- [x] `RentalListingForm` — client component with rental-specific fields (quantity, pricePerDay, deliveryOption, rentalCategory)
+- [x] Route pages: `/dashboard/listings/new/service`, `/dashboard/listings/new/rental`
+- [x] Listing detail page (SSR with `generateMetadata` for og:title/og:description, WhatsApp contact button)
 
 **Tests:**
 
-- [ ] Unit: ListingsService (ownership, rental detail CRUD, quantity validation)
+- [x] Unit: ListingsService — 14 tests (create service/rental, update, soft-delete, findById, findByVendorId)
+- [x] Unit: ListingOwnerGuard — 5 tests (owner, non-owner, admin, not found, no user)
+- [x] Frontend: ServiceListingForm — 4 tests (renders, validates, submits, shows errors)
 
 ---
 

@@ -8,6 +8,7 @@ import { HealthModule } from './health/health.module';
 import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { VendorsModule } from './vendors/vendors.module';
+import { ListingsModule } from './listings/listings.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { CsrfMiddleware } from './common/middleware/csrf.middleware';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
@@ -34,6 +35,7 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
     AuditModule,
     AuthModule,
     VendorsModule,
+    ListingsModule,
   ],
   providers: [
     {
