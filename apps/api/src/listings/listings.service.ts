@@ -1,4 +1,5 @@
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import type {
@@ -54,7 +55,7 @@ export class ListingsService {
   ): Promise<ListingResponse> {
     await this.ensureVendorActive(vendorId);
 
-    const result = await this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const listing = await tx.listing.create({
         data: {
           vendorId,
@@ -136,7 +137,7 @@ export class ListingsService {
         rentalUpdateData.deliveryOption = rentalData.deliveryOption.toUpperCase();
       if (rentalData.condition !== undefined) rentalUpdateData.condition = rentalData.condition;
 
-      updated = await this.prisma.$transaction(async (tx) => {
+      updated = await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         const updatedListing = await tx.listing.update({
           where: { id: listingId },
           data: listingData,
