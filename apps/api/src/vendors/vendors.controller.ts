@@ -51,9 +51,10 @@ export class VendorsController {
   @UseGuards(VendorOwnerGuard)
   async update(
     @Param('id') id: string,
+    @CurrentUser() user: AccessTokenPayload,
     @Body(new ZodValidationPipe(updateVendorSchema)) body: UpdateVendorPayload,
   ) {
-    const vendor = await this.vendorsService.update(id, body);
+    const vendor = await this.vendorsService.update(id, user.sub, body);
     return { data: vendor };
   }
 
@@ -99,6 +100,6 @@ export class VendorsController {
       user.sub,
       body.reason,
     );
-    return { data: vendor };
+    return { data: this.vendorsService.toResponse(vendor) };
   }
 }

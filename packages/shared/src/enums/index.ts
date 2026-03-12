@@ -49,3 +49,29 @@ export enum MediaType {
   IMAGE = 'image',
   VIDEO = 'video',
 }
+
+export enum ListingType {
+  SERVICE = 'service',
+  RENTAL = 'rental',
+}
+
+export enum RentalCategory {
+  TENT = 'tent',
+  CHAIRS_TABLES = 'chairs_tables',
+  COOKING_EQUIPMENT = 'cooking_equipment',
+  GENERATOR = 'generator',
+  LIGHTING = 'lighting',
+  OTHER_RENTAL = 'other_rental',
+}
+
+export enum DeliveryOption {
+  PICKUP_ONLY = 'pickup_only',
+  DELIVERY_ONLY = 'delivery_only',
+  BOTH = 'both',
+}
+
+export enum SubscriptionTier {
+  FREE = 'free',
+  PRO = 'pro',
+  PRO_PLUS = 'pro_plus',
+}

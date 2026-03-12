@@ -66,7 +66,7 @@ export class VendorsService {
     return this.toResponse(vendor);
   }
 
-  async update(vendorId: string, data: UpdateVendorPayload): Promise<VendorResponse> {
+  async update(vendorId: string, actorId: string, data: UpdateVendorPayload): Promise<VendorResponse> {
     const vendor = await this.prisma.vendor.findFirst({
       where: { id: vendorId, deletedAt: null },
     });
@@ -101,6 +101,14 @@ export class VendorsService {
     const updated = await this.prisma.vendor.update({
       where: { id: vendorId },
       data: updateData,
+    });
+
+    await this.auditService.log({
+      action: 'vendor.updated',
+      actorId,
+      targetType: 'Vendor',
+      targetId: vendorId,
+      metadata: { fields: Object.keys(updateData).filter(k => k !== 'profileCompleteScore') },
     });
 
     return this.toResponse(updated);
@@ -161,7 +169,7 @@ export class VendorsService {
     return slug;
   }
 
-  private toResponse(vendor: any): VendorResponse {
+  toResponse(vendor: any): VendorResponse {
     return {
       id: vendor.id,
       slug: vendor.slug,

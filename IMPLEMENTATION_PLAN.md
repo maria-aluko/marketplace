@@ -22,33 +22,33 @@ eventtrust/
 
 ## Tech Stack
 
-| Layer | Choice | Why |
-|-------|--------|-----|
-| API | NestJS 11 | Modular, guards/pipes/interceptors, DI |
-| Database | Supabase Postgres + Prisma ORM | Type-safe queries, version-controlled migrations |
-| OTP/SMS | Termii | Nigerian provider, cheaper than Twilio |
-| Media | Cloudinary | Signed URL uploads, CDN, auto-optimization |
-| Email | Resend | Free tier: 3,000/month |
-| Frontend | Next.js 15 (App Router) | SSR for SEO, PWA for Android |
-| Styling | Tailwind CSS + shadcn/ui | Mobile-first, accessible |
-| Auth | Phone OTP → JWT (httpOnly cookies) | Argon2 OTP hashing, refresh token rotation |
-| Testing | Vitest, Supertest, Playwright | Unit, E2E, browser tests |
-| CI/CD | GitHub Actions + Turborepo cache | Lint → typecheck → test → build |
+| Layer    | Choice                             | Why                                              |
+| -------- | ---------------------------------- | ------------------------------------------------ |
+| API      | NestJS 11                          | Modular, guards/pipes/interceptors, DI           |
+| Database | Supabase Postgres + Prisma ORM     | Type-safe queries, version-controlled migrations |
+| OTP/SMS  | Termii                             | Nigerian provider, cheaper than Twilio           |
+| Media    | Cloudinary                         | Signed URL uploads, CDN, auto-optimization       |
+| Email    | Resend                             | Free tier: 3,000/month                           |
+| Frontend | Next.js 15 (App Router)            | SSR for SEO, PWA for Android                     |
+| Styling  | Tailwind CSS + shadcn/ui           | Mobile-first, accessible                         |
+| Auth     | Phone OTP → JWT (httpOnly cookies) | Argon2 OTP hashing, refresh token rotation       |
+| Testing  | Vitest, Supertest, Playwright      | Unit, E2E, browser tests                         |
+| CI/CD    | GitHub Actions + Turborepo cache   | Lint → typecheck → test → build                  |
 
 ---
 
 ## Security Layers
 
-| Layer | Implementation |
-|-------|----------------|
-| HTTP headers | Helmet middleware |
-| Rate limiting | @nestjs/throttler (global + per-endpoint) |
-| OTP brute force | Max 5 verify attempts per OTP, exponential backoff |
-| OTP hashing | Argon2 |
-| CSRF | Double-submit cookie pattern |
-| Refresh tokens | Rotation with revocation detection |
-| Cookies | httpOnly + Secure + SameSite=Lax |
-| Input sanitization | Strip HTML from text inputs |
+| Layer              | Implementation                                     |
+| ------------------ | -------------------------------------------------- |
+| HTTP headers       | Helmet middleware                                  |
+| Rate limiting      | @nestjs/throttler (global + per-endpoint)          |
+| OTP brute force    | Max 5 verify attempts per OTP, exponential backoff |
+| OTP hashing        | Argon2                                             |
+| CSRF               | Double-submit cookie pattern                       |
+| Refresh tokens     | Rotation with revocation detection                 |
+| Cookies            | httpOnly + Secure + SameSite=Lax                   |
+| Input sanitization | Strip HTML from text inputs                        |
 
 ---
 
@@ -56,20 +56,20 @@ eventtrust/
 
 Full Prisma schema at `apps/api/prisma/schema.prisma`. Key models:
 
-| Model | Purpose |
-|-------|---------|
-| User | Phone, role (CLIENT/VENDOR/ADMIN), soft-delete |
-| AuthIdentity | Multi-provider auth (phone now, Google/Facebook later) |
-| OtpRequest | Code hash, attempts counter, expiry |
-| RefreshToken | Token hash, revocation tracking |
-| Vendor | Profile, status machine, ratings, subscriptionTier, soft-delete |
-| Listing | ListingType (SERVICE\|RENTAL), category, description, photos, vendorId |
+| Model                | Purpose                                                                            |
+| -------------------- | ---------------------------------------------------------------------------------- |
+| User                 | Phone, role (CLIENT/VENDOR/ADMIN), soft-delete                                     |
+| AuthIdentity         | Multi-provider auth (phone now, Google/Facebook later)                             |
+| OtpRequest           | Code hash, attempts counter, expiry                                                |
+| RefreshToken         | Token hash, revocation tracking                                                    |
+| Vendor               | Profile, status machine, ratings, subscriptionTier, soft-delete                    |
+| Listing              | ListingType (SERVICE\|RENTAL), category, description, photos, vendorId             |
 | ListingRentalDetails | quantity, pricePerDay, depositAmount, DeliveryOption, condition — 1:1 with Listing |
-| VendorPortfolio | Media items (max 10 images, 2 videos) |
-| Review | Rating, body (min 50 chars), status, soft-delete |
-| VendorReply | One reply per review, editable 48hrs |
-| Dispute | Status machine (open → decided → appealed → closed) |
-| AdminLog | Append-only audit trail |
+| VendorPortfolio      | Media items (max 10 images, 2 videos)                                              |
+| Review               | Rating, body (min 50 chars), status, soft-delete                                   |
+| VendorReply          | One reply per review, editable 48hrs                                               |
+| Dispute              | Status machine (open → decided → appealed → closed)                                |
+| AdminLog             | Append-only audit trail                                                            |
 
 Key enums: `ListingType` (SERVICE\|RENTAL), `RentalCategory` (tent\|chairs_tables\|cooking_equipment\|generator\|lighting\|other_rental), `DeliveryOption` (pickup_only\|delivery_only\|both), `SubscriptionTier` (free\|pro\|pro_plus)
 
@@ -105,6 +105,7 @@ Key enums: `ListingType` (SERVICE\|RENTAL), `RentalCategory` (tent\|chairs_table
 ### Phase 1: Auth + Vendor Foundation — COMPLETE
 
 **Shared package:**
+
 - [x] Auth types (`AccessTokenPayload`, `RefreshTokenPayload`, `AuthResponse`, `CsrfTokenResponse`, `OtpRequestResponse`)
 - [x] Vendor types (`VendorStatusTransitionPayload`)
 - [x] Constants (cookie names, CSRF header, OTP backoff, slug max length)
@@ -112,6 +113,7 @@ Key enums: `ListingType` (SERVICE\|RENTAL), `RentalCategory` (tent\|chairs_table
 - [x] 19 tests passing (4 new)
 
 **Backend (NestJS):**
+
 - [x] `AuditModule` — Append-only `log()` to `admin_log` table
 - [x] `AuthModule` — OTP request (Argon2 hash + Termii SMS, rate limited 3/10min)
 - [x] `AuthModule` — OTP verify (attempt tracking + exponential backoff)
@@ -132,6 +134,7 @@ Key enums: `ListingType` (SERVICE\|RENTAL), `RentalCategory` (tent\|chairs_table
 - [x] 32 unit tests passing (auth service, vendor status, guards, audit)
 
 **Frontend (Next.js):**
+
 - [x] shadcn/ui components (Button, Input, Label, Card, Badge)
 - [x] Layout shell (Header with mobile nav, Footer)
 - [x] `AuthProvider` context + `useAuth` hook
@@ -142,12 +145,21 @@ Key enums: `ListingType` (SERVICE\|RENTAL), `RentalCategory` (tent\|chairs_table
 - [x] Middleware protecting `/vendor/signup`, `/dashboard`
 - [x] 13 tests passing (OTP forms, vendor signup, home page)
 
+- [x] Run Prisma migrations against Supabase (migration `20260312091718_init` applied, tables visible in Supabase)
+- [x] Seed dev data (`apps/api/prisma/seed.ts` — seed data visible in Supabase)
+
+**Code Review Fixes Applied (post-Phase 1 audit):**
+
+- [x] Added `auditService.log({ action: 'vendor.updated', ... })` in `VendorsService.update()` — was missing, violating "every state-changing endpoint calls AuditService" rule
+- [x] Made `VendorsService.toResponse()` public; called it in `VendorsController.updateStatus()` — was returning raw Prisma object with uppercase enums (`status: 'ACTIVE'`) instead of normalized response (`status: 'active'`)
+- [x] Added 4 Phase 2 enums to `@eventtrust/shared` (`ListingType`, `RentalCategory`, `DeliveryOption`, `SubscriptionTier`) — required by CLAUDE.md, needed before Phase 2 work begins
+
 **Still TODO (deferred):**
-- [ ] Run Prisma migrations against Supabase
-- [ ] Seed dev data (`scripts/seed-dev.ts`)
-- [ ] E2E tests (require running database)
+
+- [ ] E2E tests (write + run against live DB)
 
 **Test summary:**
+
 ```
 Shared:  19 tests (1 file)
 API:     32 tests (5 files)
@@ -164,11 +176,13 @@ Types:   pnpm turbo run typecheck — clean
 #### Track A — Listings (new scope)
 
 **Shared package:**
-- [ ] `ListingType`, `RentalCategory`, `DeliveryOption`, `SubscriptionTier` enums
+
+- [x] `ListingType`, `RentalCategory`, `DeliveryOption`, `SubscriptionTier` enums (added in Phase 1 audit)
 - [ ] `CreateServiceListingPayload`, `CreateRentalListingPayload`, `ListingResponse` types
 - [ ] `createServiceListingSchema`, `createRentalListingSchema` Zod schemas
 
 **Backend:**
+
 - [ ] Prisma: `Listing` model + `ListingRentalDetails` 1:1 model + migration
 - [ ] Prisma: `subscriptionTier` field on Vendor (schema-only, default `free`)
 - [ ] `ListingsModule` — create/update/delete service listing (owner only)
@@ -177,10 +191,12 @@ Types:   pnpm turbo run typecheck — clean
 - [ ] Search: extend `SearchModule` to query `listings` table, filter by `listingType`, `rentalCategory`
 
 **Frontend:**
+
 - [ ] Vendor dashboard — listing management UI (add service / add rental)
 - [ ] Listing detail page (SSR, photos, WhatsApp contact button)
 
 **Tests:**
+
 - [ ] Unit: ListingsService (ownership, rental detail CRUD, quantity validation)
 
 ---
@@ -188,10 +204,12 @@ Types:   pnpm turbo run typecheck — clean
 #### Track B — Portfolio, Reviews, Search (existing Phase 2 scope)
 
 **Shared package:**
+
 - [ ] Portfolio types, review types, search types, remaining Zod schemas
 - [ ] Ranking weight constants
 
 **Backend:**
+
 - [ ] `PortfolioModule` — Signed Cloudinary URL generation
 - [ ] `PortfolioModule` — Upload confirmation (validates limits: 10 images, 2 videos)
 - [ ] `PortfolioModule` — Delete portfolio item
@@ -205,6 +223,7 @@ Types:   pnpm turbo run typecheck — clean
 - [ ] Admin endpoints: review queue, approve, remove
 
 **Frontend:**
+
 - [ ] Vendor profile page (SSR, badges, gallery, listings, reviews, enquiry button, share button)
 - [ ] Search page (filters, listing cards, infinite scroll)
 - [ ] Client review submission flow
@@ -214,6 +233,7 @@ Types:   pnpm turbo run typecheck — clean
 - [ ] Enquiry button (wa.me link)
 
 **Tests:**
+
 - [ ] Unit: PortfolioService (limits, ownership)
 - [ ] Unit: ReviewsService (duplicate check, scoring)
 - [ ] Unit: SearchService (ranking, filters, exclusions, listingType filter)
@@ -226,6 +246,7 @@ Types:   pnpm turbo run typecheck — clean
 - [ ] Playwright: Submit review flow
 
 **Exit criteria:**
+
 ```bash
 pnpm turbo run test && pnpm turbo run test:e2e
 # Search returns ranked results with correct ordering, filterable by listing type
@@ -240,15 +261,18 @@ pnpm turbo run test && pnpm turbo run test:e2e
 ### Phase 3: Vendor Business Tools + Trust Layer (Weeks 9–12)
 
 **Subscription enforcement:**
+
 - [ ] `SubscriptionsModule` — tier enforcement (listing/photo limits by tier: free=1 listing+3 photos, pro=10+20, pro_plus=unlimited)
 
 **Vendor business tools:**
+
 - [ ] CRM: customer records (name, event date, contact, quote status, notes) per vendor
 - [ ] Booking calendar: date-based availability for service vendors
 - [ ] Inventory management: quantityBooked tracking for rental vendors
 - [ ] Invoicing: PDF generation, payment link, receipt
 
 **Trust layer (disputes + admin):**
+
 - [ ] `DisputesModule` — Submit dispute (vendor only, within 72h)
 - [ ] `DisputesModule` — Evidence upload
 - [ ] `DisputesModule` — Admin decide (with policy clause + audit)
@@ -261,6 +285,7 @@ pnpm turbo run test && pnpm turbo run test:e2e
 - [ ] CORS hardened for production
 
 **Frontend:**
+
 - [ ] Dispute form + evidence upload
 - [ ] Admin dashboard (vendor queue, review queue, dispute queue, analytics)
 - [ ] Vendor dashboard: CRM, calendar, inventory, invoicing
@@ -269,6 +294,7 @@ pnpm turbo run test && pnpm turbo run test:e2e
 - [ ] PWA: manifest.json, service worker, Android install prompt
 
 **Tests:**
+
 - [ ] Unit: DisputesService (72h window, evidence parties, appeal limits)
 - [ ] Unit: SubscriptionsService (tier limit enforcement)
 - [ ] Unit: Admin analytics
@@ -277,6 +303,7 @@ pnpm turbo run test && pnpm turbo run test:e2e
 - [ ] Playwright: Admin approves vendor, admin decides dispute
 
 **Exit criteria:**
+
 ```bash
 pnpm turbo run test && pnpm turbo run test:e2e
 # Full dispute lifecycle works end-to-end
@@ -291,6 +318,7 @@ pnpm turbo run test && pnpm turbo run test:e2e
 ### Phase 4: Performance, Security Audit, Launch (Weeks 11–12)
 
 **Performance:**
+
 - [ ] Bundle analysis (target: <100KB main JS gzipped, <250KB total)
 - [ ] Cloudinary `f_auto,q_auto` transformations
 - [ ] `font-display: swap`, system font fallback
@@ -298,11 +326,13 @@ pnpm turbo run test && pnpm turbo run test:e2e
 - [ ] ISR for top vendor profiles (1h revalidation)
 
 **SEO:**
+
 - [ ] Dynamic og:image per vendor (Cloudinary text overlay)
 - [ ] sitemap.xml from active vendor slugs
 - [ ] robots.txt, JSON-LD structured data (LocalBusiness schema)
 
 **Security audit:**
+
 - [ ] Scan all routes for correct guard metadata
 - [ ] OTP rate limiting stress test
 - [ ] File upload MIME type validation
@@ -311,11 +341,13 @@ pnpm turbo run test && pnpm turbo run test:e2e
 - [ ] Input sanitization (no stored XSS)
 
 **Launch:**
+
 - [ ] Manual onboarding of 30–50 Lagos vendors
 - [ ] Landing page with value prop
 - [ ] Soft launch to Lagos bridal WhatsApp communities
 
 **Tests:**
+
 - [ ] Lighthouse CI: Performance >70, Accessibility >90, Best Practices >90, SEO >90
 - [ ] Bundle size assertion (fail if >100KB gzipped)
 - [ ] 3G load test via Playwright (vendor profile <5s on Slow 3G)
@@ -323,6 +355,7 @@ pnpm turbo run test && pnpm turbo run test:e2e
 - [ ] Production smoke: health check, search, SSR vendor page, OTP flow
 
 **Exit criteria:**
+
 ```bash
 pnpm turbo run test && pnpm turbo run test:e2e
 # Lighthouse scores above thresholds
@@ -337,6 +370,7 @@ pnpm turbo run test && pnpm turbo run test:e2e
 ## CI/CD Pipeline
 
 ### ci.yml (on push + PRs)
+
 1. Checkout + pnpm install (Turborepo cache)
 2. `turbo run lint`
 3. `turbo run typecheck`
@@ -345,6 +379,7 @@ pnpm turbo run test && pnpm turbo run test:e2e
 6. `turbo run test:e2e` (main branch only)
 
 ### deploy.yml (on push to main)
+
 - **Vercel:** auto-deploys `apps/web`, preview deploys on PRs
 - **Railway:** auto-deploys `apps/api`
 
@@ -353,6 +388,7 @@ pnpm turbo run test && pnpm turbo run test:e2e
 ## Environment Variables
 
 ### apps/api
+
 ```
 DATABASE_URL                # Supabase pooled (PgBouncer)
 DIRECT_DATABASE_URL         # Direct (migrations only)
@@ -371,6 +407,7 @@ PORT=4000
 ```
 
 ### apps/web
+
 ```
 NEXT_PUBLIC_API_URL
 NEXT_PUBLIC_SENTRY_DSN
@@ -382,27 +419,27 @@ SENTRY_AUTH_TOKEN
 
 ## Risks & Mitigations
 
-| Risk | Mitigation |
-|------|------------|
-| Termii SMS failures | Retry 3x with backoff. Log all responses. WhatsApp OTP fallback. |
-| Supabase connection limits | PgBouncer pooled connection. Small pool (5). Health check monitoring. |
-| Cloudinary bandwidth exceeded | Aggressive f_auto,q_auto. Budget $10/month for paid tier. |
-| Railway free tier hours | Monitor hours. Upgrade to Hobby ($5/month) before launch. |
-| Slow 3G in Lagos | Bundle budget in CI. Service worker caching. SSR. Throttled 3G tests. |
-| Vendor onboarding drop-off | Keep signup <10 min. Manual outreach. WhatsApp-based support. |
+| Risk                          | Mitigation                                                            |
+| ----------------------------- | --------------------------------------------------------------------- |
+| Termii SMS failures           | Retry 3x with backoff. Log all responses. WhatsApp OTP fallback.      |
+| Supabase connection limits    | PgBouncer pooled connection. Small pool (5). Health check monitoring. |
+| Cloudinary bandwidth exceeded | Aggressive f_auto,q_auto. Budget $10/month for paid tier.             |
+| Railway free tier hours       | Monitor hours. Upgrade to Hobby ($5/month) before launch.             |
+| Slow 3G in Lagos              | Bundle budget in CI. Service worker caching. SSR. Throttled 3G tests. |
+| Vendor onboarding drop-off    | Keep signup <10 min. Manual outreach. WhatsApp-based support.         |
 
 ---
 
 ## MVP Success Metrics (Month 3)
 
-| Metric | Target | V2-justified |
-|--------|--------|-------------|
-| Active verified vendors | 50+ | 100+ |
-| Service listings created | 50+ | 200+ |
-| Rental listings created | 20+ | 100+ |
-| Avg listings per vendor | 1.5+ | 3+ |
-| Client review submissions | 30+ | 100+ |
-| Monthly unique visitors | 500+ | 2,000+ |
-| Vendor enquiry clicks | 100+ | 500+ |
-| Profile completion rate | >70% | >85% |
-| Dispute rate | <10% | <5% |
+| Metric                    | Target | V2-justified |
+| ------------------------- | ------ | ------------ |
+| Active verified vendors   | 50+    | 100+         |
+| Service listings created  | 50+    | 200+         |
+| Rental listings created   | 20+    | 100+         |
+| Avg listings per vendor   | 1.5+   | 3+           |
+| Client review submissions | 30+    | 100+         |
+| Monthly unique visitors   | 500+   | 2,000+       |
+| Vendor enquiry clicks     | 100+   | 500+         |
+| Profile completion rate   | >70%   | >85%         |
+| Dispute rate              | <10%   | <5%          |
