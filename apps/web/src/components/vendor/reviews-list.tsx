@@ -1,0 +1,50 @@
+import type { ReviewResponse } from '@eventtrust/shared';
+import { StarRating } from '@/components/ui/star-rating';
+import { WriteReviewButton } from './write-review-button';
+
+interface ReviewsListProps {
+  reviews: ReviewResponse[];
+  vendorId: string;
+}
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('en-NG', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+export function ReviewsList({ reviews, vendorId }: ReviewsListProps) {
+  if (reviews.length === 0) {
+    return (
+      <div className="text-center py-6">
+        <p className="text-sm text-gray-500">No reviews yet.</p>
+        <WriteReviewButton vendorId={vendorId} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {reviews.map((review) => (
+        <div key={review.id} className="border-b border-gray-100 pb-6 last:border-0">
+          <div className="flex items-center gap-2">
+            <StarRating value={review.rating} readonly size="sm" />
+            <span className="text-xs text-gray-500">{formatDate(review.createdAt)}</span>
+          </div>
+          <p className="mt-2 text-sm text-gray-700">{review.body}</p>
+
+          {review.reply && (
+            <div className="mt-3 ml-4 border-l-2 border-gray-200 pl-4">
+              <p className="text-xs font-medium text-gray-500">Vendor reply</p>
+              <p className="mt-1 text-sm text-gray-600">{review.reply.body}</p>
+              <span className="text-xs text-gray-400">{formatDate(review.reply.createdAt)}</span>
+            </div>
+          )}
+        </div>
+      ))}
+      <WriteReviewButton vendorId={vendorId} />
+    </div>
+  );
+}

@@ -1,0 +1,53 @@
+import Link from 'next/link';
+import type { ListingResponse } from '@eventtrust/shared';
+import { Badge } from '@/components/ui/badge';
+
+interface ListingCardProps {
+  listing: ListingResponse;
+}
+
+function formatPrice(kobo?: number): string {
+  if (!kobo) return '';
+  return `\u20A6${(kobo / 100).toLocaleString()}`;
+}
+
+export function ListingCard({ listing }: ListingCardProps) {
+  const isRental = listing.listingType === 'rental';
+
+  return (
+    <Link
+      href={`/listings/${listing.id}`}
+      className="block rounded-lg border border-gray-200 bg-white p-4 transition-shadow hover:shadow-md"
+    >
+      <div className="flex items-center gap-2">
+        <Badge variant={isRental ? 'warning' : 'default'} className="text-xs">
+          {listing.listingType}
+        </Badge>
+        {listing.category && (
+          <Badge variant="outline" className="text-xs">
+            {listing.category.replace(/_/g, ' ')}
+          </Badge>
+        )}
+        {listing.rentalDetails?.rentalCategory && (
+          <Badge variant="outline" className="text-xs">
+            {listing.rentalDetails.rentalCategory.replace(/_/g, ' ')}
+          </Badge>
+        )}
+      </div>
+      <h3 className="mt-2 font-medium text-gray-900 line-clamp-1">{listing.title}</h3>
+      <p className="mt-1 text-sm text-gray-500 line-clamp-2">{listing.description}</p>
+      {(listing.priceFrom || listing.priceTo) && (
+        <p className="mt-2 text-sm font-medium text-gray-700">
+          {formatPrice(listing.priceFrom)}
+          {listing.priceTo ? ` - ${formatPrice(listing.priceTo)}` : ''}
+        </p>
+      )}
+      {listing.rentalDetails && (
+        <p className="mt-1 text-sm text-gray-500">
+          {formatPrice(listing.rentalDetails.pricePerDay)}/day
+          {listing.rentalDetails.quantityAvailable > 1 && ` · ${listing.rentalDetails.quantityAvailable} available`}
+        </p>
+      )}
+    </Link>
+  );
+}
