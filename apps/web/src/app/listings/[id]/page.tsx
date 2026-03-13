@@ -1,7 +1,11 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import type { ListingResponse } from '@eventtrust/shared';
+import Link from 'next/link';
+import type { ListingResponse, VendorResponse } from '@eventtrust/shared';
+import { CATEGORY_LABELS } from '@eventtrust/shared';
 import { serverFetch } from '@/lib/server-api';
+import { formatNaira, isImageUrl } from '@/lib/utils';
+import { ImageOff } from 'lucide-react';
 
 export async function generateMetadata({
   params,
@@ -22,18 +26,13 @@ export async function generateMetadata({
   };
 }
 
-export default async function ListingDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const listing = await serverFetch<ListingResponse>(`/listings/${id}`);
   if (!listing) notFound();
 
-  const whatsappText = encodeURIComponent(
-    `Hi, I'm interested in your listing "${listing.title}" on EventTrust.`,
-  );
+  // Fetch the vendor to get WhatsApp number and profile link
+  const vendor = await serverFetch<VendorResponse>(`/vendors/${listing.vendorId}`);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
@@ -43,12 +42,24 @@ export default async function ListingDetailPage({
         </span>
         {listing.category && (
           <span className="inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
-            {listing.category.replace(/_/g, ' ')}
+            {CATEGORY_LABELS[listing.category] ?? listing.category}
           </span>
         )}
       </div>
 
       <h1 className="mb-4 text-2xl font-bold">{listing.title}</h1>
+
+      {vendor && (
+        <p className="mb-4 text-sm text-gray-500">
+          by{' '}
+          <Link
+            href={`/vendors/${vendor.slug}?listing=${encodeURIComponent(listing.title)}`}
+            className="font-medium text-primary-600 hover:text-primary-700"
+          >
+            {vendor.businessName}
+          </Link>
+        </p>
+      )}
 
       <p className="mb-6 whitespace-pre-line text-gray-700">{listing.description}</p>
 
@@ -56,8 +67,8 @@ export default async function ListingDetailPage({
         <div className="mb-4">
           <span className="text-sm text-gray-500">Price range: </span>
           <span className="font-semibold">
-            {listing.priceFrom.toLocaleString()}
-            {listing.priceTo !== undefined && ` — ${listing.priceTo.toLocaleString()}`} kobo
+            {formatNaira(listing.priceFrom)}
+            {listing.priceTo !== undefined && ` — ${formatNaira(listing.priceTo)}`}
           </span>
         </div>
       )}
@@ -67,15 +78,17 @@ export default async function ListingDetailPage({
           <h2 className="mb-2 font-semibold">Rental Details</h2>
           <dl className="grid grid-cols-2 gap-2 text-sm">
             <dt className="text-gray-500">Category</dt>
-            <dd>{listing.rentalDetails.rentalCategory.replace(/_/g, ' ')}</dd>
+            <dd className="capitalize">
+              {listing.rentalDetails.rentalCategory.replace(/_/g, ' ')}
+            </dd>
             <dt className="text-gray-500">Available</dt>
             <dd>{listing.rentalDetails.quantityAvailable} units</dd>
             <dt className="text-gray-500">Price/Day</dt>
-            <dd>{listing.rentalDetails.pricePerDay.toLocaleString()} kobo</dd>
+            <dd>{formatNaira(listing.rentalDetails.pricePerDay)}</dd>
             {listing.rentalDetails.depositAmount !== undefined && (
               <>
                 <dt className="text-gray-500">Deposit</dt>
-                <dd>{listing.rentalDetails.depositAmount.toLocaleString()} kobo</dd>
+                <dd>{formatNaira(listing.rentalDetails.depositAmount)}</dd>
               </>
             )}
             <dt className="text-gray-500">Delivery</dt>
@@ -94,23 +107,45 @@ export default async function ListingDetailPage({
         <div className="mb-6">
           <h2 className="mb-2 font-semibold">Photos</h2>
           <div className="grid grid-cols-2 gap-2">
-            {listing.photos.map((photo, i) => (
-              <div key={i} className="aspect-video rounded-lg bg-gray-100 p-2 text-center text-xs text-gray-400">
-                {photo}
-              </div>
-            ))}
+            {listing.photos.map((photo, i) =>
+              isImageUrl(photo) ? (
+                <img
+                  key={i}
+                  src={photo}
+                  alt={`${listing.title} photo ${i + 1}`}
+                  className="aspect-video rounded-lg object-cover bg-gray-100"
+                  loading="lazy"
+                />
+              ) : (
+                <div
+                  key={i}
+                  className="flex aspect-video items-center justify-center rounded-lg bg-gray-100"
+                >
+                  <ImageOff className="h-8 w-8 text-gray-300" />
+                </div>
+              ),
+            )}
           </div>
         </div>
       )}
 
-      <a
-        href={`https://wa.me/?text=${whatsappText}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex h-10 items-center justify-center rounded-md bg-green-600 px-6 text-sm font-medium text-white hover:bg-green-700"
-      >
-        Contact via WhatsApp
-      </a>
+      {vendor?.whatsappNumber ? (
+        <a
+          href={`https://wa.me/${vendor.whatsappNumber.replace('+', '')}?text=${encodeURIComponent(`Hi, I'm interested in your listing "${listing.title}" on EventTrust.`)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-green-600 px-6 text-sm font-medium text-white hover:bg-green-700 transition-colors"
+        >
+          Contact via WhatsApp
+        </a>
+      ) : vendor ? (
+        <Link
+          href={`/vendors/${vendor.slug}`}
+          className="inline-flex h-10 items-center justify-center rounded-md bg-primary-600 px-6 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
+        >
+          View Vendor Profile
+        </Link>
+      ) : null}
     </div>
   );
 }

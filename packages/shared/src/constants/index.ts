@@ -1,3 +1,19 @@
+import { VendorCategory } from '../enums';
+
+// Human-readable category labels for display
+export const CATEGORY_LABELS: Record<VendorCategory, string> = {
+  [VendorCategory.CATERER]: 'Catering',
+  [VendorCategory.PHOTOGRAPHER]: 'Photography',
+  [VendorCategory.VIDEOGRAPHER]: 'Videography',
+  [VendorCategory.VENUE]: 'Venues',
+  [VendorCategory.DECORATOR]: 'Decoration',
+  [VendorCategory.MC]: 'MC / Host',
+  [VendorCategory.DJ]: 'DJ',
+  [VendorCategory.MAKEUP_ARTIST]: 'Makeup Artist',
+  [VendorCategory.PLANNER]: 'Event Planning',
+  [VendorCategory.OTHER]: 'Other Services',
+};
+
 // Ranking weights (must sum to 1.0)
 export const RANKING_WEIGHTS = {
   AVG_RATING: 0.5,

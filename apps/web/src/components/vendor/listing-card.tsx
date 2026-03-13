@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { ListingResponse } from '@eventtrust/shared';
+import { CATEGORY_LABELS } from '@eventtrust/shared';
 import { Badge } from '@/components/ui/badge';
 
 interface ListingCardProps {
@@ -25,7 +26,7 @@ export function ListingCard({ listing }: ListingCardProps) {
         </Badge>
         {listing.category && (
           <Badge variant="outline" className="text-xs">
-            {listing.category.replace(/_/g, ' ')}
+            {CATEGORY_LABELS[listing.category] ?? listing.category}
           </Badge>
         )}
         {listing.rentalDetails?.rentalCategory && (
@@ -45,7 +46,8 @@ export function ListingCard({ listing }: ListingCardProps) {
       {listing.rentalDetails && (
         <p className="mt-1 text-sm text-gray-500">
           {formatPrice(listing.rentalDetails.pricePerDay)}/day
-          {listing.rentalDetails.quantityAvailable > 1 && ` · ${listing.rentalDetails.quantityAvailable} available`}
+          {listing.rentalDetails.quantityAvailable > 1 &&
+            ` · ${listing.rentalDetails.quantityAvailable} available`}
         </p>
       )}
     </Link>

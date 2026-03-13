@@ -7,14 +7,24 @@ interface VendorActionBarProps {
   vendorName: string;
   whatsappNumber?: string;
   slug: string;
+  listingName?: string;
 }
 
-export function VendorActionBar({ vendorName, whatsappNumber, slug }: VendorActionBarProps) {
+export function VendorActionBar({
+  vendorName,
+  whatsappNumber,
+  slug,
+  listingName,
+}: VendorActionBarProps) {
   return (
     <>
       {/* Fixed bottom bar on mobile */}
       <div className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 md:hidden">
-        <EnquiryButton vendorName={vendorName} whatsappNumber={whatsappNumber} />
+        <EnquiryButton
+          vendorName={vendorName}
+          whatsappNumber={whatsappNumber}
+          listingName={listingName}
+        />
         <ShareButton vendorName={vendorName} slug={slug} />
       </div>
       {/* Spacer so content isn't hidden behind fixed bar */}
@@ -22,7 +32,11 @@ export function VendorActionBar({ vendorName, whatsappNumber, slug }: VendorActi
 
       {/* Inline on desktop */}
       <div className="mt-8 hidden items-center gap-3 md:flex">
-        <EnquiryButton vendorName={vendorName} whatsappNumber={whatsappNumber} />
+        <EnquiryButton
+          vendorName={vendorName}
+          whatsappNumber={whatsappNumber}
+          listingName={listingName}
+        />
         <ShareButton vendorName={vendorName} slug={slug} />
       </div>
     </>

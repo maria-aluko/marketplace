@@ -1,162 +1,200 @@
-# UI/UX Research & Ideas — EventTrust Nigeria
+# UI/UX Audit & Improvement Plan — EventTrust Nigeria
 
-## Constraints That Shape Every UI Decision
+## Current Implementation Inventory
 
-Constraint UX Implication
-85% Android, 1–3GB RAM devices No heavy animations, virtualize long lists, avoid large component trees
-2G/3G primary, ≤200KB JS bundle Skeleton screens instead of spinners, progressive image loading, no client-side search libraries
-375px baseline (Tecno Spark) Single-column layouts, full-width cards, no side-by-side panels on mobile
-44px minimum touch targets Large buttons, generous spacing between tappable elements
-WhatsApp as primary discovery channel og:image, og:title, og:description on every shareable page
-Phone OTP only, no social login Minimize auth friction — OTP flow must feel fast
-Lagos only (22 areas) Area selector can be a simple list, not a map
-No payments (Phase 1–2) No cart, checkout, or pricing complexity — focus on lead generation
-Sessions interrupted (WiFi/data switching) Auto-save form drafts to IndexedDB
+### Pages (11 routes)
 
-## UI/UX Ideas by Area
+| Route                             | Type            | Status | Notes                                                         |
+| --------------------------------- | --------------- | ------ | ------------------------------------------------------------- |
+| `/`                               | Client          | Built  | Hero + search bar + category grid                             |
+| `/login`                          | Client          | Built  | Two-step OTP flow (request → verify)                          |
+| `/search`                         | Server + Client | Built  | Filters, infinite scroll, skeleton loading, vendor cards      |
+| `/vendors/[slug]`                 | Server          | Built  | Hero, listings, portfolio gallery, reviews, sticky action bar |
+| `/listings`                       | Server          | Built  | Browse all listings                                           |
+| `/listings/[id]`                  | Server          | Built  | Detail with rental info, WhatsApp share                       |
+| `/reviews/new/[vendorId]`         | Server + Client | Built  | Star rating + review body form                                |
+| `/dashboard`                      | Client          | Built  | Tabbed: Overview, Profile, Portfolio, Reviews                 |
+| `/dashboard/listings`             | Client          | Built  | Listing management with delete                                |
+| `/dashboard/listings/new/service` | Client          | Built  | Service listing form                                          |
+| `/dashboard/listings/new/rental`  | Client          | Built  | Rental listing form                                           |
+| `/vendor/signup`                  | Server          | Built  | 4-step wizard                                                 |
 
-1. Home Page & Discovery
-   Current: Hero section with vendor category cards. Functional but generic.
+### Components (30+)
 
-Ideas:
+**Auth:** OtpRequestForm, OtpVerifyForm
+**Layout:** Header (sticky), Footer, MobileNav (hamburger overlay), AuthNavLinks (auth-aware)
+**Vendor:** VendorCard (search result), ListingCard, PortfolioGallery (lightbox modal), ReviewsList, EnquiryButton (WhatsApp), ShareButton (WhatsApp + copy link + native share), VendorActionBar (sticky bottom mobile), WriteReviewButton (auth-gated)
+**Listings:** ServiceListingForm, RentalListingForm
+**Reviews:** ReviewForm (star rating + character count)
+**Search:** SearchPageClient (filters, debounced fetch, infinite scroll via IntersectionObserver)
+**Dashboard:** PortfolioUploader (drag-drop, progress bars, Cloudinary), PortfolioManager (grid + delete dialog), ProfileEditForm (status-aware, resubmit for changes_requested), ReviewsManager (reply + edit with 48h window)
+**UI Primitives:** Button (CVA 6 variants), Card, Input, Label, Badge (5 variants), Dialog, DropdownMenu, Select, Progress, Tabs, Textarea, Skeleton (pulse), StarRating (interactive + readonly, 3 sizes)
 
-- Category-first navigation — Large, icon-based category tiles (like Gojek/Grab) instead of text links. Each category gets a distinct icon and color. This is the primary browse path for low-literacy or quick-scan users.
-- "Popular in [Area]" section — Use the LAGOS_AREAS constant to personalize. If the user's area is known (from profile or previous search), show relevant vendors first. Otherwise show top-rated vendors across Lagos.
-- Social proof banner — "200+ verified vendors in Lagos" counter. Even small numbers feel credible if displayed confidently.
-- Recent searches / Recently viewed — Stored in localStorage (lightweight). Returning users skip the category grid and jump straight to what they were browsing.
-- Sticky search bar at top — Always visible. Since search is a core action, it shouldn't be buried. A single input with category pills below it.
+### What's Working Well
 
-2. Search & Filtering
-   Current: Backend search endpoint exists with ranked scoring and cursor pagination. No frontend search UI exists yet.
+- **Search** has debounced input, URL sync, skeleton loading, infinite scroll, and vendor cards with ratings/prices
+- **Vendor profile** has cover image hero, star rating, category/area badges, price range, listings grid, portfolio lightbox, reviews with vendor replies, and a sticky WhatsApp/Share action bar on mobile
+- **Portfolio upload** has drag-and-drop, file validation (type + size), progress bars via XHR, and usage counters ("3/10 images")
+- **Reviews manager** enforces 48h edit window, shows "Edit window expired" text, and validates reply length
+- **Auth flow** has auto-focus, paste support, resend countdown, and redirect parameter support
+- **Vendor signup** has a 4-step wizard with progress indicator and step validation
 
-Ideas:
+---
 
-- Filter chips (not a sidebar) — Mobile-first means filters as horizontally scrollable chips above results: Category, Area, "Verified Only" toggle. No dropdown menus — tapping a chip opens a bottom sheet.
-- Bottom sheet for filter details — When tapping "Area" chip, a bottom sheet slides up with the 22 Lagos areas as a scrollable list with checkboxes. This pattern works well on 375px screens and is familiar from apps like Jumia.
-- Result cards: information density — Each vendor card should show: business name, category badge, area, star rating + review count, price range, and a small thumbnail. No more than 5 lines. Tap to expand.
-- Skeleton loading — On 3G, the search results page needs skeleton cards (gray pulsing rectangles) not a spinner. The backend returns results in ~500ms p95, but network latency adds 1–2s on 3G.
-- "No results" state with suggestions — If no vendors match, suggest: broadening area, removing category filter, or browsing all vendors. Don't show an empty page.
-- Infinite scroll with cursor pagination — The backend already supports cursor pagination (nextCursor). Use Intersection Observer to trigger the next page load. Show a small loading indicator at the bottom, not a "Load More" button (reduces taps).
+## Bugs & Issues to Fix
 
-3. Vendor Public Profile (/vendor/[slug])
-   Current: Route referenced in docs/building blocks but not yet implemented in the frontend.
+### 4. Listing detail lacks auth gate for WhatsApp contact
 
-Ideas:
+The vendor profile page correctly gates WhatsApp behind auth (via EnquiryButton), but the listing detail page renders the WhatsApp link for everyone, exposing vendor numbers to unauthenticated visitors.
+**Fix:** Use the same `EnquiryButton` component, or add auth-awareness.
 
-- Hero section with cover image — Use coverImageUrl from Vendor model. If absent, show a branded placeholder with the category icon. Full-width, 200px height.
-- Sticky action bar — Fixed at the bottom of the screen: "Contact on WhatsApp" (green, primary) and "Share" button. These are the two most important actions and should never scroll off screen.
-- Trust section prominently placed — Verified badge, star rating, review count, "Member since [date]" — all above the fold. Nigerian marketplace trust requires these signals to be immediately visible.
-- Tabbed content — Below the hero: "Services" | "Rentals" | "Portfolio" | "Reviews" tabs. Each tab lazy-loads its content. This keeps the page lightweight and the URL clean.
-- Listing cards within vendor profile — Group service listings and rental listings under their respective tabs. Each card shows title, price, and a thumbnail. Tap to see full listing detail.
-- WhatsApp-optimized sharing — generateMetadata() should produce a compelling og:image (vendor name + rating + category + cover photo). When shared on WhatsApp, this card is the first impression. Consider generating a dynamic OG image using @vercel/og with the vendor's data baked in.
-- Price range display — Format with Intl.NumberFormat('en-NG') as "₦50,000 – ₦200,000". Prices stored in kobo, displayed in naira.
+### 5. Inconsistent form element styling
 
-4. Listing Detail Page
-   Current: Basic SSR page showing listing data, rental details, and WhatsApp share button.
+- ProfileEditForm and VendorSignupForm use native `<select>` elements with inline Tailwind classes
+- SearchPageClient uses Radix `<Select>` components from the UI library
+- ServiceListingForm uses native `<select>` with different classes (`border-input bg-background`)
+  **Fix:** Standardize on the Radix `<Select>` component from the UI library everywhere, or at minimum use consistent Tailwind classes for native selects.
 
-Ideas:
+### 6. Service listing form uses stale Tailwind tokens
 
-- Photo carousel — Up to 10 photos per listing. Use a lightweight swipeable carousel (CSS scroll-snap, no JS library needed to stay under 200KB). Show dot indicators below.
-- For rental listings: Prominent display of quantityAvailable, depositAmount, deliveryOption (with icons: truck for delivery, pin for pickup), and condition. These are decision-making fields.
-- "Similar Listings" section — Below the main content. Query by same category + area. Keeps users on the platform instead of bouncing.
-- Breadcrumb navigation — "Home > Catering > [Listing Title]" — helps orientation. Especially useful when users land from WhatsApp shares.
+**File:** [service-listing-form.tsx](apps/web/src/components/listings/service-listing-form.tsx)
+Uses `border-input` and `bg-background` which aren't defined in the Tailwind config (these are shadcn/ui CSS variable tokens that aren't set up). Should use `border-gray-300 bg-white` like the rest of the codebase.
 
-5. Vendor Dashboard
-   Current: Basic client component showing user profile, vendor status, and link to manage listings.
+### 7. Footer links are placeholder `#` hrefs
 
-Ideas:
+**File:** [footer.tsx](apps/web/src/components/layout/footer.tsx)
+About, Contact, and Terms all link to `#`.
 
-- Status-aware dashboard — The dashboard should look different based on vendor status:
-  - DRAFT: Prominent "Complete Your Profile" checklist with progress bar (uses profileCompleteScore). Each incomplete field is a tappable card that opens the edit form for that section.
-  - PENDING: "Your profile is under review" with estimated time. Maybe a simple timeline graphic.
-  - ACTIVE: Full dashboard with metrics, listings, and quick actions.
-  - CHANGES_REQUESTED: Show admin feedback prominently with "Fix & Resubmit" button.
-  - SUSPENDED: Clear explanation + contact support CTA.
+---
 
-- Quick stats cards — For active vendors: Total views (future), Total inquiries (future), Average rating, Number of reviews. Even if some metrics are 0, showing the cards sets expectations.
-- Listing management — Grid of listing cards with status badges. "Add New Listing" as a prominent FAB (Floating Action Button) or top action bar button.
-- Profile completeness nudge — A persistent banner: "Your profile is 67% complete. Complete your address and WhatsApp to get more leads." Links directly to the incomplete fields.
-- Bottom navigation bar — For the dashboard section: Home | Listings | Portfolio | Reviews | Profile. This is more mobile-native than the current hamburger menu for the vendor's workspace.
+## Missing Infrastructure
 
-6. Auth & Onboarding
-   Current: OTP request form → OTP verify form with auto-focus and paste support. 4-step vendor signup wizard.
+### ~~No error boundaries~~ ✅ PARTIALLY FIXED
 
-Ideas:
+Global `error.tsx` added at [app/error.tsx](apps/web/src/app/error.tsx) with a Card UI showing "Something went wrong" message and a "Try Again" retry button.
+**Remaining:** Add route-specific `error.tsx` for `app/dashboard/error.tsx` with more contextual error messages.
 
-- Phone input with country prefix locked to +234 — Show the flag 🇳🇬 and +234 prefix as non-editable, user only types the 10 digits. Avoids E.164 formatting confusion. The phoneSchema handles validation.
-- OTP auto-read (Android) — Use the Web OTP API (navigator.credentials.get({ otp: { transport: ['sms'] } })). On Android Chrome, the OTP from Termii can auto-fill the input if the SMS contains the right format. This dramatically reduces friction.
-- Countdown timer with "Resend" disabled state — Already implemented. Good. Consider adding "Didn't receive? Check your SMS inbox" helper text instead of just a countdown.
-- Vendor signup wizard improvements:
-  - Progress indicator — Show step 2/4 with a thin progress bar. Already partially implemented.
-  - Save draft between steps — Use IndexedDB to persist form data. If the user's session drops (common on 2G/3G), they don't lose progress.
-  - Category selection as visual cards — Instead of a dropdown for VendorCategory, show icon cards (photographer icon, catering icon, etc.). More scannable on mobile.
-  - Area selector as a searchable list — 22 areas is manageable but benefit from type-ahead filtering.
+### No route-level loading states
 
-7. Reviews
-   Current: Backend CRUD complete (create, approve, reject, reply, score recalculation). No frontend UI.
+No `loading.tsx` files exist. Server-rendered pages (listings, vendor profile, search) have no loading UI during navigation.
+**Add:** `loading.tsx` with Skeleton-based layouts for `/search`, `/vendors/[slug]`, `/listings`, and `/listings/[id]`. The Skeleton component already exists.
 
-Ideas:
+### No PWA manifest or service worker
 
-- Review display on vendor profile — Star rating + review count at top, individual review cards below. Each card: client name (anonymized?), star rating, date, review text, vendor reply (if exists, indented).
-- "Write a Review" CTA — Only shown to authenticated clients. Button on vendor profile leads to a dedicated form page. Show the 50-char minimum as a character count ("12/50 characters minimum").
-- Review form UX — Star rating selector (5 tappable stars, large 48px each). Text area with character counter. Clear "Submit Review" button. Success state: "Your review is pending approval."
-- Vendor reply UI — On the dashboard, unread reviews should show as notifications/badges. Reply form inline on the review card with a 1000-char limit and "48h to edit" reminder.
+Referenced in docs as critical for the target demographic but not implemented.
 
-8. - Portfolio Upload
-     Current: Backend complete (Cloudinary signed URL, confirm upload, 10 image / 2 video limits). No frontend UI.
+---
 
-Ideas:
+## UI Improvement Suggestions
 
-- Drag-and-drop on desktop, tap-to-upload on mobile — Use <input type="file" accept="image/*,video/*"> with a visually rich dropzone. Show upload progress bars (Cloudinary supports progress events).
-- Photo grid with reorder — After upload, show photos in a grid. Use long-press (mobile) or drag (desktop) to reorder (sortOrder field). This is important for vendors who want their best photos first.
-- Upload limits clearly shown — "3/10 photos uploaded" counter. When approaching limits, show a warning. At limit, disable the upload button with explanation.
-- Image optimization reminder — Since Cloudinary handles f_auto,q_auto, no client-side optimization needed. But show thumbnails during upload so vendors see their images instantly.
-- Video thumbnail — For video uploads, show a still frame as thumbnail. Keep video count prominent ("0/2 videos").
+### ~~Priority 1 — Home page and discovery~~ ✅ COMPLETED
 
-9. WhatsApp Integration
-   Current: WhatsApp number stored on vendor. Backend exposes it only to authenticated users. Share button exists on listing detail.
+All P1 items have been implemented:
 
-Ideas:
+1. ~~**Category display names**~~ ✅ — Created `CATEGORY_LABELS` map in `@eventtrust/shared` constants. Applied across all category displays: home page, search filters, vendor cards, listing cards, listing detail, vendor profile, vendor signup form.
+2. ~~**Category icons**~~ ✅ — Created `CATEGORY_ICONS` map in `apps/web/src/lib/category-meta.tsx` using lucide-react (UtensilsCrossed, Camera, Video, Building, Sparkles, Mic, Music, Palette, CalendarCheck, MoreHorizontal). Displayed as visual tiles on the home page.
+3. ~~**Social proof**~~ ✅ — Added "Trusted by vendors across Lagos" line below the subtitle on the home page.
+4. ~~**Hero background**~~ ✅ — Added `bg-gradient-to-b from-primary-50 to-white` gradient to the hero section.
+5. ~~**Popular vendors section**~~ ✅ — Added "Featured Vendors" section below the category grid. Server-fetches top 6 vendors via `serverFetchRaw<SearchVendorsResponse>('/search/vendors?limit=6')`. Horizontal scroll with snap on mobile, grid on desktop. "View all →" link to search page. Home page converted from client to server component (search bar extracted to `HeroSearch` client component).
 
-- "Contact on WhatsApp" button — Green button with WhatsApp icon, always visible (sticky bottom bar on vendor/listing pages). Pre-fill message: "Hi, I found you on EventTrust. I'm interested in your [listing title] for my event on [date]."
-- Login gate with context — If unauthenticated user taps "Contact on WhatsApp", show: "Sign in to contact this vendor" with OTP flow. After auth, immediately open WhatsApp link. Use the ?redirect parameter already supported in middleware.
-- Share button — "Share on WhatsApp" uses wa.me/?text=Check out [vendor name] on EventTrust: [URL]. The URL must have proper OG tags so the WhatsApp preview card shows vendor photo, name, rating.
-- Copy phone number — Some users prefer to call. Add a "Copy Number" secondary action (only for authenticated users).
+### ~~Priority 2 — Search page refinements~~ ✅ COMPLETED
 
-10. PWA & Offline Patterns
-    Current: Referenced in docs but not yet implemented (service worker, manifest).
+All P2 items have been implemented:
 
-Ideas:
+1. ~~**Active filter indicators**~~ ✅ — Active filters now display as colored chips (`bg-primary-100`) below the filter bar with an `×` (lucide `X` icon) to clear each one individually. A "Clear all" link resets all filters at once.
+2. ~~**Empty state improvement**~~ ✅ — When no vendors match, the empty state now shows specific suggestions based on which filters are active: "Remove [category] filter", "Search in all areas", "Include unverified vendors", and "Clear all filters" — each as a clickable button that resets that filter.
+3. ~~**Result count position**~~ ✅ — "X vendors found" moved from between filters and results into the results header, displayed as `font-medium text-gray-700` directly above the vendor grid. Loading state shows a skeleton placeholder for the count.
+4. ~~**Vendor card enhancements**~~ ✅ — Added a green `BadgeCheck` icon (lucide) next to the business name for vendors with `status === 'active'`. Review display improved: shows "4.8 (23 reviews)" with the word "reviews" for trust. Vendors with zero reviews show "New on EventTrust" instead of empty stars.
 
-- Install prompt — After 2nd visit, show a custom "Add to Home Screen" banner. Many Nigerian users treat PWAs as apps. This increases retention dramatically.
-- Offline vendor profiles — Cache previously viewed vendor profiles via service worker (Cache-First). When offline, show cached data with "You're offline, showing saved data" banner.
-- Offline form drafts — Vendor signup and listing forms save to IndexedDB on every field change. On reconnect, prompt to continue.
-- Network status indicator — A thin colored bar at the top: green (online), yellow (slow connection), red (offline). Builds trust — users know the app is aware of their connection.
+### ~~Priority 3 — Vendor profile page~~ ✅ COMPLETED
 
-11. Trust Signals
-    Current: profileCompleteScore calculated, avgRating and reviewCount stored, vendor status machine exists. No frontend trust UI.
+**Current state:** Well-structured with hero image, trust signals (verified badge, star rating, review count), category/area badges, price range, about section, listings grid, portfolio gallery with lightbox, reviews with replies, and sticky mobile action bar.
 
-Ideas:
+All P3 items have been implemented:
 
-- Verified badge — A ✓ checkmark next to the business name for ACTIVE vendors. This is the minimum. Consider different badge tiers tied to subscription (Pro gets a blue badge, Pro+ gets gold).
-- "Profile Completeness" as a public signal — Show a progress ring on vendor cards (80% complete). This nudges vendors to complete profiles AND gives clients a quick trust signal.
-- "Joined [Month Year]" — Longevity signals trust. Show "Member since March 2026" on vendor profiles.
-- Review count with context — "4.8 ★ (23 reviews)" is more trustworthy than just "4.8 ★". For new vendors: "New on EventTrust" badge instead of empty stars.
-- Response time indicator (future) — "Usually responds within 2 hours" based on WhatsApp interaction tracking (Phase 2+).
+1. ~~**"Member since" date**~~ ✅ — Added `Joined {month} {year}` near the trust signals using `vendor.createdAt` with a `CalendarDays` icon. Formatted via `toLocaleDateString('en-NG', { month: 'long', year: 'numeric' })`.
+2. ~~**Cover image fallback**~~ ✅ — When no `coverImageUrl` exists, renders a `CoverImageFallback` component showing a branded gradient (`from-primary-100 via-primary-50 to-white`) with the category icon centered (via `CATEGORY_ICONS` map).
+3. ~~**Tab navigation for sections**~~ ✅ — Replaced long-scroll layout with Radix `Tabs` component (`VendorProfileTabs` client component). Four tabs: About, Listings (count), Portfolio (count), Reviews (count). Tab bar sticks below the header on scroll. Empty states shown for tabs with no content.
+4. ~~**WhatsApp pre-fill message improvement**~~ ✅ — `EnquiryButton` now accepts optional `listingName` prop. When present, message reads: `I'm interested in "[listing title]"` instead of generic `"your services"`. Listing detail page passes listing title as `?listing=` query parameter when linking to vendor profile. `VendorActionBar` passes it through.
+5. ~~**Breadcrumbs**~~ ✅ — Added `Home > [Category] > [Business Name]` breadcrumb navigation with `ChevronRight` separators. Category links to `/search?category=...` for easy exploration. Accessible via `aria-label="Breadcrumb"`.
 
-12. Performance Patterns for Low-End Devices
+### Priority 4 — Dashboard improvements
 
-- loading="lazy" on all images below the fold — Native browser lazy loading, zero JS cost.
-- CSS scroll-snap for carousels — No Swiper.js or similar. Pure CSS carousels work on Android Chrome and are zero-JS.
-- content-visibility: auto on long lists — Tells the browser to skip rendering off-screen content. Free performance win.
-- System font stack — Already using system fonts. Good. Avoid loading Google Fonts.
-- Reduced motion — Respect prefers-reduced-motion for users on battery saver mode (common on low-end Android).
-- Image sizing with Cloudinary transforms — Request exact dimensions: c_fill,w_375,h_200,f_auto,q_auto. No client-side resizing.
+**Current state:** Tabbed dashboard (Overview, Profile, Portfolio, Reviews) with profile edit form, portfolio manager with upload, and reviews manager with reply. Overview tab is very basic (phone, role, vendor profile link, listings link).
+
+**Improvements:**
+
+- **Status-aware overview:** The overview should change significantly based on vendor status:
+  - **DRAFT:** Show a profile completeness checklist. The backend already calculates `profileCompleteScore`. Display it as a progress bar with specific calls-to-action: "Add a description", "Set your price range", "Add your WhatsApp number". Each links to the Profile tab.
+  - **PENDING:** Show "Your profile is under review" with a timeline/status indicator.
+  - **ACTIVE:** Show quick stats: average rating, review count, listing count, portfolio count. Add a quick link to "View Public Profile" (`/vendors/{slug}`).
+  - **CHANGES_REQUESTED:** This state is already handled well in ProfileEditForm. Promote it to the Overview tab too so vendors see it immediately.
+  - **SUSPENDED:** Show clear explanation and support contact.
+- **Quick stats cards:** Add 4 stat cards at the top of the Overview for ACTIVE vendors: Listings (count), Reviews (count), Rating (avg), Portfolio (count). Use the Card component with large numbers.
+- **"View Public Profile" link:** Add a prominent link to the vendor's public page so they can see what clients see.
+- **Bottom navigation:** For the dashboard section, replace the tab bar with a fixed bottom nav bar (Dashboard/Listings/Portfolio/Reviews/Profile). The current tabs scroll horizontally and are easy to miss. Bottom nav is standard in Nigerian fintech apps (OPay, Kuda, PalmPay).
+
+### Priority 5 — Auth & onboarding
+
+**Current state:** Phone input starts with "+234" pre-filled. OTP input has individual digit boxes with auto-focus, paste support, and resend countdown. Vendor signup is a 4-step wizard.
+
+**Improvements:**
+
+- **Phone input with fixed prefix:** Lock the "+234" as a non-editable prefix (display in a gray label beside the input). User only types the 10 digits. This prevents accidental deletion of the country code.
+- **Web OTP API:** On Android Chrome, use `navigator.credentials.get({ otp: { transport: ['sms'] } })` to auto-fill the OTP from Termii's SMS. Requires the SMS to end with `@eventtrust.com.ng #123456` format. Major friction reduction.
+- **"Didn't receive?" helper text:** After the countdown expires, show "Didn't receive the code? Check your SMS inbox" before the "Resend" button.
+- **Vendor signup - category visual tiles:** Replace the dropdown with visual category cards (icon + label) in a 2-column grid. More scannable on mobile.
+- **Vendor signup - draft persistence:** Save wizard state to `localStorage` on each step. If the session drops (common on 2G/3G), restore on return. Check for stale data by timestamp.
+
+### Priority 6 — Listing detail page
+
+**Current state:** Shows listing type badge, category badge, title, description, price range (broken - shows kobo), rental details grid, photo placeholders, and WhatsApp link (broken - no phone number).
+
+**Improvements (after fixing P0 bugs):**
+
+- **Photo carousel:** Replace the 2-column grid of photos with a CSS scroll-snap horizontal carousel. No JS library needed. Add dot indicators.
+- **Rental details with icons:** Add visual icons for delivery options (Truck icon for delivery, MapPin for pickup, both for "both"). Show condition as a badge.
+- ~~**"View Vendor" link:**~~ ✅ Already added — listing detail now shows "by [vendor name]" linking to the vendor profile.
+- **"Similar Listings" section:** Below the main content, show 3-4 listings in the same category. Keeps users on the platform.
+- **Breadcrumbs:** "Home > [Category/Type] > [Listing Title]".
+
+### Priority 7 — Performance & polish
+
+- **`loading="lazy"` on all images:** The vendor profile page, portfolio gallery, and search cards don't use lazy loading. Add `loading="lazy"` to all `<img>` tags below the fold.
+- **Cloudinary transforms in URLs:** Images should request specific dimensions: append `/c_fill,w_375,h_200,f_auto,q_auto/` to Cloudinary URLs. The portfolio gallery and vendor cards currently use raw URLs.
+- **`content-visibility: auto`** on the reviews list and listings grid in vendor profiles. Reduces rendering cost for long pages on low-end devices.
+- **`prefers-reduced-motion`:** Disable the skeleton pulse animation and portfolio hover scale for users with reduced motion preference.
+- **Route-level loading.tsx:** Add skeleton-based loading states for search, vendor profile, and listing detail pages.
+
+### Priority 8 — Trust signals
+
+- ~~**Verified badge in search results:**~~ ✅ Done in P2 — Green `BadgeCheck` icon shown on VendorCard for ACTIVE vendors.
+- **Profile completeness ring:** On vendor cards in search results, show a small circular progress indicator for `profileCompleteScore`. This nudges vendors to complete profiles AND signals completeness to clients.
+- ~~**"New on EventTrust" badge:**~~ ✅ Done in P2 — Vendors with `reviewCount === 0` show "New on EventTrust" instead of empty stars.
+- ~~**Review count context:**~~ ✅ Done in P2 — Shows "4.8 (23 reviews)" with the word "reviews" for credibility.
+
+---
+
+## Constraints Shaping All Decisions
+
+| Constraint                   | UX Implication                                                                                       |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 85% Android, 1–3GB RAM       | No heavy animations, virtualize long lists, avoid large component trees                              |
+| 2G/3G primary, ≤200KB JS     | Skeleton screens (implemented), progressive image loading (not yet), no client-side search libraries |
+| 375px baseline (Tecno Spark) | Single-column layouts, full-width cards (implemented)                                                |
+| 44px min touch targets       | Large buttons (mostly implemented), generous spacing (needs audit)                                   |
+| WhatsApp as primary channel  | og:image on shareable pages (partially — no dynamic OG images yet)                                   |
+| Phone OTP only               | Minimize auth friction (auto-focus implemented, Web OTP API not yet)                                 |
+| Lagos only (22 areas)        | Area selector as a simple list (implemented via Select)                                              |
+| No payments (Phase 1–2)      | No cart/checkout complexity (correct)                                                                |
+| Sessions interrupted         | Auto-save forms to localStorage/IndexedDB (not implemented)                                          |
+
+---
 
 ## Further Considerations
 
-- Bottom navigation vs. hamburger menu — For the vendor dashboard, a fixed bottom nav (Home/Listings/Portfolio/Reviews/Profile) is significantly more discoverable than a hamburger menu. This is standard in Nigerian apps (Opay, PalmPay, Kuda). Recommended for the dashboard section; keep the hamburger for the public-facing site.
+1. **Bottom nav vs tabs for dashboard** — A fixed bottom nav is more discoverable than the current tab bar. Standard in Nigerian apps. Recommended for Phase 2 dashboard redesign.
 
-- Dark mode — Not a priority given the target demographic, but the green primary palette works well in both modes. Defer to Phase 3.
+2. **Dynamic OG images** — WhatsApp is the primary discovery channel. Using `@vercel/og` to generate images with vendor name + rating + cover photo baked in would significantly improve share previews.
 
-- Localization — The product is English-only, which is correct for Lagos. However, consider Pidgin English for marketing copy and onboarding tooltips ("Find beta vendors for your owambe") to feel more local and approachable.
+3. **Pidgin English copy** — Consider Pidgin for marketing copy: "Find beta vendors for your owambe" feels more local. Keep form labels in standard English.

@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { VendorCategory, LAGOS_AREAS } from '@eventtrust/shared';
+import { VendorCategory, LAGOS_AREAS, CATEGORY_LABELS } from '@eventtrust/shared';
 import type { SearchVendorsResponse, VendorResponse } from '@eventtrust/shared';
+import { X } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { Input } from '@/components/ui/input';
 import {
@@ -37,6 +38,15 @@ export function SearchPageClient() {
   const [category, setCategory] = useState(initialCategory);
   const [area, setArea] = useState(initialArea);
   const [verifiedOnly, setVerifiedOnly] = useState(initialVerified);
+
+  const hasActiveFilters = !!(q || category || area || verifiedOnly);
+
+  const clearAllFilters = useCallback(() => {
+    setQ('');
+    setCategory('');
+    setArea('');
+    setVerifiedOnly(false);
+  }, []);
 
   const sentinelRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -118,9 +128,7 @@ export function SearchPageClient() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
       <h1 className="text-2xl font-bold text-gray-900">Find Vendors</h1>
-      <p className="mt-1 text-sm text-gray-500">
-        Discover verified event vendors in Lagos
-      </p>
+      <p className="mt-1 text-sm text-gray-500">Discover verified event vendors in Lagos</p>
 
       {/* Filters */}
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -138,7 +146,7 @@ export function SearchPageClient() {
             <SelectItem value="all">All categories</SelectItem>
             {categories.map((cat) => (
               <SelectItem key={cat} value={cat}>
-                {cat.replace(/_/g, ' ')}
+                {CATEGORY_LABELS[cat] ?? cat}
               </SelectItem>
             ))}
           </SelectContent>
@@ -167,39 +175,123 @@ export function SearchPageClient() {
         </label>
       </div>
 
-      {/* Results count */}
-      {!loading && (
-        <p className="mt-4 text-sm text-gray-500">
-          {total} vendor{total !== 1 ? 's' : ''} found
-        </p>
+      {/* Active filter chips */}
+      {hasActiveFilters && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {q && (
+            <button
+              onClick={() => setQ('')}
+              className="inline-flex items-center gap-1 rounded-full bg-primary-100 px-3 py-1 text-xs font-medium text-primary-800"
+            >
+              &ldquo;{q}&rdquo;
+              <X className="h-3 w-3" />
+            </button>
+          )}
+          {category && (
+            <button
+              onClick={() => setCategory('')}
+              className="inline-flex items-center gap-1 rounded-full bg-primary-100 px-3 py-1 text-xs font-medium text-primary-800"
+            >
+              {CATEGORY_LABELS[category as VendorCategory] ?? category}
+              <X className="h-3 w-3" />
+            </button>
+          )}
+          {area && (
+            <button
+              onClick={() => setArea('')}
+              className="inline-flex items-center gap-1 rounded-full bg-primary-100 px-3 py-1 text-xs font-medium text-primary-800"
+            >
+              {area}
+              <X className="h-3 w-3" />
+            </button>
+          )}
+          {verifiedOnly && (
+            <button
+              onClick={() => setVerifiedOnly(false)}
+              className="inline-flex items-center gap-1 rounded-full bg-primary-100 px-3 py-1 text-xs font-medium text-primary-800"
+            >
+              Verified only
+              <X className="h-3 w-3" />
+            </button>
+          )}
+          <button
+            onClick={clearAllFilters}
+            className="text-xs font-medium text-gray-500 underline hover:text-gray-700"
+          >
+            Clear all
+          </button>
+        </div>
       )}
 
-      {/* Results grid */}
+      {/* Results */}
       {loading ? (
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="overflow-hidden rounded-lg border border-gray-200">
-              <Skeleton className="aspect-[16/9] w-full" />
-              <div className="space-y-2 p-4">
-                <Skeleton className="h-5 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-                <Skeleton className="h-4 w-1/3" />
+        <div className="mt-6">
+          <div className="mb-4 h-5 w-32 animate-pulse rounded bg-gray-200" />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="overflow-hidden rounded-lg border border-gray-200">
+                <Skeleton className="aspect-[16/9] w-full" />
+                <div className="space-y-2 p-4">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-4 w-1/3" />
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       ) : vendors.length === 0 ? (
         <div className="mt-12 text-center">
           <p className="text-lg font-medium text-gray-900">No vendors found</p>
-          <p className="mt-1 text-sm text-gray-500">
-            Try adjusting your filters or search terms
+          <p className="mt-2 text-sm text-gray-500">
+            {hasActiveFilters ? 'Try adjusting your filters:' : 'Try a different search term'}
           </p>
+          {hasActiveFilters && (
+            <div className="mt-3 flex flex-wrap justify-center gap-2">
+              {category && (
+                <button
+                  onClick={() => setCategory('')}
+                  className="rounded-full border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                >
+                  Remove &ldquo;{CATEGORY_LABELS[category as VendorCategory] ?? category}&rdquo;
+                  filter
+                </button>
+              )}
+              {area && (
+                <button
+                  onClick={() => setArea('')}
+                  className="rounded-full border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                >
+                  Search in all areas
+                </button>
+              )}
+              {verifiedOnly && (
+                <button
+                  onClick={() => setVerifiedOnly(false)}
+                  className="rounded-full border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                >
+                  Include unverified vendors
+                </button>
+              )}
+              <button
+                onClick={clearAllFilters}
+                className="rounded-full border border-primary-300 bg-primary-50 px-3 py-1 text-xs font-medium text-primary-700 hover:bg-primary-100"
+              >
+                Clear all filters
+              </button>
+            </div>
+          )}
         </div>
       ) : (
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {vendors.map((vendor) => (
-            <VendorCard key={vendor.id} vendor={vendor} />
-          ))}
+        <div className="mt-6">
+          <p className="mb-4 text-sm font-medium text-gray-700">
+            {total} vendor{total !== 1 ? 's' : ''} found
+          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {vendors.map((vendor) => (
+              <VendorCard key={vendor.id} vendor={vendor} />
+            ))}
+          </div>
         </div>
       )}
 

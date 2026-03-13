@@ -3,15 +3,17 @@ import { MessageCircle } from 'lucide-react';
 interface EnquiryButtonProps {
   vendorName: string;
   whatsappNumber?: string;
+  listingName?: string;
 }
 
-export function EnquiryButton({ vendorName, whatsappNumber }: EnquiryButtonProps) {
+export function EnquiryButton({ vendorName, whatsappNumber, listingName }: EnquiryButtonProps) {
   if (!whatsappNumber) return null;
 
   const phone = whatsappNumber.replace('+', '');
-  const message = encodeURIComponent(
-    `Hi, I found "${vendorName}" on EventTrust Nigeria and I'm interested in your services.`,
-  );
+  const text = listingName
+    ? `Hi, I found "${vendorName}" on EventTrust Nigeria and I'm interested in "${listingName}".`
+    : `Hi, I found "${vendorName}" on EventTrust Nigeria and I'm interested in your services.`;
+  const message = encodeURIComponent(text);
 
   return (
     <a

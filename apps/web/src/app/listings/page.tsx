@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import type { ListingResponse } from '@eventtrust/shared';
+import { CATEGORY_LABELS } from '@eventtrust/shared';
 import { serverFetch } from '@/lib/server-api';
+import { formatNaira } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: 'Browse Listings — EventTrust',
@@ -36,7 +38,7 @@ export default async function ListingsPage() {
                 </span>
                 {listing.category && (
                   <span className="inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
-                    {listing.category.replace(/_/g, ' ')}
+                    {CATEGORY_LABELS[listing.category] ?? listing.category}
                   </span>
                 )}
               </div>
@@ -44,13 +46,14 @@ export default async function ListingsPage() {
               <p className="mt-1 text-sm text-gray-600 line-clamp-2">{listing.description}</p>
               {listing.priceFrom !== undefined && (
                 <p className="mt-2 text-sm font-medium">
-                  From {listing.priceFrom.toLocaleString()}
-                  {listing.priceTo !== undefined && ` — ${listing.priceTo.toLocaleString()}`}
+                  From {formatNaira(listing.priceFrom)}
+                  {listing.priceTo !== undefined && ` — ${formatNaira(listing.priceTo)}`}
                 </p>
               )}
               {listing.rentalDetails && (
                 <p className="mt-1 text-xs text-gray-500">
-                  {listing.rentalDetails.rentalCategory.replace(/_/g, ' ')} — {listing.rentalDetails.quantityAvailable} available
+                  {listing.rentalDetails.rentalCategory.replace(/_/g, ' ')} —{' '}
+                  {listing.rentalDetails.quantityAvailable} available
                 </p>
               )}
             </Link>

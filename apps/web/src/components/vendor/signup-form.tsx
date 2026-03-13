@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   VendorCategory,
   LAGOS_AREAS,
+  CATEGORY_LABELS,
   createVendorSchema,
 } from '@eventtrust/shared';
 import type { CreateVendorPayload } from '@eventtrust/shared';
@@ -144,7 +145,7 @@ export function VendorSignupForm() {
             >
               {categories.map((cat) => (
                 <option key={cat} value={cat}>
-                  {cat.replace(/_/g, ' ')}
+                  {CATEGORY_LABELS[cat] ?? cat}
                 </option>
               ))}
             </select>
@@ -265,7 +266,9 @@ export function VendorSignupForm() {
             </div>
             <div className="flex justify-between border-b pb-2">
               <dt className="text-gray-500">Category</dt>
-              <dd className="font-medium">{formData.category.replace(/_/g, ' ')}</dd>
+              <dd className="font-medium">
+                {CATEGORY_LABELS[formData.category] ?? formData.category}
+              </dd>
             </div>
             <div className="flex justify-between border-b pb-2">
               <dt className="text-gray-500">Area</dt>

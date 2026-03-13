@@ -1,16 +1,25 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import type { VendorResponse, PortfolioItem, ReviewResponse, ListingResponse } from '@eventtrust/shared';
+import Link from 'next/link';
+import type {
+  VendorResponse,
+  PortfolioItem,
+  ReviewResponse,
+  ListingResponse,
+} from '@eventtrust/shared';
+import { CATEGORY_LABELS } from '@eventtrust/shared';
+import { VendorCategory } from '@eventtrust/shared';
+import { ChevronRight, CalendarDays } from 'lucide-react';
 import { serverFetch } from '@/lib/server-api';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/ui/star-rating';
-import { PortfolioGallery } from '@/components/vendor/portfolio-gallery';
-import { ReviewsList } from '@/components/vendor/reviews-list';
 import { VendorActionBar } from '@/components/vendor/vendor-action-bar';
-import { ListingCard } from '@/components/vendor/listing-card';
+import { VendorProfileTabs } from '@/components/vendor/vendor-profile-tabs';
+import { CATEGORY_ICONS } from '@/lib/category-meta';
 
 interface Props {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ listing?: string }>;
 }
 
 async function getVendorBySlug(slug: string) {
@@ -26,10 +35,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!vendor) return { title: 'Vendor Not Found — EventTrust' };
 
   return {
-    title: `${vendor.businessName} | ${vendor.category.replace(/_/g, ' ')} in ${vendor.area}`,
+    title: `${vendor.businessName} | ${CATEGORY_LABELS[vendor.category] ?? vendor.category} in ${vendor.area}`,
     description: vendor.description.slice(0, 160),
     openGraph: {
-      title: `${vendor.businessName} | ${vendor.category.replace(/_/g, ' ')} in ${vendor.area}`,
+      title: `${vendor.businessName} | ${CATEGORY_LABELS[vendor.category] ?? vendor.category} in ${vendor.area}`,
       description: vendor.description.slice(0, 160),
       ...(vendor.coverImageUrl && { images: [{ url: vendor.coverImageUrl }] }),
     },
@@ -41,8 +50,23 @@ function formatPrice(kobo?: number): string {
   return `\u20A6${(kobo / 100).toLocaleString()}`;
 }
 
-export default async function VendorProfilePage({ params }: Props) {
+function formatMemberSince(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-NG', { month: 'long', year: 'numeric' });
+}
+
+function CoverImageFallback({ category }: { category: VendorCategory }) {
+  const Icon = CATEGORY_ICONS[category];
+  return (
+    <div className="flex aspect-[21/9] items-center justify-center rounded-lg bg-gradient-to-br from-primary-100 via-primary-50 to-white">
+      <Icon className="h-16 w-16 text-primary-300" />
+    </div>
+  );
+}
+
+export default async function VendorProfilePage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const { listing: listingName } = await searchParams;
   const vendor = await getVendorBySlug(slug);
   if (!vendor) notFound();
 
@@ -52,24 +76,44 @@ export default async function VendorProfilePage({ params }: Props) {
     serverFetch<ListingResponse[]>(`/vendors/${vendor.id}/listings`),
   ]);
 
-  const statusVariant: Record<string, 'default' | 'secondary' | 'warning' | 'destructive'> = {
-    draft: 'secondary',
-    pending: 'warning',
-    active: 'default',
-    changes_requested: 'destructive',
-    suspended: 'destructive',
-  };
-
   const priceRange =
     vendor.priceFrom || vendor.priceTo
       ? `${formatPrice(vendor.priceFrom)}${vendor.priceTo ? ` - ${formatPrice(vendor.priceTo)}` : ''}`
       : null;
 
+  const categoryLabel = CATEGORY_LABELS[vendor.category] ?? vendor.category;
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
+      {/* Breadcrumbs */}
+      <nav aria-label="Breadcrumb" className="mb-4">
+        <ol className="flex flex-wrap items-center gap-1 text-sm text-gray-500">
+          <li>
+            <Link href="/" className="hover:text-primary-600 transition-colors">
+              Home
+            </Link>
+          </li>
+          <li>
+            <ChevronRight className="h-3.5 w-3.5" />
+          </li>
+          <li>
+            <Link
+              href={`/search?category=${vendor.category}`}
+              className="hover:text-primary-600 transition-colors"
+            >
+              {categoryLabel}
+            </Link>
+          </li>
+          <li>
+            <ChevronRight className="h-3.5 w-3.5" />
+          </li>
+          <li className="font-medium text-gray-900">{vendor.businessName}</li>
+        </ol>
+      </nav>
+
       {/* Hero */}
       <section>
-        {vendor.coverImageUrl && (
+        {vendor.coverImageUrl ? (
           <div className="aspect-[21/9] overflow-hidden rounded-lg bg-gray-100">
             <img
               src={vendor.coverImageUrl}
@@ -77,80 +121,51 @@ export default async function VendorProfilePage({ params }: Props) {
               className="h-full w-full object-cover"
             />
           </div>
+        ) : (
+          <CoverImageFallback category={vendor.category} />
         )}
         <div className="mt-4">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
-              {vendor.businessName}
-            </h1>
-            {vendor.status === 'active' && (
-              <Badge variant="default">Verified</Badge>
-            )}
+            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{vendor.businessName}</h1>
+            {vendor.status === 'active' && <Badge variant="default">Verified</Badge>}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <Badge variant="secondary">{vendor.category.replace(/_/g, ' ')}</Badge>
+            <Badge variant="secondary">{categoryLabel}</Badge>
             <span className="text-sm text-gray-500">{vendor.area}</span>
-            {priceRange && (
-              <span className="text-sm font-medium text-gray-700">{priceRange}</span>
-            )}
+            {priceRange && <span className="text-sm font-medium text-gray-700">{priceRange}</span>}
           </div>
-          <div className="mt-2 flex items-center gap-2">
-            <StarRating value={Math.round(vendor.avgRating)} readonly size="md" />
-            <span className="text-sm text-gray-500">
-              {vendor.avgRating.toFixed(1)} ({vendor.reviewCount} review{vendor.reviewCount !== 1 ? 's' : ''})
-            </span>
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+            <div className="flex items-center gap-2">
+              <StarRating value={Math.round(vendor.avgRating)} readonly size="md" />
+              <span className="text-sm text-gray-500">
+                {vendor.avgRating.toFixed(1)} ({vendor.reviewCount} review
+                {vendor.reviewCount !== 1 ? 's' : ''})
+              </span>
+            </div>
+            <div className="flex items-center gap-1 text-sm text-gray-500">
+              <CalendarDays className="h-3.5 w-3.5" />
+              <span>Joined {formatMemberSince(vendor.createdAt)}</span>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* About */}
-      <section className="mt-8">
-        <h2 className="text-lg font-semibold text-gray-900">About</h2>
-        <p className="mt-2 whitespace-pre-line text-gray-600">{vendor.description}</p>
-        {vendor.instagramHandle && (
-          <p className="mt-2 text-sm text-gray-500">
-            Instagram: <span className="font-medium">@{vendor.instagramHandle.replace(/^@/, '')}</span>
-          </p>
-        )}
-      </section>
-
-      {/* Listings */}
-      {listings && listings.length > 0 && (
-        <section className="mt-8">
-          <h2 className="text-lg font-semibold text-gray-900">Services & Rentals</h2>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {listings.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Portfolio */}
-      {portfolio && portfolio.length > 0 && (
-        <section className="mt-8">
-          <h2 className="text-lg font-semibold text-gray-900">Portfolio</h2>
-          <div className="mt-4">
-            <PortfolioGallery items={portfolio} />
-          </div>
-        </section>
-      )}
-
-      {/* Reviews */}
-      <section className="mt-8">
-        <h2 className="text-lg font-semibold text-gray-900">
-          Reviews ({reviews?.length || 0})
-        </h2>
-        <div className="mt-4">
-          <ReviewsList reviews={reviews || []} vendorId={vendor.id} />
-        </div>
-      </section>
+      {/* Tabbed sections */}
+      <VendorProfileTabs
+        vendorId={vendor.id}
+        description={vendor.description}
+        instagramHandle={vendor.instagramHandle}
+        listings={listings ?? []}
+        portfolio={portfolio ?? []}
+        reviews={reviews ?? []}
+      />
 
       {/* Sticky mobile action bar */}
       <VendorActionBar
         vendorName={vendor.businessName}
         whatsappNumber={vendor.whatsappNumber}
         slug={vendor.slug}
+        listingName={listingName}
       />
     </div>
   );
