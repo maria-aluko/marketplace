@@ -109,7 +109,7 @@ export function OtpVerifyForm({ phone, onBack }: OtpVerifyFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <p className="text-center text-sm text-gray-600">
+      <p className="text-center text-sm text-surface-600">
         Enter the 6-digit code sent to <strong>{phone}</strong>
       </p>
 
@@ -144,19 +144,19 @@ export function OtpVerifyForm({ phone, onBack }: OtpVerifyFormProps) {
 
       <div className="space-y-2 text-sm">
         {resendTimer <= 0 && (
-          <p className="text-center text-gray-500">
+          <p className="text-center text-surface-500">
             Didn&apos;t receive the code? Check your SMS inbox
           </p>
         )}
         <div className="flex items-center justify-between">
-          <button type="button" onClick={onBack} className="text-gray-500 hover:text-gray-700">
+          <button type="button" onClick={onBack} className="text-surface-500 hover:text-surface-700">
             Change number
           </button>
           <button
             type="button"
             onClick={handleResend}
             disabled={resendTimer > 0}
-            className="text-primary-600 hover:text-primary-700 disabled:text-gray-400"
+            className="text-primary-600 hover:text-primary-700 disabled:text-surface-400"
           >
             {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend code'}
           </button>

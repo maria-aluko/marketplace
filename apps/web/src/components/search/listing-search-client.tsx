@@ -183,10 +183,10 @@ export function ListingSearchPageClient({ defaultListingType }: ListingSearchPag
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900">
+      <h1 className="text-2xl font-bold text-surface-900">
         {isRental ? 'Rent Equipment' : 'Find Services'}
       </h1>
-      <p className="mt-1 text-sm text-gray-500">
+      <p className="mt-1 text-sm text-surface-500">
         {isRental
           ? 'Browse equipment for rent — tents, chairs, generators, lighting and more'
           : 'Discover verified event services in Lagos — catering, photography, venues and more'}
@@ -281,7 +281,7 @@ export function ListingSearchPageClient({ defaultListingType }: ListingSearchPag
           className="max-w-[160px]"
           min={0}
         />
-        <span className="text-sm text-gray-400">—</span>
+        <span className="text-sm text-surface-400">—</span>
         <Input
           type="number"
           placeholder="Max price (₦)"
@@ -359,7 +359,7 @@ export function ListingSearchPageClient({ defaultListingType }: ListingSearchPag
           )}
           <button
             onClick={clearAllFilters}
-            className="text-xs font-medium text-gray-500 underline hover:text-gray-700"
+            className="text-xs font-medium text-surface-500 underline hover:text-surface-700"
           >
             Clear all
           </button>
@@ -369,10 +369,10 @@ export function ListingSearchPageClient({ defaultListingType }: ListingSearchPag
       {/* Results */}
       {loading ? (
         <div className="mt-6">
-          <div className="mb-4 h-5 w-32 animate-pulse rounded bg-gray-200" />
+          <div className="mb-4 h-5 w-32 animate-pulse rounded bg-surface-200" />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="overflow-hidden rounded-lg border border-gray-200">
+              <div key={i} className="overflow-hidden rounded-lg border border-surface-200">
                 <Skeleton className="aspect-[16/9] w-full" />
                 <div className="space-y-2 p-4">
                   <Skeleton className="h-5 w-3/4" />
@@ -385,10 +385,10 @@ export function ListingSearchPageClient({ defaultListingType }: ListingSearchPag
         </div>
       ) : listings.length === 0 ? (
         <div className="mt-12 text-center">
-          <p className="text-lg font-medium text-gray-900">
+          <p className="text-lg font-medium text-surface-900">
             {isRental ? 'No equipment found' : 'No services found'}
           </p>
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-surface-500">
             {hasActiveFilters ? 'Try adjusting your filters:' : 'Try a different search term'}
           </p>
           {hasActiveFilters && (
@@ -396,7 +396,7 @@ export function ListingSearchPageClient({ defaultListingType }: ListingSearchPag
               {category && (
                 <button
                   onClick={() => setCategory('')}
-                  className="rounded-full border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                  className="rounded-full border border-surface-300 px-3 py-1 text-xs text-surface-600 hover:bg-surface-50"
                 >
                   Remove &ldquo;{CATEGORY_LABELS[category as VendorCategory] ?? category}&rdquo;
                   filter
@@ -405,7 +405,7 @@ export function ListingSearchPageClient({ defaultListingType }: ListingSearchPag
               {rentalCategory && (
                 <button
                   onClick={() => setRentalCategory('')}
-                  className="rounded-full border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                  className="rounded-full border border-surface-300 px-3 py-1 text-xs text-surface-600 hover:bg-surface-50"
                 >
                   Remove &ldquo;
                   {RENTAL_CATEGORY_LABELS[rentalCategory as RentalCategory] ?? rentalCategory}
@@ -415,7 +415,7 @@ export function ListingSearchPageClient({ defaultListingType }: ListingSearchPag
               {area && (
                 <button
                   onClick={() => setArea('')}
-                  className="rounded-full border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                  className="rounded-full border border-surface-300 px-3 py-1 text-xs text-surface-600 hover:bg-surface-50"
                 >
                   Search in all areas
                 </button>
@@ -423,7 +423,7 @@ export function ListingSearchPageClient({ defaultListingType }: ListingSearchPag
               {deliveryOption && (
                 <button
                   onClick={() => setDeliveryOption('')}
-                  className="rounded-full border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                  className="rounded-full border border-surface-300 px-3 py-1 text-xs text-surface-600 hover:bg-surface-50"
                 >
                   Remove delivery filter
                 </button>
@@ -434,7 +434,7 @@ export function ListingSearchPageClient({ defaultListingType }: ListingSearchPag
                     setPriceMin('');
                     setPriceMax('');
                   }}
-                  className="rounded-full border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                  className="rounded-full border border-surface-300 px-3 py-1 text-xs text-surface-600 hover:bg-surface-50"
                 >
                   Remove price filter
                 </button>
@@ -450,7 +450,7 @@ export function ListingSearchPageClient({ defaultListingType }: ListingSearchPag
         </div>
       ) : (
         <div className="mt-6">
-          <p className="mb-4 text-sm font-medium text-gray-700">
+          <p className="mb-4 text-sm font-medium text-surface-700">
             {total} {isRental ? 'item' : 'service'}
             {total !== 1 ? 's' : ''} found
           </p>
@@ -465,7 +465,7 @@ export function ListingSearchPageClient({ defaultListingType }: ListingSearchPag
       {/* Infinite scroll sentinel */}
       {nextCursor && (
         <div ref={sentinelRef} className="mt-4 flex justify-center py-4">
-          {loadingMore && <p className="text-sm text-gray-500">Loading more...</p>}
+          {loadingMore && <p className="text-sm text-surface-500">Loading more...</p>}
         </div>
       )}
     </div>

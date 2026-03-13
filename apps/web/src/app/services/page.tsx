@@ -13,7 +13,7 @@ export default function ServicesPage() {
     <Suspense
       fallback={
         <div className="flex min-h-[60vh] items-center justify-center">
-          <p className="text-gray-500">Loading...</p>
+          <p className="text-surface-500">Loading...</p>
         </div>
       }
     >

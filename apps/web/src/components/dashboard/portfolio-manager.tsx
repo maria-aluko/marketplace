@@ -61,17 +61,17 @@ export function PortfolioManager({ vendorId }: PortfolioManagerProps) {
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">Portfolio</CardTitle>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-surface-500">
           These images and items will appear on your public profile. These are not the same as
           listing photos, which are attached to specific service or rental listings.
         </p>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-surface-500">
           {imageCount} / {PORTFOLIO_MAX_IMAGES} images, {videoCount} / {PORTFOLIO_MAX_VIDEOS} videos
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
         {loading ? (
-          <p className="text-sm text-gray-500">Loading portfolio...</p>
+          <p className="text-sm text-surface-500">Loading portfolio...</p>
         ) : (
           <>
             {items.length > 0 && (
@@ -79,7 +79,7 @@ export function PortfolioManager({ vendorId }: PortfolioManagerProps) {
                 {items.map((item) => (
                   <div
                     key={item.id}
-                    className="group relative aspect-square overflow-hidden rounded-lg bg-gray-100"
+                    className="group relative aspect-square overflow-hidden rounded-lg bg-surface-100"
                   >
                     <img
                       src={

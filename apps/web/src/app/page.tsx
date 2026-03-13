@@ -31,8 +31,8 @@ export default async function HomePage() {
       {/* Hero section */}
       <section className="bg-gradient-to-b from-primary-50 to-white px-4 pb-12 pt-16">
         <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
-          <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">EventTrust Nigeria</h1>
-          <p className="mt-4 max-w-md text-gray-600">
+          <h1 className="text-3xl font-bold text-surface-900 sm:text-4xl">EventTrust Nigeria</h1>
+          <p className="mt-4 max-w-md text-surface-600">
             Find verified event services and equipment rentals in Lagos. Caterers, photographers,
             tents, generators, and more — all reviewed and trusted.
           </p>
@@ -55,7 +55,7 @@ export default async function HomePage() {
         <section className="px-4 py-10">
           <div className="mx-auto max-w-5xl">
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Featured Equipment</h2>
+              <h2 className="text-lg font-semibold text-surface-900">Featured Equipment</h2>
               <Link
                 href="/equipment"
                 className="text-sm font-medium text-primary-600 hover:text-primary-700"
@@ -76,10 +76,10 @@ export default async function HomePage() {
 
       {/* Featured Services */}
       {featuredServices.length > 0 && (
-        <section className="bg-gray-50 px-4 py-10">
+        <section className="bg-surface-50 px-4 py-10">
           <div className="mx-auto max-w-5xl">
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Featured Services</h2>
+              <h2 className="text-lg font-semibold text-surface-900">Featured Services</h2>
               <Link
                 href="/services"
                 className="text-sm font-medium text-primary-600 hover:text-primary-700"
@@ -103,7 +103,7 @@ export default async function HomePage() {
         <section className="px-4 py-10">
           <div className="mx-auto max-w-5xl">
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Featured Vendors</h2>
+              <h2 className="text-lg font-semibold text-surface-900">Featured Vendors</h2>
               <Link
                 href="/search"
                 className="text-sm font-medium text-primary-600 hover:text-primary-700"

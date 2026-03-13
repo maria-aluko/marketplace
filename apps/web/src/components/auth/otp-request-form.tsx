@@ -45,7 +45,7 @@ export function OtpRequestForm({ onSuccess }: OtpRequestFormProps) {
       <div className="space-y-2">
         <Label htmlFor="phone">Phone Number</Label>
         <div className="flex">
-          <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-100 px-3 text-sm text-gray-600">
+          <span className="inline-flex items-center rounded-l-md border border-r-0 border-surface-300 bg-surface-100 px-3 text-sm text-surface-600">
             +234
           </span>
           <Input

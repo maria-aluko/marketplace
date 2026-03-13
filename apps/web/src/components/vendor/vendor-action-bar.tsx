@@ -19,7 +19,7 @@ export function VendorActionBar({
   return (
     <>
       {/* Fixed bottom bar on mobile */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 md:hidden">
+      <div className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-between border-t border-surface-200 bg-white px-4 py-3 md:hidden">
         <EnquiryButton
           vendorName={vendorName}
           whatsappNumber={whatsappNumber}

@@ -24,12 +24,15 @@ interface ProfileEditFormProps {
 
 const categories = Object.values(VendorCategory);
 
-const statusVariant: Record<string, 'default' | 'secondary' | 'warning' | 'destructive'> = {
-  draft: 'secondary',
-  pending: 'warning',
-  active: 'default',
-  changes_requested: 'destructive',
-  suspended: 'destructive',
+const statusVariant: Record<
+  'draft' | 'pending' | 'active' | 'changes_requested' | 'suspended',
+  'draft' | 'pending' | 'active' | 'changes_requested' | 'suspended'
+> = {
+  draft: 'draft',
+  pending: 'pending',
+  active: 'active',
+  changes_requested: 'changes_requested',
+  suspended: 'suspended',
 };
 
 export function ProfileEditForm({ vendorId }: ProfileEditFormProps) {
@@ -139,7 +142,7 @@ export function ProfileEditForm({ vendorId }: ProfileEditFormProps) {
   };
 
   if (loading) {
-    return <p className="py-8 text-center text-gray-500">Loading profile...</p>;
+    return <p className="py-8 text-center text-surface-500">Loading profile...</p>;
   }
 
   if (!vendor) {
@@ -151,13 +154,13 @@ export function ProfileEditForm({ vendorId }: ProfileEditFormProps) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Edit Profile</CardTitle>
-          <Badge variant={statusVariant[vendor.status] || 'secondary'}>
+          <Badge variant={statusVariant[vendor.status as keyof typeof statusVariant] || 'draft'}>
             {vendor.status.replace(/_/g, ' ')}
           </Badge>
         </div>
         {vendor.status === VendorStatus.CHANGES_REQUESTED && (
-          <div className="mt-2 rounded-md bg-yellow-50 border border-yellow-200 p-3">
-            <p className="text-sm text-yellow-800">
+          <div className="mt-2 rounded-md bg-celebration-50 border border-celebration-200 p-3">
+            <p className="text-sm text-celebration-800">
               Changes have been requested. Please update your profile and resubmit.
             </p>
             <Button
@@ -292,7 +295,7 @@ export function ProfileEditForm({ vendorId }: ProfileEditFormProps) {
           </div>
 
           {apiError && <p className="text-sm text-red-600">{apiError}</p>}
-          {successMsg && <p className="text-sm text-green-600">{successMsg}</p>}
+          {successMsg && <p className="text-sm text-primary-600">{successMsg}</p>}
 
           <Button type="submit" disabled={saving}>
             {saving ? 'Saving...' : 'Save Changes'}

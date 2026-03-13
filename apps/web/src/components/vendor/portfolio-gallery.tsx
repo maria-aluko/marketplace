@@ -17,7 +17,7 @@ export function PortfolioGallery({ items }: PortfolioGalleryProps) {
   const selected = selectedIndex !== null ? items[selectedIndex] : null;
 
   if (items.length === 0) {
-    return <p className="text-sm text-gray-500">No portfolio items yet.</p>;
+    return <p className="text-sm text-surface-500">No portfolio items yet.</p>;
   }
 
   return (
@@ -28,7 +28,7 @@ export function PortfolioGallery({ items }: PortfolioGalleryProps) {
             key={item.id}
             type="button"
             onClick={() => setSelectedIndex(index)}
-            className="group relative aspect-square overflow-hidden rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="group relative aspect-square overflow-hidden rounded-lg bg-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             {item.mediaType === MediaType.VIDEO ? (
               <>
@@ -70,7 +70,7 @@ export function PortfolioGallery({ items }: PortfolioGalleryProps) {
                   className="w-full"
                 />
               )}
-              {selected.caption && <p className="p-4 text-sm text-gray-600">{selected.caption}</p>}
+              {selected.caption && <p className="p-4 text-sm text-surface-600">{selected.caption}</p>}
             </div>
           )}
         </DialogContent>

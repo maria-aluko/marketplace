@@ -14,8 +14,8 @@ export function AuthNavLinks({ mobile, onLinkClick }: AuthNavLinksProps) {
   if (isLoading) return null;
 
   const linkClass = mobile
-    ? 'rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-50'
-    : 'text-gray-600 hover:text-gray-900';
+    ? 'rounded-md px-3 py-2 text-sm text-surface-600 hover:bg-surface-50'
+    : 'text-surface-600 hover:text-surface-900';
 
   const primaryLinkClass = mobile
     ? 'rounded-md bg-primary-600 px-3 py-2 text-center text-sm font-medium text-white hover:bg-primary-700'

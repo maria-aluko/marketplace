@@ -18,10 +18,10 @@ export function ListingCard({ listing }: ListingCardProps) {
   return (
     <Link
       href={`/listings/${listing.id}`}
-      className="block rounded-lg border border-gray-200 bg-white p-4 transition-shadow hover:shadow-md"
+      className="block rounded-lg border border-surface-200 bg-white p-4 transition-shadow hover:shadow-md"
     >
       <div className="flex items-center gap-2">
-        <Badge variant={isRental ? 'warning' : 'default'} className="text-xs">
+        <Badge variant={isRental ? 'rental' : 'service'} className="text-xs">
           {listing.listingType}
         </Badge>
         {listing.category && (
@@ -35,16 +35,16 @@ export function ListingCard({ listing }: ListingCardProps) {
           </Badge>
         )}
       </div>
-      <h3 className="mt-2 font-medium text-gray-900 line-clamp-1">{listing.title}</h3>
-      <p className="mt-1 text-sm text-gray-500 line-clamp-2">{listing.description}</p>
+      <h3 className="mt-2 font-medium text-surface-900 line-clamp-1">{listing.title}</h3>
+      <p className="mt-1 text-sm text-surface-500 line-clamp-2">{listing.description}</p>
       {(listing.priceFrom || listing.priceTo) && (
-        <p className="mt-2 text-sm font-medium text-gray-700">
+        <p className="mt-2 text-sm font-medium text-surface-700">
           {formatPrice(listing.priceFrom)}
           {listing.priceTo ? ` - ${formatPrice(listing.priceTo)}` : ''}
         </p>
       )}
       {listing.rentalDetails && (
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-surface-500">
           {formatPrice(listing.rentalDetails.pricePerDay)}/day
           {listing.rentalDetails.quantityAvailable > 1 &&
             ` · ${listing.rentalDetails.quantityAvailable} available`}

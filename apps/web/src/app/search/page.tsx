@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-[60vh] items-center justify-center"><p className="text-gray-500">Loading...</p></div>}>
+    <Suspense fallback={<div className="flex min-h-[60vh] items-center justify-center"><p className="text-surface-500">Loading...</p></div>}>
       <SearchPageClient />
     </Suspense>
   );

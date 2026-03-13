@@ -88,7 +88,7 @@ export default async function VendorProfilePage({ params, searchParams }: Props)
     <div className="mx-auto max-w-5xl px-4 py-8">
       {/* Breadcrumbs */}
       <nav aria-label="Breadcrumb" className="mb-4">
-        <ol className="flex flex-wrap items-center gap-1 text-sm text-gray-500">
+        <ol className="flex flex-wrap items-center gap-1 text-sm text-surface-500">
           <li>
             <Link href="/" className="hover:text-primary-600 transition-colors">
               Home
@@ -108,14 +108,14 @@ export default async function VendorProfilePage({ params, searchParams }: Props)
           <li>
             <ChevronRight className="h-3.5 w-3.5" />
           </li>
-          <li className="font-medium text-gray-900">{vendor.businessName}</li>
+          <li className="font-medium text-surface-900">{vendor.businessName}</li>
         </ol>
       </nav>
 
       {/* Hero */}
       <section>
         {vendor.coverImageUrl ? (
-          <div className="aspect-[21/9] overflow-hidden rounded-lg bg-gray-100">
+          <div className="aspect-[21/9] overflow-hidden rounded-lg bg-surface-100">
             <img
               src={cloudinaryTransform(vendor.coverImageUrl, 800, 340)}
               alt={vendor.businessName}
@@ -127,23 +127,27 @@ export default async function VendorProfilePage({ params, searchParams }: Props)
         )}
         <div className="mt-4">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{vendor.businessName}</h1>
-            {vendor.status === 'active' && <Badge variant="default">Verified</Badge>}
+            <h1 className="text-2xl font-bold text-surface-900 sm:text-3xl">
+              {vendor.businessName}
+            </h1>
+            {vendor.status === 'active' && <Badge variant="verified">Verified</Badge>}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <Badge variant="secondary">{categoryLabel}</Badge>
-            <span className="text-sm text-gray-500">{vendor.area}</span>
-            {priceRange && <span className="text-sm font-medium text-gray-700">{priceRange}</span>}
+            <span className="text-sm text-surface-500">{vendor.area}</span>
+            {priceRange && (
+              <span className="text-sm font-medium text-surface-700">{priceRange}</span>
+            )}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
             <div className="flex items-center gap-2">
               <StarRating value={Math.round(vendor.avgRating)} readonly size="md" />
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-surface-500">
                 {vendor.avgRating.toFixed(1)} ({vendor.reviewCount} review
                 {vendor.reviewCount !== 1 ? 's' : ''})
               </span>
             </div>
-            <div className="flex items-center gap-1 text-sm text-gray-500">
+            <div className="flex items-center gap-1 text-sm text-surface-500">
               <CalendarDays className="h-3.5 w-3.5" />
               <span>Joined {formatMemberSince(vendor.createdAt)}</span>
             </div>

@@ -190,7 +190,7 @@ export function ListingPhotoUploader({ photos, onChange, disabled }: ListingPhot
           {photos.map((photoUrl, index) => (
             <div
               key={photoUrl}
-              className="group relative aspect-square rounded-md overflow-hidden border border-gray-200"
+              className="group relative aspect-square rounded-md overflow-hidden border border-surface-200"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -218,10 +218,10 @@ export function ListingPhotoUploader({ photos, onChange, disabled }: ListingPhot
         <div
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
-          className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 px-4 py-6 text-center hover:border-primary-400 transition-colors"
+          className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-surface-300 px-4 py-6 text-center hover:border-primary-400 transition-colors"
         >
-          <Upload className="h-6 w-6 text-gray-400 mb-1" />
-          <p className="text-sm text-gray-600">
+          <Upload className="h-6 w-6 text-surface-400 mb-1" />
+          <p className="text-sm text-surface-600">
             Drag photos here, or{' '}
             <button
               type="button"
@@ -232,7 +232,7 @@ export function ListingPhotoUploader({ photos, onChange, disabled }: ListingPhot
               browse
             </button>
           </p>
-          <p className="mt-1 text-xs text-gray-400">
+          <p className="mt-1 text-xs text-surface-400">
             JPG, PNG, WebP — max 10MB each — {remaining} remaining
           </p>
           <input
@@ -256,10 +256,10 @@ export function ListingPhotoUploader({ photos, onChange, disabled }: ListingPhot
           {uploads.map((upload, index) => (
             <div
               key={index}
-              className="flex items-center gap-3 rounded-md border border-gray-200 p-2"
+              className="flex items-center gap-3 rounded-md border border-surface-200 p-2"
             >
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-gray-700 truncate">{upload.file.name}</p>
+                <p className="text-sm text-surface-700 truncate">{upload.file.name}</p>
                 {upload.status === 'uploading' && (
                   <Progress value={upload.progress} className="mt-1 h-1.5" />
                 )}
@@ -269,14 +269,14 @@ export function ListingPhotoUploader({ photos, onChange, disabled }: ListingPhot
                 <button
                   type="button"
                   onClick={() => removeUpload(index)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-surface-400 hover:text-surface-600"
                   aria-label="Remove from queue"
                 >
                   <X className="h-4 w-4" />
                 </button>
               )}
               {upload.status === 'uploading' && (
-                <span className="text-xs text-gray-500">{upload.progress}%</span>
+                <span className="text-xs text-surface-500">{upload.progress}%</span>
               )}
             </div>
           ))}

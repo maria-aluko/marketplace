@@ -54,7 +54,7 @@ export default function EditListingPage() {
   if (authLoading || loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-surface-500">Loading...</p>
       </div>
     );
   }
@@ -70,7 +70,7 @@ export default function EditListingPage() {
   if (!listing) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-gray-500">Listing not found.</p>
+        <p className="text-surface-500">Listing not found.</p>
       </div>
     );
   }
@@ -141,8 +141,8 @@ export default function EditListingPage() {
         <CardContent>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-900">Delete this listing</p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm font-medium text-surface-900">Delete this listing</p>
+              <p className="text-sm text-surface-500">
                 Once deleted, this listing cannot be recovered.
               </p>
             </div>

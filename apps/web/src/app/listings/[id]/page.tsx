@@ -69,7 +69,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
     <div className="mx-auto max-w-2xl px-4 py-8">
       {/* Breadcrumbs */}
       <nav aria-label="Breadcrumb" className="mb-4">
-        <ol className="flex flex-wrap items-center gap-1 text-sm text-gray-500">
+        <ol className="flex flex-wrap items-center gap-1 text-sm text-surface-500">
           <li>
             <Link href="/" className="hover:text-primary-600 transition-colors">
               Home
@@ -97,14 +97,14 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           <li>
             <ChevronRight className="h-3.5 w-3.5" />
           </li>
-          <li className="font-medium text-gray-900 line-clamp-1">{listing.title}</li>
+          <li className="font-medium text-surface-900 line-clamp-1">{listing.title}</li>
         </ol>
       </nav>
 
       {/* Type & category badges */}
       <div className="mb-2 flex items-center gap-2">
         <Badge
-          variant={listing.listingType === 'rental' ? 'warning' : 'default'}
+          variant={listing.listingType === 'rental' ? 'rental' : 'service'}
           className="text-xs"
         >
           {listing.listingType}
@@ -119,28 +119,28 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
       <h1 className="mb-4 text-2xl font-bold">{listing.title}</h1>
 
       {vendor && (
-        <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
+        <div className="mb-6 rounded-lg border border-surface-200 bg-surface-50 p-4">
           <div className="flex items-start gap-3">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <Link
                   href={`/vendors/${vendor.slug}`}
-                  className="font-semibold text-gray-900 hover:text-primary-600 transition-colors"
+                  className="font-semibold text-surface-900 hover:text-primary-600 transition-colors"
                 >
                   {vendor.businessName}
                 </Link>
                 {vendor.status === 'active' && (
                   <CheckCircle2
-                    className="h-4 w-4 shrink-0 text-green-600"
+                    className="h-4 w-4 shrink-0 text-primary-600"
                     aria-label="Verified vendor"
                   />
                 )}
               </div>
-              <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
+              <div className="mt-1 flex items-center gap-2 text-sm text-surface-500">
                 {vendor.avgRating > 0 && (
                   <span className="inline-flex items-center gap-1">
                     <StarRating value={Math.round(vendor.avgRating)} readonly size="xs" />
-                    <span className="font-medium text-gray-700">{vendor.avgRating.toFixed(1)}</span>
+                    <span className="font-medium text-surface-700">{vendor.avgRating.toFixed(1)}</span>
                   </span>
                 )}
                 {vendor.reviewCount > 0 && (
@@ -168,11 +168,11 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         </div>
       )}
 
-      <p className="mb-6 whitespace-pre-line text-gray-700">{listing.description}</p>
+      <p className="mb-6 whitespace-pre-line text-surface-700">{listing.description}</p>
 
       {listing.priceFrom !== undefined && (
         <div className="mb-4">
-          <span className="text-sm text-gray-500">Price range: </span>
+          <span className="text-sm text-surface-500">Price range: </span>
           <span className="font-semibold">
             {formatNaira(listing.priceFrom)}
             {listing.priceTo !== undefined && ` — ${formatNaira(listing.priceTo)}`}
@@ -185,21 +185,21 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         <div className="mb-6 rounded-lg border p-4">
           <h2 className="mb-3 font-semibold">Rental Details</h2>
           <dl className="grid grid-cols-2 gap-3 text-sm">
-            <dt className="text-gray-500">Category</dt>
+            <dt className="text-surface-500">Category</dt>
             <dd className="capitalize">
               {listing.rentalDetails.rentalCategory.replace(/_/g, ' ')}
             </dd>
-            <dt className="text-gray-500">Available</dt>
+            <dt className="text-surface-500">Available</dt>
             <dd>{listing.rentalDetails.quantityAvailable} units</dd>
-            <dt className="text-gray-500">Price/Day</dt>
+            <dt className="text-surface-500">Price/Day</dt>
             <dd>{formatNaira(listing.rentalDetails.pricePerDay)}</dd>
             {listing.rentalDetails.depositAmount !== undefined && (
               <>
-                <dt className="text-gray-500">Deposit</dt>
+                <dt className="text-surface-500">Deposit</dt>
                 <dd>{formatNaira(listing.rentalDetails.depositAmount)}</dd>
               </>
             )}
-            <dt className="text-gray-500">Delivery</dt>
+            <dt className="text-surface-500">Delivery</dt>
             <dd>
               {(() => {
                 const meta = DELIVERY_META[listing.rentalDetails!.deliveryOption];
@@ -207,7 +207,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 const Icon = meta.icon;
                 return (
                   <span className="inline-flex items-center gap-1.5">
-                    <Icon className="h-4 w-4 text-gray-400" />
+                    <Icon className="h-4 w-4 text-surface-400" />
                     {meta.label}
                   </span>
                 );
@@ -215,7 +215,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
             </dd>
             {listing.rentalDetails.condition && (
               <>
-                <dt className="text-gray-500">Condition</dt>
+                <dt className="text-surface-500">Condition</dt>
                 <dd>
                   <Badge variant="outline" className="text-xs">
                     <Shield className="mr-1 h-3 w-3" />

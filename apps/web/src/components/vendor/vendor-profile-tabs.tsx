@@ -25,7 +25,7 @@ export function VendorProfileTabs({
 }: VendorProfileTabsProps) {
   return (
     <Tabs defaultValue="about" className="mt-6">
-      <TabsList className="sticky top-[64px] z-30 w-full justify-start gap-1 rounded-none border-b border-gray-200 bg-white px-0">
+      <TabsList className="sticky top-[64px] z-30 w-full justify-start gap-1 rounded-none border-b border-surface-200 bg-white px-0">
         <TabsTrigger
           value="about"
           className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
@@ -53,9 +53,9 @@ export function VendorProfileTabs({
       </TabsList>
 
       <TabsContent value="about" className="mt-6">
-        <p className="whitespace-pre-line text-gray-600">{description}</p>
+        <p className="whitespace-pre-line text-surface-600">{description}</p>
         {instagramHandle && (
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-surface-500">
             Instagram: <span className="font-medium">@{instagramHandle.replace(/^@/, '')}</span>
           </p>
         )}
@@ -69,7 +69,7 @@ export function VendorProfileTabs({
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-500">No listings yet.</p>
+          <p className="text-sm text-surface-500">No listings yet.</p>
         )}
       </TabsContent>
 
@@ -77,7 +77,7 @@ export function VendorProfileTabs({
         {portfolio.length > 0 ? (
           <PortfolioGallery items={portfolio} />
         ) : (
-          <p className="text-sm text-gray-500">No portfolio items yet.</p>
+          <p className="text-sm text-surface-500">No portfolio items yet.</p>
         )}
       </TabsContent>
 

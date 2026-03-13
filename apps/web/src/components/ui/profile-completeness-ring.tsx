@@ -13,7 +13,7 @@ export function ProfileCompletenessRing({ score, size = 28 }: ProfileCompletenes
   const offset = circumference - (clamped / 100) * circumference;
 
   const color =
-    clamped >= 80 ? 'text-green-500' : clamped >= 50 ? 'text-yellow-500' : 'text-red-400';
+    clamped >= 80 ? 'text-primary-500' : clamped >= 50 ? 'text-celebration-500' : 'text-red-400';
 
   return (
     <div
@@ -29,7 +29,7 @@ export function ProfileCompletenessRing({ score, size = 28 }: ProfileCompletenes
           fill="none"
           stroke="currentColor"
           strokeWidth={strokeWidth}
-          className="text-gray-200"
+          className="text-surface-200"
         />
         <circle
           cx={size / 2}
@@ -44,7 +44,7 @@ export function ProfileCompletenessRing({ score, size = 28 }: ProfileCompletenes
           className={color}
         />
       </svg>
-      <span className="absolute text-[8px] font-semibold text-gray-600">{clamped}</span>
+      <span className="absolute text-[8px] font-semibold text-surface-600">{clamped}</span>
     </div>
   );
 }

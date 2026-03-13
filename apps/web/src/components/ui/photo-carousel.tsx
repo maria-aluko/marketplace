@@ -44,16 +44,16 @@ export function PhotoCarousel({ photos, alt }: PhotoCarouselProps) {
               <img
                 src={cloudinaryTransform(photo, 600, 400)}
                 alt={`${alt} ${i + 1}`}
-                className="aspect-[3/2] w-full rounded-lg object-cover bg-gray-100"
+                className="aspect-[3/2] w-full rounded-lg object-cover bg-surface-100"
                 loading={i === 0 ? 'eager' : 'lazy'}
               />
             </div>
           ) : (
             <div
               key={i}
-              className="flex w-full flex-shrink-0 snap-center items-center justify-center aspect-[3/2] rounded-lg bg-gray-100"
+              className="flex w-full flex-shrink-0 snap-center items-center justify-center aspect-[3/2] rounded-lg bg-surface-100"
             >
-              <ImageOff className="h-8 w-8 text-gray-300" />
+              <ImageOff className="h-8 w-8 text-surface-300" />
             </div>
           ),
         )}
@@ -74,7 +74,7 @@ export function PhotoCarousel({ photos, alt }: PhotoCarouselProps) {
                 });
               }}
               className={`h-2 w-2 rounded-full transition-colors ${
-                i === activeIndex ? 'bg-primary-600' : 'bg-gray-300'
+                i === activeIndex ? 'bg-primary-600' : 'bg-surface-300'
               }`}
             />
           ))}

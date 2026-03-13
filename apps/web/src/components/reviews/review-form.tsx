@@ -54,8 +54,8 @@ export function ReviewForm({ vendorId, vendorName, vendorSlug }: ReviewFormProps
   if (submitted) {
     return (
       <div className="text-center py-6">
-        <p className="text-lg font-medium text-gray-900">Thank you for your review!</p>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="text-lg font-medium text-surface-900">Thank you for your review!</p>
+        <p className="mt-1 text-sm text-surface-500">
           Your review of {vendorName} has been submitted and is pending approval.
         </p>
         <Link href={`/vendors/${vendorSlug}`}>
@@ -90,7 +90,7 @@ export function ReviewForm({ vendorId, vendorName, vendorSlug }: ReviewFormProps
           className="mt-1"
         />
         <div className="mt-1 flex items-center justify-between">
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-surface-400">
             {body.length} / {REVIEW_MIN_BODY_LENGTH} min characters
           </p>
           {errors.body && (

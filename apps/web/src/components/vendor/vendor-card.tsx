@@ -25,9 +25,9 @@ export function VendorCard({ vendor }: VendorCardProps) {
   return (
     <Link
       href={`/vendors/${vendor.slug}`}
-      className="group block overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+      className="group block overflow-hidden rounded-lg border border-surface-200 bg-white shadow-sm transition-shadow hover:shadow-md"
     >
-      <div className="aspect-[16/9] bg-gray-100">
+      <div className="aspect-[16/9] bg-surface-100">
         {vendor.coverImageUrl ? (
           <img
             src={cloudinaryTransform(vendor.coverImageUrl, 375, 200)}
@@ -36,17 +36,17 @@ export function VendorCard({ vendor }: VendorCardProps) {
             loading="lazy"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-gray-400 text-sm">
+          <div className="flex h-full items-center justify-center text-surface-400 text-sm">
             No image
           </div>
         )}
       </div>
       <div className="p-4">
-        <h3 className="font-semibold text-gray-900 group-hover:text-primary-600 line-clamp-1">
+        <h3 className="font-semibold text-surface-900 group-hover:text-primary-600 line-clamp-1">
           {vendor.businessName}
           {vendor.status === VendorStatus.ACTIVE && (
             <BadgeCheck
-              className="ml-1 inline h-4 w-4 text-green-600"
+              className="ml-1 inline h-4 w-4 text-primary-600"
               aria-label="Verified vendor"
             />
           )}
@@ -55,13 +55,13 @@ export function VendorCard({ vendor }: VendorCardProps) {
           <Badge variant="secondary" className="text-xs">
             {CATEGORY_LABELS[vendor.category] ?? vendor.category}
           </Badge>
-          <span className="text-xs text-gray-500">{vendor.area}</span>
+          <span className="text-xs text-surface-500">{vendor.area}</span>
         </div>
         <div className="mt-2 flex items-center gap-2">
           {vendor.reviewCount > 0 ? (
             <>
               <StarRating value={Math.round(vendor.avgRating)} readonly size="sm" />
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-surface-500">
                 {vendor.avgRating.toFixed(1)} ({vendor.reviewCount} review
                 {vendor.reviewCount !== 1 ? 's' : ''})
               </span>
@@ -71,7 +71,7 @@ export function VendorCard({ vendor }: VendorCardProps) {
           )}
         </div>
         <div className="mt-2 flex items-center justify-between">
-          {priceRange && <p className="text-sm font-medium text-gray-700">{priceRange}</p>}
+          {priceRange && <p className="text-sm font-medium text-surface-700">{priceRange}</p>}
           {vendor.profileCompleteScore < 100 && (
             <ProfileCompletenessRing score={vendor.profileCompleteScore} />
           )}

@@ -10,21 +10,13 @@ import { ProfileEditForm } from '@/components/dashboard/profile-edit-form';
 import { PortfolioManager } from '@/components/dashboard/portfolio-manager';
 import { ReviewsManager } from '@/components/dashboard/reviews-manager';
 
-const statusVariant: Record<string, 'default' | 'secondary' | 'warning' | 'destructive'> = {
-  draft: 'secondary',
-  pending: 'warning',
-  active: 'default',
-  changes_requested: 'destructive',
-  suspended: 'destructive',
-};
-
 export default function DashboardPage() {
   const { user, isLoading, logout } = useAuth();
 
   if (isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-surface-500">Loading...</p>
       </div>
     );
   }
@@ -32,7 +24,7 @@ export default function DashboardPage() {
   if (!user) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-gray-500">Please sign in to view your dashboard.</p>
+        <p className="text-surface-500">Please sign in to view your dashboard.</p>
       </div>
     );
   }
@@ -54,10 +46,10 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <p>
-                <span className="text-gray-500">Phone:</span> {user.phone}
+                <span className="text-surface-500">Phone:</span> {user.phone}
               </p>
               <p>
-                <span className="text-gray-500">Role:</span>{' '}
+                <span className="text-surface-500">Role:</span>{' '}
                 <Badge variant="secondary">{user.role}</Badge>
               </p>
             </CardContent>
@@ -67,7 +59,7 @@ export default function DashboardPage() {
               <CardTitle className="text-lg">Become a Vendor</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="mb-4 text-sm text-gray-600">
+              <p className="mb-4 text-sm text-surface-600">
                 List your business on EventTrust and get discovered by clients in Lagos.
               </p>
               <Link href="/vendor/signup">
@@ -98,7 +90,7 @@ export default function DashboardPage() {
                 <CardTitle className="text-lg">Manage Listings</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="mb-4 text-sm text-gray-600">
+                <p className="mb-4 text-sm text-surface-600">
                   Create and manage your service and rental listings.
                 </p>
                 <Link href="/dashboard/listings">
@@ -114,7 +106,7 @@ export default function DashboardPage() {
         </TabsContent>
 
         <TabsContent value="portfolio">
-          <PortfolioM anager vendorId={user.vendorId} />
+          <PortfolioManager vendorId={user.vendorId} />
         </TabsContent>
 
         <TabsContent value="reviews">

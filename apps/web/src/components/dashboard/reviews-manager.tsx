@@ -93,7 +93,7 @@ export function ReviewsManager({ vendorId }: ReviewsManagerProps) {
   };
 
   if (loading) {
-    return <p className="py-8 text-center text-gray-500">Loading reviews...</p>;
+    return <p className="py-8 text-center text-surface-500">Loading reviews...</p>;
   }
 
   return (
@@ -103,7 +103,7 @@ export function ReviewsManager({ vendorId }: ReviewsManagerProps) {
       </CardHeader>
       <CardContent>
         {reviews.length === 0 ? (
-          <p className="text-sm text-gray-500">No reviews yet.</p>
+          <p className="text-sm text-surface-500">No reviews yet.</p>
         ) : (
           <div className="space-y-6">
             {reviews.map((review) => {
@@ -112,19 +112,19 @@ export function ReviewsManager({ vendorId }: ReviewsManagerProps) {
               const editExpired = review.reply && !isWithinEditWindow(review.reply.createdAt);
 
               return (
-                <div key={review.id} className="border-b border-gray-100 pb-6 last:border-0">
+                <div key={review.id} className="border-b border-surface-100 pb-6 last:border-0">
                   <div className="flex items-center gap-2">
                     <StarRating value={review.rating} readonly size="sm" />
-                    <span className="text-xs text-gray-500">{formatDate(review.createdAt)}</span>
+                    <span className="text-xs text-surface-500">{formatDate(review.createdAt)}</span>
                   </div>
-                  <p className="mt-2 text-sm text-gray-700">{review.body}</p>
+                  <p className="mt-2 text-sm text-surface-700">{review.body}</p>
 
                   {/* Existing reply */}
                   {review.reply && editingReply !== review.id && (
-                    <div className="mt-3 ml-4 border-l-2 border-gray-200 pl-4">
-                      <p className="text-xs font-medium text-gray-500">Your reply</p>
-                      <p className="mt-1 text-sm text-gray-600">{review.reply.body}</p>
-                      <span className="text-xs text-gray-400">{formatDate(review.reply.createdAt)}</span>
+                    <div className="mt-3 ml-4 border-l-2 border-surface-200 pl-4">
+                      <p className="text-xs font-medium text-surface-500">Your reply</p>
+                      <p className="mt-1 text-sm text-surface-600">{review.reply.body}</p>
+                      <span className="text-xs text-surface-400">{formatDate(review.reply.createdAt)}</span>
                       {canEdit && (
                         <Button
                           variant="ghost"
@@ -140,7 +140,7 @@ export function ReviewsManager({ vendorId }: ReviewsManagerProps) {
                         </Button>
                       )}
                       {editExpired && (
-                        <span className="ml-2 text-xs text-gray-400">Edit window expired</span>
+                        <span className="ml-2 text-xs text-surface-400">Edit window expired</span>
                       )}
                     </div>
                   )}

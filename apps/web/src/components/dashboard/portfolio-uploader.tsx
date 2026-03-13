@@ -223,10 +223,10 @@ export function PortfolioUploader({
         ref={dropRef}
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleDrop}
-        className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 px-6 py-8 text-center hover:border-primary-400 transition-colors"
+        className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-surface-300 px-6 py-8 text-center hover:border-primary-400 transition-colors"
       >
-        <Upload className="h-8 w-8 text-gray-400 mb-2" />
-        <p className="text-sm text-gray-600">
+        <Upload className="h-8 w-8 text-surface-400 mb-2" />
+        <p className="text-sm text-surface-600">
           Drag and drop files here, or{' '}
           <button
             type="button"
@@ -236,7 +236,7 @@ export function PortfolioUploader({
             browse
           </button>
         </p>
-        <p className="mt-1 text-xs text-gray-400">
+        <p className="mt-1 text-xs text-surface-400">
           Images (JPG, PNG, WebP, max 10MB) or Videos (MP4, max 100MB)
         </p>
         <input
@@ -256,10 +256,10 @@ export function PortfolioUploader({
       {uploads.length > 0 && (
         <div className="space-y-3">
           {uploads.map((upload, index) => (
-            <div key={index} className="rounded-md border border-gray-200 p-3">
+            <div key={index} className="rounded-md border border-surface-200 p-3">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-700 truncate">{upload.file.name}</p>
-                <span className="text-xs text-gray-500">{upload.status}</span>
+                <p className="text-sm font-medium text-surface-700 truncate">{upload.file.name}</p>
+                <span className="text-xs text-surface-500">{upload.status}</span>
               </div>
               {upload.status === 'pending' && (
                 <Input

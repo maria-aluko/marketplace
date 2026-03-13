@@ -37,7 +37,7 @@ export default function ListingsPage() {
   if (authLoading || loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-surface-500">Loading...</p>
       </div>
     );
   }
@@ -45,7 +45,7 @@ export default function ListingsPage() {
   if (!user?.vendorId) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-gray-500">You need a vendor profile to manage listings.</p>
+        <p className="text-surface-500">You need a vendor profile to manage listings.</p>
       </div>
     );
   }
@@ -73,7 +73,7 @@ export default function ListingsPage() {
       {listings.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center">
-            <p className="text-gray-500">
+            <p className="text-surface-500">
               No listings yet. Create your first listing to get started.
             </p>
           </CardContent>
@@ -85,18 +85,18 @@ export default function ListingsPage() {
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
                   <CardTitle className="text-base">{listing.title}</CardTitle>
-                  <Badge variant={listing.listingType === 'service' ? 'default' : 'secondary'}>
+                  <Badge variant={listing.listingType === 'service' ? 'service' : 'rental'}>
                     {listing.listingType}
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="mb-3 text-sm text-gray-600 line-clamp-2">{listing.description}</p>
+                <p className="mb-3 text-sm text-surface-600 line-clamp-2">{listing.description}</p>
                 {listing.listingType === 'service' && listing.category && (
-                  <p className="mb-1 text-xs text-gray-500">Category: {listing.category}</p>
+                  <p className="mb-1 text-xs text-surface-500">Category: {listing.category}</p>
                 )}
                 {listing.rentalDetails && (
-                  <p className="mb-1 text-xs text-gray-500">
+                  <p className="mb-1 text-xs text-surface-500">
                     {listing.rentalDetails.rentalCategory} —{' '}
                     {listing.rentalDetails.quantityAvailable} available
                   </p>

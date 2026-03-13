@@ -127,8 +127,8 @@ export function SearchPageClient() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900">Find Vendors</h1>
-      <p className="mt-1 text-sm text-gray-500">Discover verified event vendors in Lagos</p>
+      <h1 className="text-2xl font-bold text-surface-900">Find Vendors</h1>
+      <p className="mt-1 text-sm text-surface-500">Discover verified event vendors in Lagos</p>
 
       {/* Filters */}
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -164,12 +164,12 @@ export function SearchPageClient() {
             ))}
           </SelectContent>
         </Select>
-        <label className="flex items-center gap-2 text-sm text-gray-700">
+        <label className="flex items-center gap-2 text-sm text-surface-700">
           <input
             type="checkbox"
             checked={verifiedOnly}
             onChange={(e) => setVerifiedOnly(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            className="h-4 w-4 rounded border-surface-300 text-primary-600 focus:ring-primary-500"
           />
           Verified only
         </label>
@@ -216,7 +216,7 @@ export function SearchPageClient() {
           )}
           <button
             onClick={clearAllFilters}
-            className="text-xs font-medium text-gray-500 underline hover:text-gray-700"
+            className="text-xs font-medium text-surface-500 underline hover:text-surface-700"
           >
             Clear all
           </button>
@@ -226,10 +226,10 @@ export function SearchPageClient() {
       {/* Results */}
       {loading ? (
         <div className="mt-6">
-          <div className="mb-4 h-5 w-32 animate-pulse rounded bg-gray-200" />
+          <div className="mb-4 h-5 w-32 animate-pulse rounded bg-surface-200" />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="overflow-hidden rounded-lg border border-gray-200">
+              <div key={i} className="overflow-hidden rounded-lg border border-surface-200">
                 <Skeleton className="aspect-[16/9] w-full" />
                 <div className="space-y-2 p-4">
                   <Skeleton className="h-5 w-3/4" />
@@ -242,8 +242,8 @@ export function SearchPageClient() {
         </div>
       ) : vendors.length === 0 ? (
         <div className="mt-12 text-center">
-          <p className="text-lg font-medium text-gray-900">No vendors found</p>
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="text-lg font-medium text-surface-900">No vendors found</p>
+          <p className="mt-2 text-sm text-surface-500">
             {hasActiveFilters ? 'Try adjusting your filters:' : 'Try a different search term'}
           </p>
           {hasActiveFilters && (
@@ -251,7 +251,7 @@ export function SearchPageClient() {
               {category && (
                 <button
                   onClick={() => setCategory('')}
-                  className="rounded-full border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                  className="rounded-full border border-surface-300 px-3 py-1 text-xs text-surface-600 hover:bg-surface-50"
                 >
                   Remove &ldquo;{CATEGORY_LABELS[category as VendorCategory] ?? category}&rdquo;
                   filter
@@ -260,7 +260,7 @@ export function SearchPageClient() {
               {area && (
                 <button
                   onClick={() => setArea('')}
-                  className="rounded-full border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                  className="rounded-full border border-surface-300 px-3 py-1 text-xs text-surface-600 hover:bg-surface-50"
                 >
                   Search in all areas
                 </button>
@@ -268,7 +268,7 @@ export function SearchPageClient() {
               {verifiedOnly && (
                 <button
                   onClick={() => setVerifiedOnly(false)}
-                  className="rounded-full border border-gray-300 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                  className="rounded-full border border-surface-300 px-3 py-1 text-xs text-surface-600 hover:bg-surface-50"
                 >
                   Include unverified vendors
                 </button>
@@ -284,7 +284,7 @@ export function SearchPageClient() {
         </div>
       ) : (
         <div className="mt-6">
-          <p className="mb-4 text-sm font-medium text-gray-700">
+          <p className="mb-4 text-sm font-medium text-surface-700">
             {total} vendor{total !== 1 ? 's' : ''} found
           </p>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -298,7 +298,7 @@ export function SearchPageClient() {
       {/* Infinite scroll sentinel */}
       {nextCursor && (
         <div ref={sentinelRef} className="mt-4 flex justify-center py-4">
-          {loadingMore && <p className="text-sm text-gray-500">Loading more...</p>}
+          {loadingMore && <p className="text-sm text-surface-500">Loading more...</p>}
         </div>
       )}
     </div>

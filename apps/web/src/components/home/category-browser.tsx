@@ -36,8 +36,8 @@ export function CategoryBrowser() {
             <Briefcase className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Find Services</h2>
-            <p className="text-sm text-gray-600">Caterers, photographers, DJs &amp; more</p>
+            <h2 className="text-lg font-semibold text-surface-900">Find Services</h2>
+            <p className="text-sm text-surface-600">Caterers, photographers, DJs &amp; more</p>
           </div>
         </button>
 
@@ -46,16 +46,16 @@ export function CategoryBrowser() {
           onClick={() => setSelected('equipment')}
           className={`flex items-center gap-4 rounded-xl border-2 p-5 text-left transition-colors ${
             selected === 'equipment'
-              ? 'border-yellow-500 bg-yellow-100 ring-2 ring-yellow-200'
-              : 'border-yellow-200 bg-yellow-50 hover:border-yellow-400 hover:bg-yellow-100'
+              ? 'border-celebration-500 bg-celebration-100 ring-2 ring-celebration-200'
+              : 'border-celebration-200 bg-celebration-50 hover:border-celebration-400 hover:bg-celebration-100'
           }`}
         >
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-yellow-500 text-white">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-celebration-500 text-white">
             <Package className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Rent Equipment</h2>
-            <p className="text-sm text-gray-600">Tents, chairs, generators &amp; more</p>
+            <h2 className="text-lg font-semibold text-surface-900">Rent Equipment</h2>
+            <p className="text-sm text-surface-600">Tents, chairs, generators &amp; more</p>
           </div>
         </button>
       </div>
@@ -64,7 +64,7 @@ export function CategoryBrowser() {
       <div className="mt-8">
         {selected === 'services' ? (
           <div>
-            <h3 className="mb-4 text-center text-base font-semibold text-gray-900">
+            <h3 className="mb-4 text-center text-base font-semibold text-surface-900">
               Browse Services by Category
             </h3>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
@@ -74,10 +74,10 @@ export function CategoryBrowser() {
                   <Link
                     key={category}
                     href={`/services?category=${category}`}
-                    className="flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-4 text-center transition-colors hover:border-primary-500 hover:bg-primary-50"
+                    className="flex flex-col items-center gap-2 rounded-xl border border-surface-200 bg-white px-3 py-4 text-center transition-colors hover:border-primary-500 hover:bg-primary-50"
                   >
                     <Icon className="h-6 w-6 text-primary-600" />
-                    <span className="text-sm font-medium text-gray-700">
+                    <span className="text-sm font-medium text-surface-700">
                       {CATEGORY_LABELS[category]}
                     </span>
                   </Link>
@@ -87,7 +87,7 @@ export function CategoryBrowser() {
           </div>
         ) : (
           <div>
-            <h3 className="mb-4 text-center text-base font-semibold text-gray-900">
+            <h3 className="mb-4 text-center text-base font-semibold text-surface-900">
               Browse Equipment by Category
             </h3>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -97,10 +97,10 @@ export function CategoryBrowser() {
                   <Link
                     key={category}
                     href={`/equipment?rentalCategory=${category}`}
-                    className="flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-4 text-center transition-colors hover:border-yellow-400 hover:bg-yellow-50"
+                    className="flex flex-col items-center gap-2 rounded-xl border border-surface-200 bg-white px-3 py-4 text-center transition-colors hover:border-celebration-400 hover:bg-celebration-50"
                   >
-                    <Icon className="h-6 w-6 text-yellow-600" />
-                    <span className="text-sm font-medium text-gray-700">
+                    <Icon className="h-6 w-6 text-celebration-600" />
+                    <span className="text-sm font-medium text-surface-700">
                       {RENTAL_CATEGORY_LABELS[category]}
                     </span>
                   </Link>
