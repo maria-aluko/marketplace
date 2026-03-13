@@ -415,13 +415,38 @@ Build:   shared builds clean, web has pre-existing @playwright/test issue
 
 ---
 
-#### Phase 3.3: Frontend — Listing Search Pages
+#### Phase 3.3: Frontend — Listing Search Pages — COMPLETE
 
-| Step | Description | Details |
-| 3.1 | Create `ListingSearchPageClient` | New `apps/web/src/components/search/listing-search-client.tsx` — reuse architecture from `search-page-client.tsx` (URL sync, debounced fetch, infinite scroll, skeleton loading). Props: `defaultListingType`. **Service filters:** q, category, area, price. **Rental filters:** q, rentalCategory, area, deliveryOption, price. Renders `ListingSearchCard` grid |
-| 3.2 | Create `/services` page | `apps/web/src/app/services/page.tsx` — server component with SEO metadata, wraps `ListingSearchPageClient` with `defaultListingType="service"` |
-| 3.3 | Create `/equipment` page | `apps/web/src/app/equipment/page.tsx` — server component with SEO metadata, wraps `ListingSearchPageClient` with `defaultListingType="rental"` |
-| 3.4 | Handle `/listings` redirect | Redirect `/listings` → `/services` to avoid duplicate browse experiences |
+| Step | Status | Description | Details |
+| 3.1 | [x] | Create `ListingSearchPageClient` | New `apps/web/src/components/search/listing-search-client.tsx` — reuse architecture from `search-page-client.tsx` (URL sync, debounced fetch, infinite scroll, skeleton loading). Props: `defaultListingType`. **Service filters:** q, category, area, price. **Rental filters:** q, rentalCategory, area, deliveryOption, price. Renders `ListingSearchCard` grid |
+| 3.2 | [x] | Create `/services` page | `apps/web/src/app/services/page.tsx` — server component with SEO metadata, wraps `ListingSearchPageClient` with `defaultListingType="service"` |
+| 3.3 | [x] | Create `/equipment` page | `apps/web/src/app/equipment/page.tsx` — server component with SEO metadata, wraps `ListingSearchPageClient` with `defaultListingType="rental"` |
+| 3.4 | [x] | Handle `/listings` redirect | Redirect `/listings` → `/services` to avoid duplicate browse experiences |
+
+**Shared package:**
+
+| File                                     | Change                         |
+| ---------------------------------------- | ------------------------------ |
+| `packages/shared/src/constants/index.ts` | Added `DELIVERY_OPTION_LABELS` |
+
+**New/modified file manifest (Phase 3.3):**
+
+| File (relative to `apps/web/src/`)                 | Change                      |
+| -------------------------------------------------- | --------------------------- |
+| `components/search/listing-search-client.tsx`      | New component               |
+| `components/search/listing-search-client.test.tsx` | New tests (9 tests)         |
+| `app/services/page.tsx`                            | New page (service search)   |
+| `app/equipment/page.tsx`                           | New page (equipment search) |
+| `app/listings/page.tsx`                            | Replaced with redirect      |
+
+**Test summary after Phase 3.3:**
+
+```
+Shared:  35 tests (1 file)   — unchanged
+Web:     60 tests (14 files) — +9 listing search client tests
+Total:   95 web + shared tests — all new tests passing (3 pre-existing failures in vendor-card + service-listing-form)
+Build:   shared builds clean, web has pre-existing @playwright/test issue
+```
 
 _Depends on Phase 1 (API) and Phase 2 Step 2.3 (ListingSearchCard)._
 

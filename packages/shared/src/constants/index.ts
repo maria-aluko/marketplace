@@ -1,4 +1,4 @@
-import { VendorCategory, RentalCategory } from '../enums';
+import { VendorCategory, RentalCategory, DeliveryOption } from '../enums';
 
 // Human-readable category labels for display
 export const CATEGORY_LABELS: Record<VendorCategory, string> = {
@@ -22,6 +22,13 @@ export const RENTAL_CATEGORY_LABELS: Record<RentalCategory, string> = {
   [RentalCategory.GENERATOR]: 'Generators',
   [RentalCategory.LIGHTING]: 'Lighting',
   [RentalCategory.OTHER_RENTAL]: 'Other Equipment',
+};
+
+// Human-readable delivery option labels for display
+export const DELIVERY_OPTION_LABELS: Record<DeliveryOption, string> = {
+  [DeliveryOption.PICKUP_ONLY]: 'Pickup Only',
+  [DeliveryOption.DELIVERY_ONLY]: 'Delivery Only',
+  [DeliveryOption.BOTH]: 'Pickup & Delivery',
 };
 
 // Ranking weights (must sum to 1.0)
