@@ -195,7 +195,7 @@ Build:   pnpm turbo run build — clean
 - [x] Vendor status check: only ACTIVE vendors can create listings (ForbiddenException)
 - [x] Audit logging on all listing create/update/delete operations
 - [x] Seed data updated with 2 service listings + 1 rental listing
-- [ ] Search: extend `SearchModule` to query `listings` table, filter by `listingType`, `rentalCategory` (deferred to Track B)
+- [x] Search: extend `SearchModule` to query `listings` table, filter by `listingType`, `rentalCategory` (EXISTS subquery on listings/listing_rental_details)
 
 **Frontend:**
 
@@ -299,45 +299,45 @@ pnpm turbo run test && pnpm turbo run test:e2e
 
 **New file manifest (Phase 2 Track B Frontend):**
 
-| File (relative to `apps/web/src/`) | Type |
-|---|---|
-| `components/ui/textarea.tsx` | UI component |
-| `components/ui/select.tsx` | UI component |
-| `components/ui/skeleton.tsx` | UI component |
-| `components/ui/tabs.tsx` | UI component |
-| `components/ui/dialog.tsx` | UI component |
-| `components/ui/progress.tsx` | UI component |
-| `components/ui/dropdown-menu.tsx` | UI component |
-| `components/ui/star-rating.tsx` | Component (4 tests) |
-| `components/vendor/vendor-card.tsx` | Component (3 tests) |
-| `components/vendor/listing-card.tsx` | Component |
-| `components/vendor/portfolio-gallery.tsx` | Component (3 tests) |
-| `components/vendor/reviews-list.tsx` | Component |
-| `components/vendor/write-review-button.tsx` | Component |
-| `components/vendor/enquiry-button.tsx` | Component |
-| `components/vendor/share-button.tsx` | Component |
-| `components/vendor/vendor-action-bar.tsx` | Component |
-| `components/search/search-page-client.tsx` | Component (4 tests) |
-| `components/reviews/review-form.tsx` | Component (5 tests) |
-| `components/dashboard/profile-edit-form.tsx` | Component (3 tests) |
-| `components/dashboard/portfolio-manager.tsx` | Component |
+| File (relative to `apps/web/src/`)            | Type                |
+| --------------------------------------------- | ------------------- |
+| `components/ui/textarea.tsx`                  | UI component        |
+| `components/ui/select.tsx`                    | UI component        |
+| `components/ui/skeleton.tsx`                  | UI component        |
+| `components/ui/tabs.tsx`                      | UI component        |
+| `components/ui/dialog.tsx`                    | UI component        |
+| `components/ui/progress.tsx`                  | UI component        |
+| `components/ui/dropdown-menu.tsx`             | UI component        |
+| `components/ui/star-rating.tsx`               | Component (4 tests) |
+| `components/vendor/vendor-card.tsx`           | Component (3 tests) |
+| `components/vendor/listing-card.tsx`          | Component           |
+| `components/vendor/portfolio-gallery.tsx`     | Component (3 tests) |
+| `components/vendor/reviews-list.tsx`          | Component           |
+| `components/vendor/write-review-button.tsx`   | Component           |
+| `components/vendor/enquiry-button.tsx`        | Component           |
+| `components/vendor/share-button.tsx`          | Component           |
+| `components/vendor/vendor-action-bar.tsx`     | Component           |
+| `components/search/search-page-client.tsx`    | Component (4 tests) |
+| `components/reviews/review-form.tsx`          | Component (5 tests) |
+| `components/dashboard/profile-edit-form.tsx`  | Component (3 tests) |
+| `components/dashboard/portfolio-manager.tsx`  | Component           |
 | `components/dashboard/portfolio-uploader.tsx` | Component (5 tests) |
-| `components/dashboard/reviews-manager.tsx` | Component (5 tests) |
-| `components/layout/auth-nav-links.tsx` | Component |
-| `app/search/page.tsx` | Page |
-| `app/vendors/[slug]/page.tsx` | Page (SSR) |
-| `app/reviews/new/[vendorId]/page.tsx` | Page |
+| `components/dashboard/reviews-manager.tsx`    | Component (5 tests) |
+| `components/layout/auth-nav-links.tsx`        | Component           |
+| `app/search/page.tsx`                         | Page                |
+| `app/vendors/[slug]/page.tsx`                 | Page (SSR)          |
+| `app/reviews/new/[vendorId]/page.tsx`         | Page                |
 
 **Modified files:**
 
-| File | Change |
-|---|---|
-| `lib/server-api.ts` | Added `serverFetchRaw<T>()` |
-| `app/page.tsx` | Hero search bar, category links to `/search` |
-| `app/page.test.tsx` | Added `useRouter` mock |
-| `app/dashboard/page.tsx` | Tabs for vendor dashboard (Overview/Profile/Portfolio/Reviews) |
-| `components/layout/header.tsx` | Uses `AuthNavLinks` client component |
-| `components/layout/mobile-nav.tsx` | Uses `AuthNavLinks` with mobile styling |
+| File                               | Change                                                         |
+| ---------------------------------- | -------------------------------------------------------------- |
+| `lib/server-api.ts`                | Added `serverFetchRaw<T>()`                                    |
+| `app/page.tsx`                     | Hero search bar, category links to `/search`                   |
+| `app/page.test.tsx`                | Added `useRouter` mock                                         |
+| `app/dashboard/page.tsx`           | Tabs for vendor dashboard (Overview/Profile/Portfolio/Reviews) |
+| `components/layout/header.tsx`     | Uses `AuthNavLinks` client component                           |
+| `components/layout/mobile-nav.tsx` | Uses `AuthNavLinks` with mobile styling                        |
 
 ---
 

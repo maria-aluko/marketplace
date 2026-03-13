@@ -199,5 +199,33 @@ describe('SearchService', () => {
 
       expect(result.vendors).toEqual([]);
     });
+
+    it('should filter vendors by listingType', async () => {
+      mockPrisma.$queryRawUnsafe
+        .mockResolvedValueOnce([{ total: 1 }])
+        .mockResolvedValueOnce([makeVendorRow()]);
+
+      const result = await service.search({ listingType: 'rental' as any });
+
+      expect(result.vendors).toHaveLength(1);
+      const countCall = mockPrisma.$queryRawUnsafe.mock.calls[0]!;
+      expect(countCall[0]).toContain('listing_type');
+      expect(countCall[0]).toContain('EXISTS');
+      expect(countCall[1]).toBe('RENTAL');
+    });
+
+    it('should filter vendors by rentalCategory', async () => {
+      mockPrisma.$queryRawUnsafe
+        .mockResolvedValueOnce([{ total: 1 }])
+        .mockResolvedValueOnce([makeVendorRow()]);
+
+      const result = await service.search({ rentalCategory: 'generator' as any });
+
+      expect(result.vendors).toHaveLength(1);
+      const countCall = mockPrisma.$queryRawUnsafe.mock.calls[0]!;
+      expect(countCall[0]).toContain('rental_category');
+      expect(countCall[0]).toContain('EXISTS');
+      expect(countCall[1]).toBe('GENERATOR');
+    });
   });
 });

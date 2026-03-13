@@ -35,6 +35,22 @@ export class SearchService {
       paramIndex++;
     }
 
+    if (query.listingType) {
+      conditions.push(
+        `EXISTS (SELECT 1 FROM listings l WHERE l.vendor_id = v.id AND l.deleted_at IS NULL AND l.type = $${paramIndex}::listing_type)`,
+      );
+      params.push(query.listingType.toUpperCase());
+      paramIndex++;
+    }
+
+    if (query.rentalCategory) {
+      conditions.push(
+        `EXISTS (SELECT 1 FROM listings l JOIN listing_rental_details lrd ON lrd.listing_id = l.id WHERE l.vendor_id = v.id AND l.deleted_at IS NULL AND lrd.rental_category = $${paramIndex}::rental_category)`,
+      );
+      params.push(query.rentalCategory.toUpperCase());
+      paramIndex++;
+    }
+
     // Cursor pagination
     let cursorScore: number | null = null;
     let cursorId: string | null = null;

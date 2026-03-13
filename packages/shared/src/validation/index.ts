@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { VendorCategory, VendorStatus, MediaType, RentalCategory, DeliveryOption } from '../enums';
+import { VendorCategory, VendorStatus, MediaType, RentalCategory, DeliveryOption, ListingType } from '../enums';
 import {
   REVIEW_MIN_BODY_LENGTH,
   OTP_LENGTH,
@@ -143,6 +143,8 @@ export const searchVendorsSchema = z.object({
   q: z.string().max(100).optional(),
   category: z.nativeEnum(VendorCategory).optional(),
   area: z.string().optional(),
+  listingType: z.nativeEnum(ListingType).optional(),
+  rentalCategory: z.nativeEnum(RentalCategory).optional(),
   verifiedOnly: z.coerce.boolean().optional().default(false),
   cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(50).optional().default(20),

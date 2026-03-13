@@ -199,6 +199,8 @@ export interface SearchVendorsQuery {
   q?: string;
   category?: VendorCategory;
   area?: string;
+  listingType?: ListingType;
+  rentalCategory?: RentalCategory;
   verifiedOnly?: boolean;
   cursor?: string;
   limit?: number;
