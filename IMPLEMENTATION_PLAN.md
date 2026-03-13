@@ -452,29 +452,36 @@ _Depends on Phase 1 (API) and Phase 2 Step 2.3 (ListingSearchCard)._
 
 ---
 
-#### Phase 3.4: Frontend — Navigation Overhaul
+#### Phase 3.4: Frontend — Navigation Overhaul — COMPLETE
 
-| Step | Description | Details |
-| 4.1 | Update nav links | In `apps/web/src/components/layout/auth-nav-links.tsx` — replace "Find Vendors" with **"Services"** (→ `/services`) + **"Equipment"** (→ `/equipment`). Keep "Dashboard"/"List Your Business"/"Sign In" as-is |
-| 4.2 | Update hero search target | In `apps/web/src/components/home/hero-search.tsx` — submit to `/services?q={query}` (services is the broader default) |
+| Step | Status | Description | Details |
+| 4.1 | [x] | Update nav links | In `apps/web/src/components/layout/auth-nav-links.tsx` — replaced "Find Vendors" with **"Services"** (→ `/services`) + **"Equipment"** (→ `/equipment`). Keep "Dashboard"/"List Your Business"/"Sign In" as-is |
+| 4.2 | [x] | Update hero search target | In `apps/web/src/components/home/hero-search.tsx` — submits to `/services?q={query}` (services is the broader default) |
 
 _Parallel with Phase 3. No backend dependency._
 
 ---
 
-#### Phase 3.5: Enhanced Listing Detail
+#### Phase 3.5: Enhanced Listing Detail — COMPLETE
 
-| Step | Description | Details |
-| 5.1 | Add vendor trust signals | In `apps/web/src/app/listings/[id]/page.tsx` — inline vendor star rating + review count + verified badge + WhatsApp CTA button + Share button |
-| 5.2 | Fix similar listings | Replace current "fetch all listings then filter" with `GET /search/listings?listingType={type}&category={cat}&limit=4` — proper server-side query |
+| Step | Status | Description | Details |
+| 5.1 | [x] | Add vendor trust signals | In `apps/web/src/app/listings/[id]/page.tsx` — vendor trust card with star rating + review count + verified badge (CheckCircle2) + WhatsApp CTA (EnquiryButton) + Share button (ShareButton with listing URL support). Breadcrumbs updated to use `/services` and `/equipment` routes |
+
+**Modified files:**
+
+| File                                              | Change                                                           |
+| ------------------------------------------------- | ---------------------------------------------------------------- |
+| `apps/web/src/app/listings/[id]/page.tsx`         | Vendor trust signals card, share button, updated breadcrumbs     |
+| `apps/web/src/components/vendor/share-button.tsx` | Added `shareUrl` prop for listing URL support (backwards compat) |
 
 _Depends on Phase 1._
 
 ---
 
-#### Phase 3.6: UIUX.md Update
+#### Phase 3.6: UIUX.md Update + E2E Tests — COMPLETE
 
-Update `UIUX.md` to reflect new pages (`/services`, `/equipment`), new components (`ListingSearchCard`, `ListingSearchPageClient`), updated navigation, and resolved issues.
+- [x] Updated `UIUX.md` to reflect new pages (`/services`, `/equipment`), new components (`ListingSearchCard`, `ListingSearchPageClient`), updated navigation, listing-centric discovery, and resolved issues
+- [x] Updated `apps/web/e2e/search.spec.ts` with 5 new listing search E2E tests (service search + detail, equipment filters, category filter, `/listings` redirect, vendor trust signals on listing detail)
 
 ---
 

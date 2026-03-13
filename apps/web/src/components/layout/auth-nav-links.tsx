@@ -24,14 +24,20 @@ export function AuthNavLinks({ mobile, onLinkClick }: AuthNavLinksProps) {
   if (isAuthenticated) {
     return (
       <>
-        <Link href="/search" className={linkClass} onClick={onLinkClick}>
-          Find Vendors
+        <Link href="/services" className={linkClass} onClick={onLinkClick}>
+          Services
+        </Link>
+        <Link href="/equipment" className={linkClass} onClick={onLinkClick}>
+          Equipment
         </Link>
         <Link href="/dashboard" className={linkClass} onClick={onLinkClick}>
           Dashboard
         </Link>
         <button
-          onClick={() => { logout(); onLinkClick?.(); }}
+          onClick={() => {
+            logout();
+            onLinkClick?.();
+          }}
           className={linkClass}
         >
           Sign Out
@@ -42,8 +48,11 @@ export function AuthNavLinks({ mobile, onLinkClick }: AuthNavLinksProps) {
 
   return (
     <>
-      <Link href="/search" className={linkClass} onClick={onLinkClick}>
-        Find Vendors
+      <Link href="/services" className={linkClass} onClick={onLinkClick}>
+        Services
+      </Link>
+      <Link href="/equipment" className={linkClass} onClick={onLinkClick}>
+        Equipment
       </Link>
       <Link href="/vendor/signup" className={linkClass} onClick={onLinkClick}>
         List Your Business

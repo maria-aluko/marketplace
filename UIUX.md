@@ -2,37 +2,44 @@
 
 ## Current Implementation Inventory
 
-### Pages (11 routes)
+### Pages (14 routes)
 
-| Route                             | Type            | Status | Notes                                                         |
-| --------------------------------- | --------------- | ------ | ------------------------------------------------------------- |
-| `/`                               | Client          | Built  | Hero + search bar + category grid                             |
-| `/login`                          | Client          | Built  | Two-step OTP flow (request → verify)                          |
-| `/search`                         | Server + Client | Built  | Filters, infinite scroll, skeleton loading, vendor cards      |
-| `/vendors/[slug]`                 | Server          | Built  | Hero, listings, portfolio gallery, reviews, sticky action bar |
-| `/listings`                       | Server          | Built  | Browse all listings                                           |
-| `/listings/[id]`                  | Server          | Built  | Detail with rental info, WhatsApp share                       |
-| `/reviews/new/[vendorId]`         | Server + Client | Built  | Star rating + review body form                                |
-| `/dashboard`                      | Client          | Built  | Tabbed: Overview, Profile, Portfolio, Reviews                 |
-| `/dashboard/listings`             | Client          | Built  | Listing management with delete                                |
-| `/dashboard/listings/new/service` | Client          | Built  | Service listing form                                          |
-| `/dashboard/listings/new/rental`  | Client          | Built  | Rental listing form                                           |
-| `/vendor/signup`                  | Server          | Built  | 4-step wizard                                                 |
+| Route                             | Type            | Status   | Notes                                                                       |
+| --------------------------------- | --------------- | -------- | --------------------------------------------------------------------------- |
+| `/`                               | Server          | Built    | Dual-path CTAs, service/equipment category grids, featured listings/vendors |
+| `/login`                          | Client          | Built    | Two-step OTP flow (request → verify)                                        |
+| `/services`                       | Server + Client | Built    | Listing-centric search for services, filters, infinite scroll               |
+| `/equipment`                      | Server + Client | Built    | Listing-centric search for equipment, rental filters, infinite scroll       |
+| `/search`                         | Server + Client | Built    | Vendor search (demoted, preserved for backwards compat)                     |
+| `/vendors/[slug]`                 | Server          | Built    | Hero, listings, portfolio gallery, reviews, sticky action bar               |
+| `/listings`                       | —               | Redirect | Redirects to `/services`                                                    |
+| `/listings/[id]`                  | Server          | Built    | Detail with vendor trust signals, share button, WhatsApp CTA                |
+| `/reviews/new/[vendorId]`         | Server + Client | Built    | Star rating + review body form                                              |
+| `/dashboard`                      | Client          | Built    | Tabbed: Overview, Profile, Portfolio, Reviews                               |
+| `/dashboard/listings`             | Client          | Built    | Listing management with delete                                              |
+| `/dashboard/listings/new/service` | Client          | Built    | Service listing form                                                        |
+| `/dashboard/listings/new/rental`  | Client          | Built    | Rental listing form                                                         |
+| `/vendor/signup`                  | Server          | Built    | 4-step wizard                                                               |
 
-### Components (30+)
+### Components (35+)
 
 **Auth:** OtpRequestForm, OtpVerifyForm
-**Layout:** Header (sticky), Footer, MobileNav (hamburger overlay), AuthNavLinks (auth-aware)
-**Vendor:** VendorCard (search result), ListingCard, PortfolioGallery (lightbox modal), ReviewsList, EnquiryButton (WhatsApp), ShareButton (WhatsApp + copy link + native share), VendorActionBar (sticky bottom mobile), WriteReviewButton (auth-gated)
-**Listings:** ServiceListingForm, RentalListingForm
+**Layout:** Header (sticky), Footer, MobileNav (hamburger overlay), AuthNavLinks (auth-aware — "Services" + "Equipment" nav links)
+**Vendor:** VendorCard (search result), ListingCard, PortfolioGallery (lightbox modal), ReviewsList, EnquiryButton (WhatsApp), ShareButton (WhatsApp + copy link + native share — supports vendor and listing URLs), VendorActionBar (sticky bottom mobile), WriteReviewButton (auth-gated)
+**Listings:** ServiceListingForm, RentalListingForm, ListingSearchCard (listing result with embedded vendor summary — rating, area, verified badge)
 **Reviews:** ReviewForm (star rating + character count)
-**Search:** SearchPageClient (filters, debounced fetch, infinite scroll via IntersectionObserver)
+**Search:** SearchPageClient (vendor search — filters, debounced fetch, infinite scroll), ListingSearchPageClient (listing search — service/rental filters, infinite scroll, URL sync)
+**Home:** HeroSearch (submits to `/services`)
 **Dashboard:** PortfolioUploader (drag-drop, progress bars, Cloudinary), PortfolioManager (grid + delete dialog), ProfileEditForm (status-aware, resubmit for changes_requested), ReviewsManager (reply + edit with 48h window)
-**UI Primitives:** Button (CVA 6 variants), Card, Input, Label, Badge (5 variants), Dialog, DropdownMenu, Select, Progress, Tabs, Textarea, Skeleton (pulse), StarRating (interactive + readonly, 3 sizes), PhotoCarousel (CSS scroll-snap + dot indicators), ProfileCompletenessRing (SVG circular progress)
+**UI Primitives:** Button (CVA 6 variants), Card, Input, Label, Badge (5 variants), Dialog, DropdownMenu, Select, Progress, Tabs, Textarea, Skeleton (pulse), StarRating (interactive + readonly, 4 sizes incl. xs), PhotoCarousel (CSS scroll-snap + dot indicators), ProfileCompletenessRing (SVG circular progress)
 
 ### What's Working Well
 
-- **Search** has debounced input, URL sync, skeleton loading, infinite scroll, and vendor cards with ratings/prices
+- **Listing-centric discovery** with dual-path CTAs on landing page ("Find Services" → `/services`, "Rent Equipment" → `/equipment`), category grids for both services and equipment, and featured listing carousels with embedded vendor info
+- **Listing search** (`/services`, `/equipment`) has type-specific filters (category, rental category, delivery option, price range), debounced input, URL sync, skeleton loading, and infinite scroll with `ListingSearchCard` results showing vendor summary (name, rating, area, verified badge)
+- **Listing detail** has vendor trust signals (star rating, review count, verified badge), WhatsApp CTA, share button, rental details with delivery icons, photo carousel, and similar listings
+- **Navigation** clearly surfaces dual discovery paths: "Services" and "Equipment" links in both desktop and mobile nav
+- **Vendor search** preserved at `/search` for backwards compatibility
 - **Vendor profile** has cover image hero, star rating, category/area badges, price range, listings grid, portfolio lightbox, reviews with vendor replies, and a sticky WhatsApp/Share action bar on mobile
 - **Portfolio upload** has drag-and-drop, file validation (type + size), progress bars via XHR, and usage counters ("3/10 images")
 - **Reviews manager** enforces 48h edit window, shows "Edit window expired" text, and validates reply length

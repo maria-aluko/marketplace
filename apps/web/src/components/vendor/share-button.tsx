@@ -12,14 +12,19 @@ import {
 
 interface ShareButtonProps {
   vendorName: string;
-  slug: string;
+  slug?: string;
+  shareUrl?: string;
 }
 
-export function ShareButton({ vendorName, slug }: ShareButtonProps) {
+export function ShareButton({ vendorName, slug, shareUrl }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
-  const url = typeof window !== 'undefined'
-    ? `${window.location.origin}/vendors/${slug}`
-    : `/vendors/${slug}`;
+  const url = shareUrl
+    ? typeof window !== 'undefined'
+      ? `${window.location.origin}${shareUrl}`
+      : shareUrl
+    : typeof window !== 'undefined'
+      ? `${window.location.origin}/vendors/${slug}`
+      : `/vendors/${slug}`;
 
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(url);
@@ -50,9 +55,7 @@ export function ShareButton({ vendorName, slug }: ShareButtonProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={handleWhatsAppShare}>
-          Share on WhatsApp
-        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleWhatsAppShare}>Share on WhatsApp</DropdownMenuItem>
         <DropdownMenuItem onClick={handleCopyLink}>
           {copied ? (
             <>
@@ -67,9 +70,7 @@ export function ShareButton({ vendorName, slug }: ShareButtonProps) {
           )}
         </DropdownMenuItem>
         {typeof navigator !== 'undefined' && 'share' in navigator && (
-          <DropdownMenuItem onClick={handleNativeShare}>
-            More options...
-          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleNativeShare}>More options...</DropdownMenuItem>
         )}
       </DropdownMenuContent>
     </DropdownMenu>

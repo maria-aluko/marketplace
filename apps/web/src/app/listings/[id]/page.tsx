@@ -3,13 +3,15 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import type { ListingResponse, VendorResponse } from '@eventtrust/shared';
 import { CATEGORY_LABELS } from '@eventtrust/shared';
-import { ChevronRight, Truck, MapPin, Package, Shield } from 'lucide-react';
+import { ChevronRight, Truck, MapPin, Package, Shield, CheckCircle2, Star } from 'lucide-react';
 import { serverFetch } from '@/lib/server-api';
 import { formatNaira } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { PhotoCarousel } from '@/components/ui/photo-carousel';
 import { ListingCard } from '@/components/vendor/listing-card';
 import { EnquiryButton } from '@/components/vendor/enquiry-button';
+import { ShareButton } from '@/components/vendor/share-button';
+import { StarRating } from '@/components/ui/star-rating';
 
 const DELIVERY_META: Record<string, { icon: typeof Truck; label: string }> = {
   delivery_only: { icon: Truck, label: 'Delivery only' },
@@ -78,7 +80,15 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           </li>
           <li>
             <Link
-              href={listing.category ? `/search?category=${listing.category}` : '/listings'}
+              href={
+                listing.listingType === 'rental'
+                  ? listing.rentalDetails?.rentalCategory
+                    ? `/equipment?rentalCategory=${listing.rentalDetails.rentalCategory}`
+                    : '/equipment'
+                  : listing.category
+                    ? `/services?category=${listing.category}`
+                    : '/services'
+              }
               className="hover:text-primary-600 transition-colors"
             >
               {categoryLabel}
@@ -109,15 +119,46 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
       <h1 className="mb-4 text-2xl font-bold">{listing.title}</h1>
 
       {vendor && (
-        <p className="mb-4 text-sm text-gray-500">
-          by{' '}
-          <Link
-            href={`/vendors/${vendor.slug}?listing=${encodeURIComponent(listing.title)}`}
-            className="font-medium text-primary-600 hover:text-primary-700"
-          >
-            {vendor.businessName}
-          </Link>
-        </p>
+        <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
+          <div className="flex items-start gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/vendors/${vendor.slug}`}
+                  className="font-semibold text-gray-900 hover:text-primary-600 transition-colors"
+                >
+                  {vendor.businessName}
+                </Link>
+                {vendor.status === 'active' && (
+                  <CheckCircle2
+                    className="h-4 w-4 shrink-0 text-green-600"
+                    aria-label="Verified vendor"
+                  />
+                )}
+              </div>
+              <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
+                {vendor.avgRating > 0 && (
+                  <span className="inline-flex items-center gap-1">
+                    <StarRating value={Math.round(vendor.avgRating)} readonly size="xs" />
+                    <span className="font-medium text-gray-700">{vendor.avgRating.toFixed(1)}</span>
+                  </span>
+                )}
+                {vendor.reviewCount > 0 && (
+                  <span>
+                    ({vendor.reviewCount} review{vendor.reviewCount !== 1 ? 's' : ''})
+                  </span>
+                )}
+                {vendor.area && <span>· {vendor.area}</span>}
+              </div>
+            </div>
+            <Link
+              href={`/vendors/${vendor.slug}`}
+              className="shrink-0 text-xs font-medium text-primary-600 hover:text-primary-700"
+            >
+              View Profile →
+            </Link>
+          </div>
+        </div>
       )}
 
       {/* Photo carousel */}
@@ -187,14 +228,15 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         </div>
       )}
 
-      {/* Contact — auth-gated via EnquiryButton */}
+      {/* Contact + Share */}
       {vendor && (
-        <div className="mb-8">
+        <div className="mb-8 flex flex-wrap items-center gap-3">
           <EnquiryButton
             vendorName={vendor.businessName}
             whatsappNumber={vendor.whatsappNumber}
             listingName={listing.title}
           />
+          <ShareButton vendorName={listing.title} shareUrl={`/listings/${listing.id}`} />
           {!vendor.whatsappNumber && (
             <Link
               href={`/vendors/${vendor.slug}`}
