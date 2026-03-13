@@ -12,13 +12,13 @@ export function HeroSearch() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push(`/search${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ''}`);
+    router.push(`/services${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ''}`);
   };
 
   return (
     <form onSubmit={handleSearch} className="flex w-full max-w-md gap-2">
       <Input
-        placeholder="Search vendors..."
+        placeholder="Search services and equipment..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         className="flex-1"

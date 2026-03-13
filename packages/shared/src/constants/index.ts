@@ -1,4 +1,4 @@
-import { VendorCategory } from '../enums';
+import { VendorCategory, RentalCategory } from '../enums';
 
 // Human-readable category labels for display
 export const CATEGORY_LABELS: Record<VendorCategory, string> = {
@@ -12,6 +12,16 @@ export const CATEGORY_LABELS: Record<VendorCategory, string> = {
   [VendorCategory.MAKEUP_ARTIST]: 'Makeup Artist',
   [VendorCategory.PLANNER]: 'Event Planning',
   [VendorCategory.OTHER]: 'Other Services',
+};
+
+// Human-readable rental category labels for display
+export const RENTAL_CATEGORY_LABELS: Record<RentalCategory, string> = {
+  [RentalCategory.TENT]: 'Tents',
+  [RentalCategory.CHAIRS_TABLES]: 'Chairs & Tables',
+  [RentalCategory.COOKING_EQUIPMENT]: 'Cooking Equipment',
+  [RentalCategory.GENERATOR]: 'Generators',
+  [RentalCategory.LIGHTING]: 'Lighting',
+  [RentalCategory.OTHER_RENTAL]: 'Other Equipment',
 };
 
 // Ranking weights (must sum to 1.0)

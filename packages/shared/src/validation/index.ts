@@ -1,5 +1,12 @@
 import { z } from 'zod';
-import { VendorCategory, VendorStatus, MediaType, RentalCategory, DeliveryOption, ListingType } from '../enums';
+import {
+  VendorCategory,
+  VendorStatus,
+  MediaType,
+  RentalCategory,
+  DeliveryOption,
+  ListingType,
+} from '../enums';
 import {
   REVIEW_MIN_BODY_LENGTH,
   OTP_LENGTH,
@@ -62,29 +69,37 @@ export const updateVendorSchema = vendorBaseSchema.partial().refine(priceRangeRe
 });
 
 // Listing — Service
-export const createServiceListingSchema = z.object({
-  title: z.string().min(LISTING_TITLE_MIN_LENGTH).max(LISTING_TITLE_MAX_LENGTH),
-  description: z.string().min(LISTING_DESCRIPTION_MIN_LENGTH).max(LISTING_DESCRIPTION_MAX_LENGTH),
-  category: z.nativeEnum(VendorCategory),
-  priceFrom: z.number().int().nonnegative().optional(),
-  priceTo: z.number().int().nonnegative().optional(),
-  photos: z.array(z.string().min(1)).max(LISTING_MAX_PHOTOS).optional(),
-}).refine(priceRangeRefinement, {
-  message: 'priceFrom must be less than or equal to priceTo',
-  path: ['priceTo'],
-});
+export const createServiceListingSchema = z
+  .object({
+    title: z.string().min(LISTING_TITLE_MIN_LENGTH).max(LISTING_TITLE_MAX_LENGTH),
+    description: z.string().min(LISTING_DESCRIPTION_MIN_LENGTH).max(LISTING_DESCRIPTION_MAX_LENGTH),
+    category: z.nativeEnum(VendorCategory),
+    priceFrom: z.number().int().nonnegative().optional(),
+    priceTo: z.number().int().nonnegative().optional(),
+    photos: z.array(z.string().min(1)).max(LISTING_MAX_PHOTOS).optional(),
+  })
+  .refine(priceRangeRefinement, {
+    message: 'priceFrom must be less than or equal to priceTo',
+    path: ['priceTo'],
+  });
 
-export const updateServiceListingSchema = z.object({
-  title: z.string().min(LISTING_TITLE_MIN_LENGTH).max(LISTING_TITLE_MAX_LENGTH).optional(),
-  description: z.string().min(LISTING_DESCRIPTION_MIN_LENGTH).max(LISTING_DESCRIPTION_MAX_LENGTH).optional(),
-  category: z.nativeEnum(VendorCategory).optional(),
-  priceFrom: z.number().int().nonnegative().optional(),
-  priceTo: z.number().int().nonnegative().optional(),
-  photos: z.array(z.string().min(1)).max(LISTING_MAX_PHOTOS).optional(),
-}).refine(priceRangeRefinement, {
-  message: 'priceFrom must be less than or equal to priceTo',
-  path: ['priceTo'],
-});
+export const updateServiceListingSchema = z
+  .object({
+    title: z.string().min(LISTING_TITLE_MIN_LENGTH).max(LISTING_TITLE_MAX_LENGTH).optional(),
+    description: z
+      .string()
+      .min(LISTING_DESCRIPTION_MIN_LENGTH)
+      .max(LISTING_DESCRIPTION_MAX_LENGTH)
+      .optional(),
+    category: z.nativeEnum(VendorCategory).optional(),
+    priceFrom: z.number().int().nonnegative().optional(),
+    priceTo: z.number().int().nonnegative().optional(),
+    photos: z.array(z.string().min(1)).max(LISTING_MAX_PHOTOS).optional(),
+  })
+  .refine(priceRangeRefinement, {
+    message: 'priceFrom must be less than or equal to priceTo',
+    path: ['priceTo'],
+  });
 
 // Listing — Rental
 export const createRentalListingSchema = z.object({
@@ -101,7 +116,11 @@ export const createRentalListingSchema = z.object({
 
 export const updateRentalListingSchema = z.object({
   title: z.string().min(LISTING_TITLE_MIN_LENGTH).max(LISTING_TITLE_MAX_LENGTH).optional(),
-  description: z.string().min(LISTING_DESCRIPTION_MIN_LENGTH).max(LISTING_DESCRIPTION_MAX_LENGTH).optional(),
+  description: z
+    .string()
+    .min(LISTING_DESCRIPTION_MIN_LENGTH)
+    .max(LISTING_DESCRIPTION_MAX_LENGTH)
+    .optional(),
   rentalCategory: z.nativeEnum(RentalCategory).optional(),
   quantityAvailable: z.number().int().positive().optional(),
   pricePerDay: z.number().int().positive().optional(),
@@ -138,7 +157,7 @@ export const disputeAppealSchema = z.object({
   reason: z.string().min(20).max(2000),
 });
 
-// Search
+// Search — Vendors
 export const searchVendorsSchema = z.object({
   q: z.string().max(100).optional(),
   category: z.nativeEnum(VendorCategory).optional(),
@@ -149,6 +168,30 @@ export const searchVendorsSchema = z.object({
   cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(50).optional().default(20),
 });
+
+// Search — Listings
+export const searchListingsSchema = z
+  .object({
+    q: z.string().max(100).optional(),
+    listingType: z.nativeEnum(ListingType).optional(),
+    category: z.nativeEnum(VendorCategory).optional(),
+    rentalCategory: z.nativeEnum(RentalCategory).optional(),
+    area: z.string().optional(),
+    deliveryOption: z.nativeEnum(DeliveryOption).optional(),
+    priceMin: z.coerce.number().int().nonnegative().optional(),
+    priceMax: z.coerce.number().int().nonnegative().optional(),
+    cursor: z.string().optional(),
+    limit: z.coerce.number().int().min(1).max(50).optional().default(20),
+  })
+  .refine(
+    (data) => {
+      if (data.priceMin !== undefined && data.priceMax !== undefined) {
+        return data.priceMin <= data.priceMax;
+      }
+      return true;
+    },
+    { message: 'priceMin must be less than or equal to priceMax', path: ['priceMax'] },
+  );
 
 // Vendor Status Transition
 export const vendorStatusTransitionSchema = z.object({

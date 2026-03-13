@@ -341,7 +341,153 @@ pnpm turbo run test && pnpm turbo run test:e2e
 
 ---
 
-### Phase 3: Vendor Business Tools + Trust Layer (Weeks 9–12)
+### Phase 3: Listing Centric Focus
+
+**Plan:**
+
+Shift UX from Vendor-Centric to Listing-Centric Discovery
+
+The app currently treats **vendors** as the primary discovery unit — the search page searches vendors, the landing page shows featured vendors, and navigation says "Find Vendors." But clients don't search for vendors; they search for **"chairs for rent"** or **"catering for 200 guests."** This plan shifts the UX to **listing-centric discovery** with two clear paths: **Services** and **Equipment** — while preserving vendor profiles as the trust/credibility layer underneath.
+
+**Approach:** New backend listing search endpoint → redesigned landing page with dual-path discovery → two listing-centric search pages → updated navigation → enhanced listing cards. All within project constraints (low bandwidth, 375px baseline, Android-first).
+
+---
+
+#### Phase 3.1: Backend — Listing Search API — COMPLETE
+
+| Step | Status | Description | Details
+| 1.1 | [x] | Add shared types + Zod schema | `SearchListingsQuery` (q, listingType, category, rentalCategory, area, deliveryOption, priceMin, priceMax, cursor, limit) + `SearchListingsResponse` + `ListingSearchResult` (extends `ListingResponse` with embedded vendor summary: id, slug, businessName, avgRating, reviewCount, area, verified) + `ListingVendorSummary` in `packages/shared/src/types/index.ts`. `searchListingsSchema` with priceMin/priceMax refinement in `packages/shared/src/validation/index.ts` |
+| 1.2 | [x] | Add `GET /search/listings` route | In `apps/api/src/search/search.controller.ts` — `@Public() @Get('listings')` with `ZodValidationPipe(searchListingsSchema)` |
+| 1.3 | [x] | Implement `searchListings()` | In `apps/api/src/search/search.service.ts` — raw SQL JOINing `listings` → `vendors` → optional `listing_rental_details`. Inherits vendor ranking formula. Cursor pagination. Returns embedded vendor summary per listing (avoids N+1). Filters: listingType, category, rentalCategory, area, deliveryOption, keyword (ILIKE), priceMin/priceMax (COALESCE across service/rental prices) |
+| 1.4 | [x] | Unit tests | In `apps/api/src/search/search.service.spec.ts` — 18 new tests: filter by type, category, rental category, area, delivery option, keyword, price range, cursor pagination, nextCursor, empty results, active-only, deleted listings/vendors exclusion, service/rental response transformation, invalid cursor |
+
+**Test summary after Phase 3.1:**
+
+```
+Shared:  35 tests (1 file)   — unchanged
+API:     136 tests (14 files) — +18 searchListings tests (search.service.spec.ts now has 30 tests)
+Total:   171 tests — all passing
+Build:   pnpm turbo run build — shared + api clean (web has pre-existing @playwright/test issue)
+```
+
+_No dependencies — fully independent phase._
+
+---
+
+#### Phase 3.2: Frontend — Landing Page Redesign — COMPLETE
+
+| Step | Status | Description | Details |
+| 2.1 | [x] | Add rental category icons/labels | In `apps/web/src/lib/category-meta.tsx` — map `RentalCategory` → Lucide icons (Tent, Armchair, CookingPot, Zap, Lightbulb, Package). `RENTAL_CATEGORY_LABELS` added to `packages/shared/src/constants/index.ts` |
+| 2.2 | [x] | Fetch featured listings SSR | In `apps/web/src/app/page.tsx` — parallel `GET /search/listings?listingType=service&limit=6` + `GET /search/listings?listingType=rental&limit=6` alongside existing vendor fetch |
+| 2.3 | [x] | Create `ListingSearchCard` | New `apps/web/src/components/listings/listing-search-card.tsx` — listing photo with Cloudinary transform (fallback to category icon), title, type/category badges, price info, rental details (price/day, quantity, delivery), **embedded vendor mini-info** (name, rating, area). Full-card link to `/listings/{id}`. Mobile-first, 44px touch targets |
+| 2.4 | [x] | Redesign landing page | **Updated `apps/web/src/app/page.tsx` sections:** ① Hero with updated copy ("services and equipment rentals") ② **Dual-path CTA cards** (stacked mobile): "Find Services" → `/services`, "Rent Equipment" → `/equipment` ③ Browse Services by category grid (link to `/services?category={cat}`) ④ **Browse Equipment by category** (rental category grid, 2-col mobile) ⑤ **Featured Equipment** carousel (ListingSearchCard) ⑥ **Featured Services** carousel ⑦ Featured Vendors (demoted below) |
+
+**Additional changes (from Phase 3.4 Step 4.2):**
+
+- [x] `HeroSearch` updated — submits to `/services?q={query}` instead of `/search`
+- [x] `StarRating` — added `xs` size variant for compact display in `ListingSearchCard`
+- [x] Homepage tests updated — 4 tests (renders title, service categories, equipment categories, dual-path CTAs)
+
+**New/modified file manifest (Phase 3.2):**
+
+| File (relative to `apps/web/src/`)            | Change                        |
+| --------------------------------------------- | ----------------------------- |
+| `components/listings/listing-search-card.tsx` | New component                 |
+| `app/page.tsx`                                | Redesigned landing page       |
+| `app/page.test.tsx`                           | Updated tests (4 tests)       |
+| `components/home/hero-search.tsx`             | Search target → `/services`   |
+| `components/ui/star-rating.tsx`               | Added `xs` size               |
+| `lib/category-meta.tsx`                       | Added `RENTAL_CATEGORY_ICONS` |
+
+**Shared package:**
+
+| File                                     | Change                         |
+| ---------------------------------------- | ------------------------------ |
+| `packages/shared/src/constants/index.ts` | Added `RENTAL_CATEGORY_LABELS` |
+
+**Test summary after Phase 3.2:**
+
+```
+Shared:  35 tests (1 file)   — unchanged
+Web:     52 tests (13 files) — +2 new homepage tests (4 total, was 2)
+Build:   shared builds clean, web has pre-existing @playwright/test issue
+```
+
+---
+
+#### Phase 3.3: Frontend — Listing Search Pages
+
+| Step | Description | Details |
+| 3.1 | Create `ListingSearchPageClient` | New `apps/web/src/components/search/listing-search-client.tsx` — reuse architecture from `search-page-client.tsx` (URL sync, debounced fetch, infinite scroll, skeleton loading). Props: `defaultListingType`. **Service filters:** q, category, area, price. **Rental filters:** q, rentalCategory, area, deliveryOption, price. Renders `ListingSearchCard` grid |
+| 3.2 | Create `/services` page | `apps/web/src/app/services/page.tsx` — server component with SEO metadata, wraps `ListingSearchPageClient` with `defaultListingType="service"` |
+| 3.3 | Create `/equipment` page | `apps/web/src/app/equipment/page.tsx` — server component with SEO metadata, wraps `ListingSearchPageClient` with `defaultListingType="rental"` |
+| 3.4 | Handle `/listings` redirect | Redirect `/listings` → `/services` to avoid duplicate browse experiences |
+
+_Depends on Phase 1 (API) and Phase 2 Step 2.3 (ListingSearchCard)._
+
+---
+
+#### Phase 3.4: Frontend — Navigation Overhaul
+
+| Step | Description | Details |
+| 4.1 | Update nav links | In `apps/web/src/components/layout/auth-nav-links.tsx` — replace "Find Vendors" with **"Services"** (→ `/services`) + **"Equipment"** (→ `/equipment`). Keep "Dashboard"/"List Your Business"/"Sign In" as-is |
+| 4.2 | Update hero search target | In `apps/web/src/components/home/hero-search.tsx` — submit to `/services?q={query}` (services is the broader default) |
+
+_Parallel with Phase 3. No backend dependency._
+
+---
+
+#### Phase 3.5: Enhanced Listing Detail
+
+| Step | Description | Details |
+| 5.1 | Add vendor trust signals | In `apps/web/src/app/listings/[id]/page.tsx` — inline vendor star rating + review count + verified badge + WhatsApp CTA button + Share button |
+| 5.2 | Fix similar listings | Replace current "fetch all listings then filter" with `GET /search/listings?listingType={type}&category={cat}&limit=4` — proper server-side query |
+
+_Depends on Phase 1._
+
+---
+
+#### Phase 3.6: UIUX.md Update
+
+Update `UIUX.md` to reflect new pages (`/services`, `/equipment`), new components (`ListingSearchCard`, `ListingSearchPageClient`), updated navigation, and resolved issues.
+
+---
+
+#### Verification
+
+1. `pnpm turbo run test --filter=api` — listing search unit tests pass
+2. `pnpm turbo run typecheck` — no type errors across shared/api/web
+3. `pnpm turbo run lint` — clean
+4. **Manual: Landing page** — 375px viewport: dual-path CTAs visible above fold, equipment/service category grids, featured listing cards with vendor info
+5. **Manual: `/services`** — search query, category filter, infinite scroll, URL param persistence
+6. **Manual: `/equipment`** — rental category filter, delivery option filter, results show quantity + price/day
+7. **Manual: Navigation** — "Services" and "Equipment" links in desktop + mobile nav
+8. **Manual: Listing detail** — vendor trust signals, WhatsApp CTA visible
+9. **Performance** — Landing page SSR stays under 200KB JS (new sections are server components, Cloudinary transforms for images)
+10. Update `apps/web/e2e/search.spec.ts` for listing search flows
+
+---
+
+#### Decisions
+
+- **Listing cards as search results** — individual listings with embedded vendor summary, not vendor cards. Vendor profiles remain as the trust layer accessed via listing → vendor link
+- **"Services" + "Equipment" nav links** — replace "Find Vendors" to clearly surface dual discovery paths
+- **New `GET /search/listings` backend endpoint** — server-side SQL ranking + pagination, not client-side filtering. Needed for price range filters, delivery option filters, and rental-specific fields
+- **`/listings` redirects to `/services`** — avoid maintaining two listing browse UIs
+- **Existing `/search` page preserved** — not removed, but demoted. Can evolve later or be deprecated
+- **Featured vendors demoted** on landing page below featured listings sections
+
+---
+
+#### Further Considerations
+
+1. **Price filter UX on mobile** — Two number inputs are tight on 375px. **Recommendation:** Use preset price range chips (₦0–50k, ₦50k–200k, ₦200k+) — easier to tap, fits 44px touch targets.
+
+2. **Listing photos** — Many listings may lack photos initially. `ListingSearchCard` should gracefully fall back to category icon placeholder. Don't enforce photos at creation time; add "complete your listing" nudge in dashboard later.
+
+3. **Search scope indicator** — `/services` and `/equipment` pages should have a prominent title ("Event Services in Lagos" / "Equipment Rentals in Lagos") + a pill toggle to switch between modes without returning to nav.
+
+### Phase 4: Vendor Business Tools + Trust Layer (Weeks 9–12)
 
 **Subscription enforcement:**
 
@@ -398,7 +544,7 @@ pnpm turbo run test && pnpm turbo run test:e2e
 
 ---
 
-### Phase 4: Performance, Security Audit, Launch (Weeks 11–12)
+### Phase 5: Performance, Security Audit, Launch (Weeks 11–12)
 
 **Performance:**
 

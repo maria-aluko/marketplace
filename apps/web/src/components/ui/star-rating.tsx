@@ -7,10 +7,11 @@ interface StarRatingProps {
   value: number;
   onChange?: (value: number) => void;
   readonly?: boolean;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
 }
 
 const sizeMap = {
+  xs: 'h-3 w-3',
   sm: 'h-4 w-4',
   md: 'h-5 w-5',
   lg: 'h-6 w-6',
@@ -36,9 +37,7 @@ export function StarRating({ value, onChange, readonly = false, size = 'md' }: S
           <Star
             className={cn(
               sizeMap[size],
-              star <= value
-                ? 'fill-yellow-400 text-yellow-400'
-                : 'fill-none text-gray-300',
+              star <= value ? 'fill-yellow-400 text-yellow-400' : 'fill-none text-gray-300',
             )}
           />
         </button>

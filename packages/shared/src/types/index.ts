@@ -1,4 +1,14 @@
-import { VendorStatus, UserRole, VendorCategory, ReviewStatus, DisputeStatus, MediaType, ListingType, RentalCategory, DeliveryOption } from '../enums';
+import {
+  VendorStatus,
+  UserRole,
+  VendorCategory,
+  ReviewStatus,
+  DisputeStatus,
+  MediaType,
+  ListingType,
+  RentalCategory,
+  DeliveryOption,
+} from '../enums';
 
 // Auth
 export interface OtpRequestPayload {
@@ -64,9 +74,9 @@ export interface CreateServiceListingPayload {
   title: string;
   description: string;
   category: VendorCategory;
-  priceFrom?: number;   // kobo
-  priceTo?: number;     // kobo
-  photos?: string[];    // Cloudinary public_ids
+  priceFrom?: number; // kobo
+  priceTo?: number; // kobo
+  photos?: string[]; // Cloudinary public_ids
 }
 
 export interface CreateRentalListingPayload {
@@ -74,8 +84,8 @@ export interface CreateRentalListingPayload {
   description: string;
   rentalCategory: RentalCategory;
   quantityAvailable: number;
-  pricePerDay: number;       // kobo
-  depositAmount?: number;    // kobo
+  pricePerDay: number; // kobo
+  depositAmount?: number; // kobo
   deliveryOption: DeliveryOption;
   condition?: string;
   photos?: string[];
@@ -99,7 +109,7 @@ export interface ListingResponse {
   listingType: ListingType;
   title: string;
   description: string;
-  category?: VendorCategory;      // service listings only
+  category?: VendorCategory; // service listings only
   priceFrom?: number;
   priceTo?: number;
   photos: string[];
@@ -194,7 +204,7 @@ export interface DisputeAppealPayload {
   reason: string;
 }
 
-// Search
+// Search — Vendors
 export interface SearchVendorsQuery {
   q?: string;
   category?: VendorCategory;
@@ -208,6 +218,40 @@ export interface SearchVendorsQuery {
 
 export interface SearchVendorsResponse {
   vendors: VendorResponse[];
+  nextCursor?: string;
+  total: number;
+}
+
+// Search — Listings
+export interface SearchListingsQuery {
+  q?: string;
+  listingType?: ListingType;
+  category?: VendorCategory;
+  rentalCategory?: RentalCategory;
+  area?: string;
+  deliveryOption?: DeliveryOption;
+  priceMin?: number;
+  priceMax?: number;
+  cursor?: string;
+  limit?: number;
+}
+
+export interface ListingVendorSummary {
+  id: string;
+  slug: string;
+  businessName: string;
+  avgRating: number;
+  reviewCount: number;
+  area: string;
+  verified: boolean;
+}
+
+export interface ListingSearchResult extends ListingResponse {
+  vendor: ListingVendorSummary;
+}
+
+export interface SearchListingsResponse {
+  listings: ListingSearchResult[];
   nextCursor?: string;
   total: number;
 }
