@@ -2,7 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createRentalListingSchema, RentalCategory, DeliveryOption } from '@eventtrust/shared';
+import {
+  createRentalListingSchema,
+  updateRentalListingSchema,
+  RentalCategory,
+  DeliveryOption,
+} from '@eventtrust/shared';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,23 +20,41 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ListingPhotoUploader } from './listing-photo-uploader';
 
 const RENTAL_CATEGORIES = Object.values(RentalCategory);
 const DELIVERY_OPTIONS = Object.values(DeliveryOption);
 
-export function RentalListingForm() {
+interface RentalListingFormProps {
+  listingId?: string;
+  initialData?: {
+    title: string;
+    description: string;
+    rentalCategory: string;
+    quantityAvailable: string;
+    pricePerDay: string;
+    depositAmount: string;
+    deliveryOption: string;
+    condition: string;
+    photos: string[];
+  };
+}
+
+export function RentalListingForm({ listingId, initialData }: RentalListingFormProps) {
+  const isEdit = !!listingId;
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<string[]>(initialData?.photos ?? []);
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    rentalCategory: '' as string,
-    quantityAvailable: '',
-    pricePerDay: '',
-    depositAmount: '',
-    deliveryOption: '' as string,
-    condition: '',
+    title: initialData?.title ?? '',
+    description: initialData?.description ?? '',
+    rentalCategory: initialData?.rentalCategory ?? ('' as string),
+    quantityAvailable: initialData?.quantityAvailable ?? '',
+    pricePerDay: initialData?.pricePerDay ?? '',
+    depositAmount: initialData?.depositAmount ?? '',
+    deliveryOption: initialData?.deliveryOption ?? ('' as string),
+    condition: initialData?.condition ?? '',
   });
 
   const handleChange = (
@@ -49,26 +72,33 @@ export function RentalListingForm() {
       description: formData.description,
       rentalCategory: formData.rentalCategory,
       quantityAvailable: parseInt(formData.quantityAvailable, 10) || 0,
-      pricePerDay: parseInt(formData.pricePerDay, 10) || 0,
-      depositAmount: formData.depositAmount ? parseInt(formData.depositAmount, 10) : undefined,
+      pricePerDay: Math.round(parseFloat(formData.pricePerDay) * 100) || 0,
+      depositAmount: formData.depositAmount
+        ? Math.round(parseFloat(formData.depositAmount) * 100)
+        : undefined,
       deliveryOption: formData.deliveryOption,
       condition: formData.condition || undefined,
+      photos: photos.length > 0 ? photos : undefined,
     };
 
-    const validation = createRentalListingSchema.safeParse(payload);
+    const validation = isEdit
+      ? updateRentalListingSchema.safeParse(payload)
+      : createRentalListingSchema.safeParse(payload);
     if (!validation.success) {
       setError(validation.error.errors[0]?.message ?? 'Validation failed');
       return;
     }
 
     setSubmitting(true);
-    const res = await apiClient.post('/listings/rental', payload);
+    const res = isEdit
+      ? await apiClient.patch(`/listings/${listingId}`, payload)
+      : await apiClient.post('/listings/rental', payload);
     setSubmitting(false);
 
     if (res.success) {
       router.push('/dashboard/listings');
     } else {
-      setError(res.error || 'Failed to create listing');
+      setError(res.error || `Failed to ${isEdit ? 'update' : 'create'} listing`);
     }
   };
 
@@ -131,12 +161,14 @@ export function RentalListingForm() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="pricePerDay">Price Per Day (kobo)</Label>
+          <Label htmlFor="pricePerDay">Price Per Day (₦)</Label>
           <Input
             id="pricePerDay"
             name="pricePerDay"
             type="number"
-            min="1"
+            min="0.01"
+            step="0.01"
+            placeholder="e.g. 5000"
             value={formData.pricePerDay}
             onChange={handleChange}
             disabled={submitting}
@@ -145,11 +177,14 @@ export function RentalListingForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="depositAmount">Deposit Amount (kobo, optional)</Label>
+        <Label htmlFor="depositAmount">Deposit Amount (₦, optional)</Label>
         <Input
           id="depositAmount"
           name="depositAmount"
           type="number"
+          min="0"
+          step="0.01"
+          placeholder="e.g. 2000"
           value={formData.depositAmount}
           onChange={handleChange}
           disabled={submitting}
@@ -187,10 +222,21 @@ export function RentalListingForm() {
         />
       </div>
 
+      <div className="space-y-2">
+        <Label>Photos</Label>
+        <ListingPhotoUploader photos={photos} onChange={setPhotos} disabled={submitting} />
+      </div>
+
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <Button type="submit" className="w-full" disabled={submitting}>
-        {submitting ? 'Creating...' : 'Create Rental Listing'}
+        {submitting
+          ? isEdit
+            ? 'Saving...'
+            : 'Creating...'
+          : isEdit
+            ? 'Save Changes'
+            : 'Create Rental Listing'}
       </Button>
     </form>
   );

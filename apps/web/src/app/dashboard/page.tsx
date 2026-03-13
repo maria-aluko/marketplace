@@ -83,13 +83,6 @@ export default function DashboardPage() {
   // Vendor dashboard with tabs
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Vendor Dashboard</h1>
-        <Button variant="outline" onClick={logout}>
-          Sign Out
-        </Button>
-      </div>
-
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="w-full justify-start overflow-x-auto">
           <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -100,30 +93,6 @@ export default function DashboardPage() {
 
         <TabsContent value="overview">
           <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Your Profile</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <p>
-                  <span className="text-gray-500">Phone:</span> {user.phone}
-                </p>
-                <p>
-                  <span className="text-gray-500">Role:</span>{' '}
-                  <Badge variant="secondary">{user.role}</Badge>
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Vendor Profile</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600">
-                  Your vendor profile is set up. Use the tabs above to manage your profile, portfolio, and reviews.
-                </p>
-              </CardContent>
-            </Card>
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Manage Listings</CardTitle>
@@ -145,13 +114,18 @@ export default function DashboardPage() {
         </TabsContent>
 
         <TabsContent value="portfolio">
-          <PortfolioManager vendorId={user.vendorId} />
+          <PortfolioM anager vendorId={user.vendorId} />
         </TabsContent>
 
         <TabsContent value="reviews">
           <ReviewsManager vendorId={user.vendorId} />
         </TabsContent>
       </Tabs>
+      <div className="mt-6 flex items-center justify-between">
+        <Button variant="outline" onClick={logout}>
+          Sign Out
+        </Button>
+      </div>
     </div>
   );
 }

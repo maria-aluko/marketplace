@@ -34,13 +34,6 @@ export default function ListingsPage() {
     fetchListings();
   }, [user?.vendorId]);
 
-  const handleDelete = async (listingId: string) => {
-    const res = await apiClient.delete(`/listings/${listingId}`);
-    if (res.success) {
-      setListings((prev) => prev.filter((l) => l.id !== listingId));
-    }
-  };
-
   if (authLoading || loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -63,10 +56,14 @@ export default function ListingsPage() {
         <h1 className="text-2xl font-bold">My Listings</h1>
         <div className="flex gap-2">
           <Link href="/dashboard/listings/new/service">
-            <Button size="sm">Add Service</Button>
+            <Button size="sm" variant="outline">
+              Add Service
+            </Button>
           </Link>
           <Link href="/dashboard/listings/new/rental">
-            <Button size="sm" variant="outline">Add Rental</Button>
+            <Button size="sm" variant="outline">
+              Add Rental
+            </Button>
           </Link>
         </div>
       </div>
@@ -76,7 +73,9 @@ export default function ListingsPage() {
       {listings.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center">
-            <p className="text-gray-500">No listings yet. Create your first listing to get started.</p>
+            <p className="text-gray-500">
+              No listings yet. Create your first listing to get started.
+            </p>
           </CardContent>
         </Card>
       ) : (
@@ -98,20 +97,16 @@ export default function ListingsPage() {
                 )}
                 {listing.rentalDetails && (
                   <p className="mb-1 text-xs text-gray-500">
-                    {listing.rentalDetails.rentalCategory} — {listing.rentalDetails.quantityAvailable} available
+                    {listing.rentalDetails.rentalCategory} —{' '}
+                    {listing.rentalDetails.quantityAvailable} available
                   </p>
                 )}
                 <div className="mt-3 flex gap-2">
-                  <Link href={`/listings/${listing.id}`}>
-                    <Button size="sm" variant="outline">View</Button>
+                  <Link href={`/dashboard/listings/${listing.id}`}>
+                    <Button size="sm" variant="outline">
+                      View / Edit
+                    </Button>
                   </Link>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => handleDelete(listing.id)}
-                  >
-                    Delete
-                  </Button>
                 </div>
               </CardContent>
             </Card>

@@ -13,6 +13,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ListingsService } from './listings.service';
+import { ListingUploadService } from './listing-upload.service';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -33,7 +34,20 @@ import type {
 
 @Controller('listings')
 export class ListingsController {
-  constructor(private readonly listingsService: ListingsService) {}
+  constructor(
+    private readonly listingsService: ListingsService,
+    private readonly listingUploadService: ListingUploadService,
+  ) {}
+
+  @Post('upload-url')
+  @HttpCode(HttpStatus.OK)
+  async getUploadUrl(@CurrentUser() user: AccessTokenPayload) {
+    if (!user.vendorId) {
+      throw new BadRequestException('You must have a vendor profile to upload photos');
+    }
+    const uploadParams = await this.listingUploadService.getSignedUploadUrl(user.vendorId);
+    return { data: uploadParams };
+  }
 
   @Post('service')
   @HttpCode(HttpStatus.CREATED)
@@ -87,9 +101,10 @@ export class ListingsController {
     const existing = await this.listingsService.findById(id);
     if (!existing) throw new NotFoundException('Listing not found');
 
-    const pipe = existing.listingType === 'service'
-      ? new ZodValidationPipe(updateServiceListingSchema)
-      : new ZodValidationPipe(updateRentalListingSchema);
+    const pipe =
+      existing.listingType === 'service'
+        ? new ZodValidationPipe(updateServiceListingSchema)
+        : new ZodValidationPipe(updateRentalListingSchema);
     const validated = pipe.transform(body);
 
     const listing = await this.listingsService.update(id, user.sub, validated);
@@ -99,10 +114,7 @@ export class ListingsController {
   @Delete(':id')
   @UseGuards(ListingOwnerGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(
-    @Param('id') id: string,
-    @CurrentUser() user: AccessTokenPayload,
-  ) {
+  async remove(@Param('id') id: string, @CurrentUser() user: AccessTokenPayload) {
     await this.listingsService.softDelete(id, user.sub);
   }
 }

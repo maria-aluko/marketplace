@@ -76,7 +76,7 @@ export interface CreateServiceListingPayload {
   category: VendorCategory;
   priceFrom?: number; // kobo
   priceTo?: number; // kobo
-  photos?: string[]; // Cloudinary public_ids
+  photos?: string[]; // Cloudinary secure_urls
 }
 
 export interface CreateRentalListingPayload {

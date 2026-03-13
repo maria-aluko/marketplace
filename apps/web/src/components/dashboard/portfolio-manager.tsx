@@ -34,7 +34,9 @@ export function PortfolioManager({ vendorId }: PortfolioManagerProps) {
     setLoading(true);
     const result = await apiClient.get<{ data: PortfolioItem[] }>(`/vendors/${vendorId}/portfolio`);
     if (result.success && result.data) {
-      const data = (result.data as unknown as { data: PortfolioItem[] }).data ?? result.data as unknown as PortfolioItem[];
+      const data =
+        (result.data as unknown as { data: PortfolioItem[] }).data ??
+        (result.data as unknown as PortfolioItem[]);
       setItems(Array.isArray(data) ? data : []);
     }
     setLoading(false);
@@ -60,6 +62,10 @@ export function PortfolioManager({ vendorId }: PortfolioManagerProps) {
       <CardHeader>
         <CardTitle className="text-lg">Portfolio</CardTitle>
         <p className="text-sm text-gray-500">
+          These images and items will appear on your public profile. These are not the same as
+          listing photos, which are attached to specific service or rental listings.
+        </p>
+        <p className="text-sm text-gray-500">
           {imageCount} / {PORTFOLIO_MAX_IMAGES} images, {videoCount} / {PORTFOLIO_MAX_VIDEOS} videos
         </p>
       </CardHeader>
@@ -71,11 +77,16 @@ export function PortfolioManager({ vendorId }: PortfolioManagerProps) {
             {items.length > 0 && (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                 {items.map((item) => (
-                  <div key={item.id} className="group relative aspect-square overflow-hidden rounded-lg bg-gray-100">
+                  <div
+                    key={item.id}
+                    className="group relative aspect-square overflow-hidden rounded-lg bg-gray-100"
+                  >
                     <img
-                      src={item.mediaType === MediaType.VIDEO
-                        ? item.mediaUrl.replace(/\.[^.]+$/, '.jpg')
-                        : item.mediaUrl}
+                      src={
+                        item.mediaType === MediaType.VIDEO
+                          ? item.mediaUrl.replace(/\.[^.]+$/, '.jpg')
+                          : item.mediaUrl
+                      }
                       alt={item.caption || 'Portfolio item'}
                       className="h-full w-full object-cover"
                     />
