@@ -18,12 +18,14 @@ vi.mock('@/lib/api-client', () => ({
 describe('VendorSignupForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
   });
 
   it('renders step 1 fields', () => {
     render(<VendorSignupForm />);
     expect(screen.getByLabelText('Business Name')).toBeInTheDocument();
-    expect(screen.getByLabelText('Category')).toBeInTheDocument();
+    expect(screen.getByText('Category')).toBeInTheDocument();
+    expect(screen.getByText('Catering')).toBeInTheDocument();
     expect(screen.getByLabelText('Area in Lagos')).toBeInTheDocument();
   });
 

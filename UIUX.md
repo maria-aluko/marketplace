@@ -36,8 +36,8 @@
 - **Vendor profile** has cover image hero, star rating, category/area badges, price range, listings grid, portfolio lightbox, reviews with vendor replies, and a sticky WhatsApp/Share action bar on mobile
 - **Portfolio upload** has drag-and-drop, file validation (type + size), progress bars via XHR, and usage counters ("3/10 images")
 - **Reviews manager** enforces 48h edit window, shows "Edit window expired" text, and validates reply length
-- **Auth flow** has auto-focus, paste support, resend countdown, and redirect parameter support
-- **Vendor signup** has a 4-step wizard with progress indicator and step validation
+- **Auth flow** has fixed +234 prefix (non-editable), auto-focus, paste support, Web OTP API auto-fill (Android Chrome), "Didn't receive?" helper text, resend countdown, and redirect parameter support
+- **Vendor signup** has a 4-step wizard with progress indicator, step validation, visual category tiles (Lucide icons in 2-column grid), and localStorage draft persistence (24h expiry with restore banner)
 
 ---
 
@@ -87,37 +87,6 @@ Referenced in docs as critical for the target demographic but not implemented.
 
 ## UI Improvement Suggestions
 
-### ~~Priority 1 — Home page and discovery~~ ✅ COMPLETED
-
-All P1 items have been implemented:
-
-1. ~~**Category display names**~~ ✅ — Created `CATEGORY_LABELS` map in `@eventtrust/shared` constants. Applied across all category displays: home page, search filters, vendor cards, listing cards, listing detail, vendor profile, vendor signup form.
-2. ~~**Category icons**~~ ✅ — Created `CATEGORY_ICONS` map in `apps/web/src/lib/category-meta.tsx` using lucide-react (UtensilsCrossed, Camera, Video, Building, Sparkles, Mic, Music, Palette, CalendarCheck, MoreHorizontal). Displayed as visual tiles on the home page.
-3. ~~**Social proof**~~ ✅ — Added "Trusted by vendors across Lagos" line below the subtitle on the home page.
-4. ~~**Hero background**~~ ✅ — Added `bg-gradient-to-b from-primary-50 to-white` gradient to the hero section.
-5. ~~**Popular vendors section**~~ ✅ — Added "Featured Vendors" section below the category grid. Server-fetches top 6 vendors via `serverFetchRaw<SearchVendorsResponse>('/search/vendors?limit=6')`. Horizontal scroll with snap on mobile, grid on desktop. "View all →" link to search page. Home page converted from client to server component (search bar extracted to `HeroSearch` client component).
-
-### ~~Priority 2 — Search page refinements~~ ✅ COMPLETED
-
-All P2 items have been implemented:
-
-1. ~~**Active filter indicators**~~ ✅ — Active filters now display as colored chips (`bg-primary-100`) below the filter bar with an `×` (lucide `X` icon) to clear each one individually. A "Clear all" link resets all filters at once.
-2. ~~**Empty state improvement**~~ ✅ — When no vendors match, the empty state now shows specific suggestions based on which filters are active: "Remove [category] filter", "Search in all areas", "Include unverified vendors", and "Clear all filters" — each as a clickable button that resets that filter.
-3. ~~**Result count position**~~ ✅ — "X vendors found" moved from between filters and results into the results header, displayed as `font-medium text-gray-700` directly above the vendor grid. Loading state shows a skeleton placeholder for the count.
-4. ~~**Vendor card enhancements**~~ ✅ — Added a green `BadgeCheck` icon (lucide) next to the business name for vendors with `status === 'active'`. Review display improved: shows "4.8 (23 reviews)" with the word "reviews" for trust. Vendors with zero reviews show "New on EventTrust" instead of empty stars.
-
-### ~~Priority 3 — Vendor profile page~~ ✅ COMPLETED
-
-**Current state:** Well-structured with hero image, trust signals (verified badge, star rating, review count), category/area badges, price range, about section, listings grid, portfolio gallery with lightbox, reviews with replies, and sticky mobile action bar.
-
-All P3 items have been implemented:
-
-1. ~~**"Member since" date**~~ ✅ — Added `Joined {month} {year}` near the trust signals using `vendor.createdAt` with a `CalendarDays` icon. Formatted via `toLocaleDateString('en-NG', { month: 'long', year: 'numeric' })`.
-2. ~~**Cover image fallback**~~ ✅ — When no `coverImageUrl` exists, renders a `CoverImageFallback` component showing a branded gradient (`from-primary-100 via-primary-50 to-white`) with the category icon centered (via `CATEGORY_ICONS` map).
-3. ~~**Tab navigation for sections**~~ ✅ — Replaced long-scroll layout with Radix `Tabs` component (`VendorProfileTabs` client component). Four tabs: About, Listings (count), Portfolio (count), Reviews (count). Tab bar sticks below the header on scroll. Empty states shown for tabs with no content.
-4. ~~**WhatsApp pre-fill message improvement**~~ ✅ — `EnquiryButton` now accepts optional `listingName` prop. When present, message reads: `I'm interested in "[listing title]"` instead of generic `"your services"`. Listing detail page passes listing title as `?listing=` query parameter when linking to vendor profile. `VendorActionBar` passes it through.
-5. ~~**Breadcrumbs**~~ ✅ — Added `Home > [Category] > [Business Name]` breadcrumb navigation with `ChevronRight` separators. Category links to `/search?category=...` for easy exploration. Accessible via `aria-label="Breadcrumb"`.
-
 ### Priority 4 — Dashboard improvements
 
 **Current state:** Tabbed dashboard (Overview, Profile, Portfolio, Reviews) with profile edit form, portfolio manager with upload, and reviews manager with reply. Overview tab is very basic (phone, role, vendor profile link, listings link).
@@ -133,18 +102,6 @@ All P3 items have been implemented:
 - **Quick stats cards:** Add 4 stat cards at the top of the Overview for ACTIVE vendors: Listings (count), Reviews (count), Rating (avg), Portfolio (count). Use the Card component with large numbers.
 - **"View Public Profile" link:** Add a prominent link to the vendor's public page so they can see what clients see.
 - **Bottom navigation:** For the dashboard section, replace the tab bar with a fixed bottom nav bar (Dashboard/Listings/Portfolio/Reviews/Profile). The current tabs scroll horizontally and are easy to miss. Bottom nav is standard in Nigerian fintech apps (OPay, Kuda, PalmPay).
-
-### Priority 5 — Auth & onboarding
-
-**Current state:** Phone input starts with "+234" pre-filled. OTP input has individual digit boxes with auto-focus, paste support, and resend countdown. Vendor signup is a 4-step wizard.
-
-**Improvements:**
-
-- **Phone input with fixed prefix:** Lock the "+234" as a non-editable prefix (display in a gray label beside the input). User only types the 10 digits. This prevents accidental deletion of the country code.
-- **Web OTP API:** On Android Chrome, use `navigator.credentials.get({ otp: { transport: ['sms'] } })` to auto-fill the OTP from Termii's SMS. Requires the SMS to end with `@eventtrust.com.ng #123456` format. Major friction reduction.
-- **"Didn't receive?" helper text:** After the countdown expires, show "Didn't receive the code? Check your SMS inbox" before the "Resend" button.
-- **Vendor signup - category visual tiles:** Replace the dropdown with visual category cards (icon + label) in a 2-column grid. More scannable on mobile.
-- **Vendor signup - draft persistence:** Save wizard state to `localStorage` on each step. If the session drops (common on 2G/3G), restore on return. Check for stale data by timestamp.
 
 ### Priority 6 — Listing detail page
 
@@ -184,10 +141,10 @@ All P3 items have been implemented:
 | 375px baseline (Tecno Spark) | Single-column layouts, full-width cards (implemented)                                                |
 | 44px min touch targets       | Large buttons (mostly implemented), generous spacing (needs audit)                                   |
 | WhatsApp as primary channel  | og:image on shareable pages (partially — no dynamic OG images yet)                                   |
-| Phone OTP only               | Minimize auth friction (auto-focus implemented, Web OTP API not yet)                                 |
+| Phone OTP only               | Minimize auth friction (auto-focus, fixed +234 prefix, Web OTP API — all implemented)                |
 | Lagos only (22 areas)        | Area selector as a simple list (implemented via Select)                                              |
 | No payments (Phase 1–2)      | No cart/checkout complexity (correct)                                                                |
-| Sessions interrupted         | Auto-save forms to localStorage/IndexedDB (not implemented)                                          |
+| Sessions interrupted         | Auto-save forms to localStorage (vendor signup implemented, other forms not yet)                     |
 
 ---
 

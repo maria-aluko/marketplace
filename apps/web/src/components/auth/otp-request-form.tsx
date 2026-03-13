@@ -12,23 +12,29 @@ interface OtpRequestFormProps {
 }
 
 export function OtpRequestForm({ onSuccess }: OtpRequestFormProps) {
-  const [phone, setPhone] = useState('+234');
+  const [localNumber, setLocalNumber] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
   const { requestOtp, error, submitting } = useAuth();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+    setLocalNumber(value);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setValidationError(null);
 
-    const result = phoneSchema.safeParse(phone);
+    const fullPhone = `+234${localNumber}`;
+    const result = phoneSchema.safeParse(fullPhone);
     if (!result.success) {
       setValidationError(result.error.errors[0]?.message ?? 'Invalid phone number');
       return;
     }
 
-    const otpResult = await requestOtp(phone);
+    const otpResult = await requestOtp(fullPhone);
     if (otpResult) {
-      onSuccess(phone);
+      onSuccess(fullPhone);
     }
   };
 
@@ -38,14 +44,21 @@ export function OtpRequestForm({ onSuccess }: OtpRequestFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="phone">Phone Number</Label>
-        <Input
-          id="phone"
-          type="tel"
-          placeholder="+234XXXXXXXXXX"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          disabled={submitting}
-        />
+        <div className="flex">
+          <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-100 px-3 text-sm text-gray-600">
+            +234
+          </span>
+          <Input
+            id="phone"
+            type="tel"
+            inputMode="numeric"
+            placeholder="8012345678"
+            value={localNumber}
+            onChange={handleChange}
+            disabled={submitting}
+            className="rounded-l-none"
+          />
+        </div>
         {displayError && <p className="text-sm text-red-600">{displayError}</p>}
       </div>
       <Button type="submit" className="w-full" disabled={submitting}>

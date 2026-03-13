@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   VendorCategory,
@@ -13,9 +13,38 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { apiClient } from '@/lib/api-client';
+import {
+  UtensilsCrossed,
+  Camera,
+  Video,
+  Building2,
+  Palette,
+  Mic2,
+  Music,
+  Sparkles,
+  CalendarCheck,
+  MoreHorizontal,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 const STEPS = ['Business Info', 'Details', 'Contact', 'Review'];
 const categories = Object.values(VendorCategory);
+
+const CATEGORY_ICONS: Record<VendorCategory, LucideIcon> = {
+  [VendorCategory.CATERER]: UtensilsCrossed,
+  [VendorCategory.PHOTOGRAPHER]: Camera,
+  [VendorCategory.VIDEOGRAPHER]: Video,
+  [VendorCategory.VENUE]: Building2,
+  [VendorCategory.DECORATOR]: Palette,
+  [VendorCategory.MC]: Mic2,
+  [VendorCategory.DJ]: Music,
+  [VendorCategory.MAKEUP_ARTIST]: Sparkles,
+  [VendorCategory.PLANNER]: CalendarCheck,
+  [VendorCategory.OTHER]: MoreHorizontal,
+};
+
+const STORAGE_KEY = 'eventtrust_vendor_signup_draft';
+const STORAGE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 const initialFormData: CreateVendorPayload = {
   businessName: '',
@@ -24,13 +53,50 @@ const initialFormData: CreateVendorPayload = {
   area: LAGOS_AREAS[0],
 };
 
+function loadDraft(): { step: number; formData: CreateVendorPayload } | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (Date.now() - parsed.savedAt > STORAGE_MAX_AGE_MS) {
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+    return { step: parsed.step ?? 0, formData: { ...initialFormData, ...parsed.formData } };
+  } catch {
+    return null;
+  }
+}
+
 export function VendorSignupForm() {
-  const [step, setStep] = useState(0);
-  const [formData, setFormData] = useState<CreateVendorPayload>(initialFormData);
+  const draft = typeof window !== 'undefined' ? loadDraft() : null;
+  const [step, setStep] = useState(draft?.step ?? 0);
+  const [formData, setFormData] = useState<CreateVendorPayload>(draft?.formData ?? initialFormData);
+  const [showDraftBanner, setShowDraftBanner] = useState(!!draft);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const router = useRouter();
+
+  // Persist draft to localStorage on step/formData changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, formData, savedAt: Date.now() }));
+    } catch {
+      // Storage full or unavailable — ignore
+    }
+  }, [step, formData]);
+
+  const clearDraft = () => {
+    localStorage.removeItem(STORAGE_KEY);
+  };
+
+  const handleDiscardDraft = () => {
+    clearDraft();
+    setStep(0);
+    setFormData(initialFormData);
+    setShowDraftBanner(false);
+  };
 
   const update = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -93,6 +159,7 @@ export function VendorSignupForm() {
 
       const vendorId = createRes.data!.data.id;
       await apiClient.post(`/vendors/${vendorId}/submit`);
+      clearDraft();
       router.push('/dashboard');
     } catch {
       setSubmitError('Network error. Please try again.');
@@ -103,6 +170,20 @@ export function VendorSignupForm() {
 
   return (
     <div className="space-y-6">
+      {/* Draft restored banner */}
+      {showDraftBanner && (
+        <div className="flex items-center justify-between rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-700">
+          <span>We restored your previous progress.</span>
+          <button
+            type="button"
+            onClick={handleDiscardDraft}
+            className="font-medium underline hover:text-blue-900"
+          >
+            Start over
+          </button>
+        </div>
+      )}
+
       {/* Progress */}
       <div className="flex items-center justify-between text-sm">
         {STEPS.map((label, i) => (
@@ -136,19 +217,28 @@ export function VendorSignupForm() {
             {errors.businessName && <p className="text-sm text-red-600">{errors.businessName}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
-            <select
-              id="category"
-              value={formData.category}
-              onChange={(e) => update('category', e.target.value)}
-              className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
-            >
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {CATEGORY_LABELS[cat] ?? cat}
-                </option>
-              ))}
-            </select>
+            <Label>Category</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {categories.map((cat) => {
+                const Icon = CATEGORY_ICONS[cat];
+                const isSelected = formData.category === cat;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => update('category', cat)}
+                    className={`flex items-center gap-2 rounded-lg border-2 px-3 py-2.5 text-left text-sm transition-colors ${
+                      isSelected
+                        ? 'border-primary-600 bg-primary-50 text-primary-700'
+                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <Icon className="h-5 w-5 shrink-0" />
+                    <span className="font-medium">{CATEGORY_LABELS[cat] ?? cat}</span>
+                  </button>
+                );
+              })}
+            </div>
             {errors.category && <p className="text-sm text-red-600">{errors.category}</p>}
           </div>
           <div className="space-y-2">

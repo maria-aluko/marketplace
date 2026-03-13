@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { OTP_LENGTH } from '@eventtrust/shared';
 import { Button } from '@/components/ui/button';
@@ -16,13 +16,48 @@ export function OtpVerifyForm({ phone, onBack }: OtpVerifyFormProps) {
   const [digits, setDigits] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [resendTimer, setResendTimer] = useState(60);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const abortRef = useRef<AbortController | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { verifyOtp, requestOtp, error, submitting } = useAuth();
 
+  const fillOtp = useCallback((code: string) => {
+    const newDigits = Array(OTP_LENGTH).fill('');
+    for (let i = 0; i < Math.min(code.length, OTP_LENGTH); i++) {
+      newDigits[i] = code[i] ?? '';
+    }
+    setDigits(newDigits);
+    const focusIndex = Math.min(code.length, OTP_LENGTH - 1);
+    inputRefs.current[focusIndex]?.focus();
+  }, []);
+
   useEffect(() => {
     inputRefs.current[0]?.focus();
-  }, []);
+
+    // Web OTP API: auto-read OTP from SMS on supported browsers (Android Chrome)
+    if ('OTPCredential' in window) {
+      const ac = new AbortController();
+      abortRef.current = ac;
+      navigator.credentials
+        .get({
+          // @ts-expect-error -- Web OTP API types not in all TS libs
+          otp: { transport: ['sms'] },
+          signal: ac.signal,
+        })
+        .then((otpCredential: any) => {
+          if (otpCredential?.code) {
+            fillOtp(otpCredential.code.replace(/\D/g, '').slice(0, OTP_LENGTH));
+          }
+        })
+        .catch(() => {
+          // User dismissed or API unsupported — silently ignore
+        });
+    }
+
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, [fillOtp]);
 
   useEffect(() => {
     if (resendTimer <= 0) return;
@@ -50,13 +85,7 @@ export function OtpVerifyForm({ phone, onBack }: OtpVerifyFormProps) {
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
     const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, OTP_LENGTH);
-    const newDigits = [...digits];
-    for (let i = 0; i < pasted.length; i++) {
-      newDigits[i] = pasted[i] ?? '';
-    }
-    setDigits(newDigits);
-    const focusIndex = Math.min(pasted.length, OTP_LENGTH - 1);
-    inputRefs.current[focusIndex]?.focus();
+    fillOtp(pasted);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -88,7 +117,9 @@ export function OtpVerifyForm({ phone, onBack }: OtpVerifyFormProps) {
         {digits.map((digit, i) => (
           <Input
             key={i}
-            ref={(el) => { inputRefs.current[i] = el; }}
+            ref={(el) => {
+              inputRefs.current[i] = el;
+            }}
             type="text"
             inputMode="numeric"
             maxLength={1}
@@ -111,18 +142,25 @@ export function OtpVerifyForm({ phone, onBack }: OtpVerifyFormProps) {
         {submitting ? 'Verifying...' : 'Verify'}
       </Button>
 
-      <div className="flex items-center justify-between text-sm">
-        <button type="button" onClick={onBack} className="text-gray-500 hover:text-gray-700">
-          Change number
-        </button>
-        <button
-          type="button"
-          onClick={handleResend}
-          disabled={resendTimer > 0}
-          className="text-primary-600 hover:text-primary-700 disabled:text-gray-400"
-        >
-          {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend code'}
-        </button>
+      <div className="space-y-2 text-sm">
+        {resendTimer <= 0 && (
+          <p className="text-center text-gray-500">
+            Didn&apos;t receive the code? Check your SMS inbox
+          </p>
+        )}
+        <div className="flex items-center justify-between">
+          <button type="button" onClick={onBack} className="text-gray-500 hover:text-gray-700">
+            Change number
+          </button>
+          <button
+            type="button"
+            onClick={handleResend}
+            disabled={resendTimer > 0}
+            className="text-primary-600 hover:text-primary-700 disabled:text-gray-400"
+          >
+            {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend code'}
+          </button>
+        </div>
       </div>
     </form>
   );

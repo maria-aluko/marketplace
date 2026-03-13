@@ -19,9 +19,10 @@ describe('OtpRequestForm', () => {
     vi.clearAllMocks();
   });
 
-  it('renders phone input', () => {
+  it('renders phone input with +234 prefix', () => {
     render(<OtpRequestForm onSuccess={onSuccess} />);
     expect(screen.getByLabelText('Phone Number')).toBeInTheDocument();
+    expect(screen.getByText('+234')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /send otp/i })).toBeInTheDocument();
   });
 
@@ -29,7 +30,7 @@ describe('OtpRequestForm', () => {
     render(<OtpRequestForm onSuccess={onSuccess} />);
 
     const input = screen.getByLabelText('Phone Number');
-    fireEvent.change(input, { target: { value: '08012345678' } });
+    fireEvent.change(input, { target: { value: '123' } });
     fireEvent.click(screen.getByRole('button', { name: /send otp/i }));
 
     await waitFor(() => {
@@ -43,7 +44,7 @@ describe('OtpRequestForm', () => {
     render(<OtpRequestForm onSuccess={onSuccess} />);
 
     const input = screen.getByLabelText('Phone Number');
-    fireEvent.change(input, { target: { value: '+2348012345678' } });
+    fireEvent.change(input, { target: { value: '8012345678' } });
     fireEvent.click(screen.getByRole('button', { name: /send otp/i }));
 
     await waitFor(() => {
