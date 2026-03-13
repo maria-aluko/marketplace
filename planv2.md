@@ -19,24 +19,6 @@ The platform’s main value proposition:
 
 # 2. Strategic Approach
 
-## Phase 1 – Lead Marketplace
-
-Focus on discovery, vendor tools, and communication.
-
-Key characteristics:
-
-- Client finds vendor
-- Client contacts vendor via WhatsApp
-- Vendor manages booking externally
-- Vendor pays subscription to receive leads and access business tools
-
-Revenue model:
-
-- Vendor subscription tiers
-- Optional client tools (event planning tools, event websites)
-
----
-
 ## Phase 2 – Platform Business Tools
 
 Increase vendor dependency on the platform.

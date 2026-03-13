@@ -1,20 +1,10 @@
 import Link from 'next/link';
-import {
-  VendorCategory,
-  RentalCategory,
-  CATEGORY_LABELS,
-  RENTAL_CATEGORY_LABELS,
-} from '@eventtrust/shared';
 import type { SearchVendorsResponse, SearchListingsResponse } from '@eventtrust/shared';
-import { Briefcase, Package } from 'lucide-react';
 import { serverFetchRaw } from '@/lib/server-api';
-import { CATEGORY_ICONS, RENTAL_CATEGORY_ICONS } from '@/lib/category-meta';
 import { HeroSearch } from '@/components/home/hero-search';
+import { CategoryBrowser } from '@/components/home/category-browser';
 import { VendorCard } from '@/components/vendor/vendor-card';
 import { ListingSearchCard } from '@/components/listings/listing-search-card';
-
-const serviceCategories = Object.values(VendorCategory);
-const rentalCategories = Object.values(RentalCategory);
 
 export default async function HomePage() {
   const [vendorsResult, servicesResult, equipmentResult] = await Promise.all([
@@ -57,89 +47,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Dual-path CTA cards */}
-      <section className="mx-auto w-full max-w-2xl px-4 py-10">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Link
-            href="/services"
-            className="flex items-center gap-4 rounded-xl border-2 border-primary-200 bg-primary-50 p-5 transition-colors hover:border-primary-400 hover:bg-primary-100"
-          >
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary-600 text-white">
-              <Briefcase className="h-6 w-6" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">Find Services</h2>
-              <p className="text-sm text-gray-600">
-                Caterers, photographers, DJs, planners &amp; more
-              </p>
-            </div>
-          </Link>
-          <Link
-            href="/equipment"
-            className="flex items-center gap-4 rounded-xl border-2 border-yellow-200 bg-yellow-50 p-5 transition-colors hover:border-yellow-400 hover:bg-yellow-100"
-          >
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-yellow-500 text-white">
-              <Package className="h-6 w-6" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">Rent Equipment</h2>
-              <p className="text-sm text-gray-600">
-                Tents, chairs, generators, lighting &amp; more
-              </p>
-            </div>
-          </Link>
-        </div>
-      </section>
-
-      {/* Browse Services by category */}
-      <section className="mx-auto w-full max-w-2xl px-4 py-10">
-        <h2 className="mb-6 text-center text-lg font-semibold text-gray-900">
-          Browse Services by Category
-        </h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
-          {serviceCategories.map((category) => {
-            const Icon = CATEGORY_ICONS[category];
-            return (
-              <Link
-                key={category}
-                href={`/services?category=${category}`}
-                className="flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-4 text-center transition-colors hover:border-primary-500 hover:bg-primary-50"
-              >
-                <Icon className="h-6 w-6 text-primary-600" />
-                <span className="text-sm font-medium text-gray-700">
-                  {CATEGORY_LABELS[category]}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* Browse Equipment by category */}
-      <section className="bg-gray-50 px-4 py-10">
-        <div className="mx-auto max-w-2xl">
-          <h2 className="mb-6 text-center text-lg font-semibold text-gray-900">
-            Browse Equipment by Category
-          </h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {rentalCategories.map((category) => {
-              const Icon = RENTAL_CATEGORY_ICONS[category];
-              return (
-                <Link
-                  key={category}
-                  href={`/equipment?rentalCategory=${category}`}
-                  className="flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-4 text-center transition-colors hover:border-yellow-400 hover:bg-yellow-50"
-                >
-                  <Icon className="h-6 w-6 text-yellow-600" />
-                  <span className="text-sm font-medium text-gray-700">
-                    {RENTAL_CATEGORY_LABELS[category]}
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+      {/* Category browser — toggle between Services and Equipment */}
+      <CategoryBrowser />
 
       {/* Featured Equipment */}
       {featuredEquipment.length > 0 && (
