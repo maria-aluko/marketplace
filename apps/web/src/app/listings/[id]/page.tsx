@@ -3,9 +3,19 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import type { ListingResponse, VendorResponse } from '@eventtrust/shared';
 import { CATEGORY_LABELS } from '@eventtrust/shared';
+import { ChevronRight, Truck, MapPin, Package, Shield } from 'lucide-react';
 import { serverFetch } from '@/lib/server-api';
-import { formatNaira, isImageUrl } from '@/lib/utils';
-import { ImageOff } from 'lucide-react';
+import { formatNaira } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { PhotoCarousel } from '@/components/ui/photo-carousel';
+import { ListingCard } from '@/components/vendor/listing-card';
+import { EnquiryButton } from '@/components/vendor/enquiry-button';
+
+const DELIVERY_META: Record<string, { icon: typeof Truck; label: string }> = {
+  delivery_only: { icon: Truck, label: 'Delivery only' },
+  pickup_only: { icon: MapPin, label: 'Pickup only' },
+  both: { icon: Package, label: 'Delivery & Pickup' },
+};
 
 export async function generateMetadata({
   params,
@@ -31,19 +41,68 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const listing = await serverFetch<ListingResponse>(`/listings/${id}`);
   if (!listing) notFound();
 
-  // Fetch the vendor to get WhatsApp number and profile link
-  const vendor = await serverFetch<VendorResponse>(`/vendors/${listing.vendorId}`);
+  // Fetch vendor + all listings in parallel for "similar listings"
+  const [vendor, allListings] = await Promise.all([
+    serverFetch<VendorResponse>(`/vendors/${listing.vendorId}`),
+    serverFetch<{ data: ListingResponse[] }>('/listings', { revalidate: 120 }),
+  ]);
+
+  // Similar listings: same type+category, excluding current listing
+  const similar = (allListings?.data ?? [])
+    .filter(
+      (l) =>
+        l.id !== listing.id &&
+        l.listingType === listing.listingType &&
+        (listing.category ? l.category === listing.category : true),
+    )
+    .slice(0, 4);
+
+  const categoryLabel = listing.category
+    ? (CATEGORY_LABELS[listing.category] ?? listing.category)
+    : listing.listingType === 'rental'
+      ? 'Rental'
+      : 'Service';
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
+      {/* Breadcrumbs */}
+      <nav aria-label="Breadcrumb" className="mb-4">
+        <ol className="flex flex-wrap items-center gap-1 text-sm text-gray-500">
+          <li>
+            <Link href="/" className="hover:text-primary-600 transition-colors">
+              Home
+            </Link>
+          </li>
+          <li>
+            <ChevronRight className="h-3.5 w-3.5" />
+          </li>
+          <li>
+            <Link
+              href={listing.category ? `/search?category=${listing.category}` : '/listings'}
+              className="hover:text-primary-600 transition-colors"
+            >
+              {categoryLabel}
+            </Link>
+          </li>
+          <li>
+            <ChevronRight className="h-3.5 w-3.5" />
+          </li>
+          <li className="font-medium text-gray-900 line-clamp-1">{listing.title}</li>
+        </ol>
+      </nav>
+
+      {/* Type & category badges */}
       <div className="mb-2 flex items-center gap-2">
-        <span className="inline-block rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
+        <Badge
+          variant={listing.listingType === 'rental' ? 'warning' : 'default'}
+          className="text-xs"
+        >
           {listing.listingType}
-        </span>
+        </Badge>
         {listing.category && (
-          <span className="inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+          <Badge variant="secondary" className="text-xs">
             {CATEGORY_LABELS[listing.category] ?? listing.category}
-          </span>
+          </Badge>
         )}
       </div>
 
@@ -61,6 +120,13 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         </p>
       )}
 
+      {/* Photo carousel */}
+      {listing.photos.length > 0 && (
+        <div className="mb-6">
+          <PhotoCarousel photos={listing.photos} alt={listing.title} />
+        </div>
+      )}
+
       <p className="mb-6 whitespace-pre-line text-gray-700">{listing.description}</p>
 
       {listing.priceFrom !== undefined && (
@@ -73,10 +139,11 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         </div>
       )}
 
+      {/* Rental details with icons */}
       {listing.rentalDetails && (
         <div className="mb-6 rounded-lg border p-4">
-          <h2 className="mb-2 font-semibold">Rental Details</h2>
-          <dl className="grid grid-cols-2 gap-2 text-sm">
+          <h2 className="mb-3 font-semibold">Rental Details</h2>
+          <dl className="grid grid-cols-2 gap-3 text-sm">
             <dt className="text-gray-500">Category</dt>
             <dd className="capitalize">
               {listing.rentalDetails.rentalCategory.replace(/_/g, ' ')}
@@ -92,60 +159,64 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               </>
             )}
             <dt className="text-gray-500">Delivery</dt>
-            <dd>{listing.rentalDetails.deliveryOption.replace(/_/g, ' ')}</dd>
+            <dd>
+              {(() => {
+                const meta = DELIVERY_META[listing.rentalDetails!.deliveryOption];
+                if (!meta) return listing.rentalDetails!.deliveryOption.replace(/_/g, ' ');
+                const Icon = meta.icon;
+                return (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Icon className="h-4 w-4 text-gray-400" />
+                    {meta.label}
+                  </span>
+                );
+              })()}
+            </dd>
             {listing.rentalDetails.condition && (
               <>
                 <dt className="text-gray-500">Condition</dt>
-                <dd>{listing.rentalDetails.condition}</dd>
+                <dd>
+                  <Badge variant="outline" className="text-xs">
+                    <Shield className="mr-1 h-3 w-3" />
+                    {listing.rentalDetails.condition}
+                  </Badge>
+                </dd>
               </>
             )}
           </dl>
         </div>
       )}
 
-      {listing.photos.length > 0 && (
-        <div className="mb-6">
-          <h2 className="mb-2 font-semibold">Photos</h2>
-          <div className="grid grid-cols-2 gap-2">
-            {listing.photos.map((photo, i) =>
-              isImageUrl(photo) ? (
-                <img
-                  key={i}
-                  src={photo}
-                  alt={`${listing.title} photo ${i + 1}`}
-                  className="aspect-video rounded-lg object-cover bg-gray-100"
-                  loading="lazy"
-                />
-              ) : (
-                <div
-                  key={i}
-                  className="flex aspect-video items-center justify-center rounded-lg bg-gray-100"
-                >
-                  <ImageOff className="h-8 w-8 text-gray-300" />
-                </div>
-              ),
-            )}
-          </div>
+      {/* Contact — auth-gated via EnquiryButton */}
+      {vendor && (
+        <div className="mb-8">
+          <EnquiryButton
+            vendorName={vendor.businessName}
+            whatsappNumber={vendor.whatsappNumber}
+            listingName={listing.title}
+          />
+          {!vendor.whatsappNumber && (
+            <Link
+              href={`/vendors/${vendor.slug}`}
+              className="inline-flex h-10 items-center justify-center rounded-md bg-primary-600 px-6 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
+            >
+              View Vendor Profile
+            </Link>
+          )}
         </div>
       )}
 
-      {vendor?.whatsappNumber ? (
-        <a
-          href={`https://wa.me/${vendor.whatsappNumber.replace('+', '')}?text=${encodeURIComponent(`Hi, I'm interested in your listing "${listing.title}" on EventTrust.`)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-green-600 px-6 text-sm font-medium text-white hover:bg-green-700 transition-colors"
-        >
-          Contact via WhatsApp
-        </a>
-      ) : vendor ? (
-        <Link
-          href={`/vendors/${vendor.slug}`}
-          className="inline-flex h-10 items-center justify-center rounded-md bg-primary-600 px-6 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
-        >
-          View Vendor Profile
-        </Link>
-      ) : null}
+      {/* Similar Listings */}
+      {similar.length > 0 && (
+        <section className="border-t pt-6">
+          <h2 className="mb-4 text-lg font-semibold">Similar Listings</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {similar.map((l) => (
+              <ListingCard key={l.id} listing={l} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

@@ -4,6 +4,8 @@ import { CATEGORY_LABELS, VendorStatus } from '@eventtrust/shared';
 import { BadgeCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/ui/star-rating';
+import { ProfileCompletenessRing } from '@/components/ui/profile-completeness-ring';
+import { cloudinaryTransform } from '@/lib/cloudinary';
 
 interface VendorCardProps {
   vendor: VendorResponse;
@@ -28,9 +30,10 @@ export function VendorCard({ vendor }: VendorCardProps) {
       <div className="aspect-[16/9] bg-gray-100">
         {vendor.coverImageUrl ? (
           <img
-            src={vendor.coverImageUrl}
+            src={cloudinaryTransform(vendor.coverImageUrl, 375, 200)}
             alt={vendor.businessName}
             className="h-full w-full object-cover"
+            loading="lazy"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-gray-400 text-sm">
@@ -67,7 +70,12 @@ export function VendorCard({ vendor }: VendorCardProps) {
             <span className="text-xs font-medium text-primary-600">New on EventTrust</span>
           )}
         </div>
-        {priceRange && <p className="mt-1.5 text-sm font-medium text-gray-700">{priceRange}</p>}
+        <div className="mt-2 flex items-center justify-between">
+          {priceRange && <p className="text-sm font-medium text-gray-700">{priceRange}</p>}
+          {vendor.profileCompleteScore < 100 && (
+            <ProfileCompletenessRing score={vendor.profileCompleteScore} />
+          )}
+        </div>
       </div>
     </Link>
   );

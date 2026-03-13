@@ -61,7 +61,7 @@ export function VendorProfileTabs({
         )}
       </TabsContent>
 
-      <TabsContent value="listings" className="mt-6">
+      <TabsContent value="listings" className="mt-6 content-auto">
         {listings.length > 0 ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {listings.map((listing) => (
@@ -81,7 +81,7 @@ export function VendorProfileTabs({
         )}
       </TabsContent>
 
-      <TabsContent value="reviews" className="mt-6">
+      <TabsContent value="reviews" className="mt-6 content-auto">
         <ReviewsList reviews={reviews} vendorId={vendorId} />
       </TabsContent>
     </Tabs>

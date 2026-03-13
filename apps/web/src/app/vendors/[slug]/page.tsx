@@ -11,6 +11,7 @@ import { CATEGORY_LABELS } from '@eventtrust/shared';
 import { VendorCategory } from '@eventtrust/shared';
 import { ChevronRight, CalendarDays } from 'lucide-react';
 import { serverFetch } from '@/lib/server-api';
+import { cloudinaryTransform } from '@/lib/cloudinary';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/ui/star-rating';
 import { VendorActionBar } from '@/components/vendor/vendor-action-bar';
@@ -116,7 +117,7 @@ export default async function VendorProfilePage({ params, searchParams }: Props)
         {vendor.coverImageUrl ? (
           <div className="aspect-[21/9] overflow-hidden rounded-lg bg-gray-100">
             <img
-              src={vendor.coverImageUrl}
+              src={cloudinaryTransform(vendor.coverImageUrl, 800, 340)}
               alt={vendor.businessName}
               className="h-full w-full object-cover"
             />

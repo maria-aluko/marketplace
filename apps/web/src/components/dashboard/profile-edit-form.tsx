@@ -10,6 +10,13 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface ProfileEditFormProps {
   vendorId: string;
@@ -49,7 +56,9 @@ export function ProfileEditForm({ vendorId }: ProfileEditFormProps) {
     setLoading(true);
     const result = await apiClient.get<{ data: VendorResponse }>(`/vendors/${vendorId}`);
     if (result.success && result.data) {
-      const v = (result.data as unknown as { data: VendorResponse }).data ?? result.data as unknown as VendorResponse;
+      const v =
+        (result.data as unknown as { data: VendorResponse }).data ??
+        (result.data as unknown as VendorResponse);
       setVendor(v);
       setForm({
         businessName: v.businessName,
@@ -172,23 +181,25 @@ export function ProfileEditForm({ vendorId }: ProfileEditFormProps) {
               value={form.businessName}
               onChange={(e) => handleChange('businessName', e.target.value)}
             />
-            {errors.businessName && <p className="mt-1 text-sm text-red-600">{errors.businessName}</p>}
+            {errors.businessName && (
+              <p className="mt-1 text-sm text-red-600">{errors.businessName}</p>
+            )}
           </div>
 
           <div>
             <Label htmlFor="pe-category">Category</Label>
-            <select
-              id="pe-category"
-              value={form.category}
-              onChange={(e) => handleChange('category', e.target.value)}
-              className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1"
-            >
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat.replace(/_/g, ' ')}
-                </option>
-              ))}
-            </select>
+            <Select value={form.category} onValueChange={(v) => handleChange('category', v)}>
+              <SelectTrigger id="pe-category">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat.replace(/_/g, ' ')}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {errors.category && <p className="mt-1 text-sm text-red-600">{errors.category}</p>}
           </div>
 
@@ -200,22 +211,25 @@ export function ProfileEditForm({ vendorId }: ProfileEditFormProps) {
               onChange={(e) => handleChange('description', e.target.value)}
               rows={4}
             />
-            {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+            {errors.description && (
+              <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+            )}
           </div>
 
           <div>
             <Label htmlFor="pe-area">Area in Lagos</Label>
-            <select
-              id="pe-area"
-              value={form.area}
-              onChange={(e) => handleChange('area', e.target.value)}
-              className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1"
-            >
-              <option value="">Select area</option>
-              {LAGOS_AREAS.map((a) => (
-                <option key={a} value={a}>{a}</option>
-              ))}
-            </select>
+            <Select value={form.area} onValueChange={(v) => handleChange('area', v)}>
+              <SelectTrigger id="pe-area">
+                <SelectValue placeholder="Select area" />
+              </SelectTrigger>
+              <SelectContent>
+                {LAGOS_AREAS.map((a) => (
+                  <SelectItem key={a} value={a}>
+                    {a}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {errors.area && <p className="mt-1 text-sm text-red-600">{errors.area}</p>}
           </div>
 
@@ -259,7 +273,9 @@ export function ProfileEditForm({ vendorId }: ProfileEditFormProps) {
               onChange={(e) => handleChange('whatsappNumber', e.target.value)}
               placeholder="+234XXXXXXXXXX"
             />
-            {errors.whatsappNumber && <p className="mt-1 text-sm text-red-600">{errors.whatsappNumber}</p>}
+            {errors.whatsappNumber && (
+              <p className="mt-1 text-sm text-red-600">{errors.whatsappNumber}</p>
+            )}
           </div>
 
           <div>
@@ -270,7 +286,9 @@ export function ProfileEditForm({ vendorId }: ProfileEditFormProps) {
               onChange={(e) => handleChange('instagramHandle', e.target.value)}
               placeholder="@handle"
             />
-            {errors.instagramHandle && <p className="mt-1 text-sm text-red-600">{errors.instagramHandle}</p>}
+            {errors.instagramHandle && (
+              <p className="mt-1 text-sm text-red-600">{errors.instagramHandle}</p>
+            )}
           </div>
 
           {apiError && <p className="text-sm text-red-600">{apiError}</p>}

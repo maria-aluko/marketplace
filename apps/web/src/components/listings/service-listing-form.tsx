@@ -8,6 +8,14 @@ import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const CATEGORIES = Object.values(VendorCategory);
 
@@ -23,7 +31,9 @@ export function ServiceListingForm() {
     priceTo: '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
@@ -60,15 +70,21 @@ export function ServiceListingForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="title">Title</Label>
-        <Input id="title" name="title" value={formData.title} onChange={handleChange} disabled={submitting} />
+        <Input
+          id="title"
+          name="title"
+          value={formData.title}
+          onChange={handleChange}
+          disabled={submitting}
+        />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
-        <textarea
+        <Textarea
           id="description"
           name="description"
-          className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="min-h-[100px]"
           value={formData.description}
           onChange={handleChange}
           disabled={submitting}
@@ -77,29 +93,46 @@ export function ServiceListingForm() {
 
       <div className="space-y-2">
         <Label htmlFor="category">Category</Label>
-        <select
-          id="category"
-          name="category"
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+        <Select
           value={formData.category}
-          onChange={handleChange}
+          onValueChange={(v) => setFormData((prev) => ({ ...prev, category: v }))}
           disabled={submitting}
         >
-          <option value="">Select category</option>
-          {CATEGORIES.map((cat) => (
-            <option key={cat} value={cat}>{cat.replace(/_/g, ' ')}</option>
-          ))}
-        </select>
+          <SelectTrigger id="category">
+            <SelectValue placeholder="Select category" />
+          </SelectTrigger>
+          <SelectContent>
+            {CATEGORIES.map((cat) => (
+              <SelectItem key={cat} value={cat}>
+                {cat.replace(/_/g, ' ')}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="priceFrom">Price From (kobo)</Label>
-          <Input id="priceFrom" name="priceFrom" type="number" value={formData.priceFrom} onChange={handleChange} disabled={submitting} />
+          <Input
+            id="priceFrom"
+            name="priceFrom"
+            type="number"
+            value={formData.priceFrom}
+            onChange={handleChange}
+            disabled={submitting}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="priceTo">Price To (kobo)</Label>
-          <Input id="priceTo" name="priceTo" type="number" value={formData.priceTo} onChange={handleChange} disabled={submitting} />
+          <Input
+            id="priceTo"
+            name="priceTo"
+            type="number"
+            value={formData.priceTo}
+            onChange={handleChange}
+            disabled={submitting}
+          />
         </div>
       </div>
 

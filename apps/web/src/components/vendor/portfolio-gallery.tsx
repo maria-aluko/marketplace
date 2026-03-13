@@ -3,13 +3,10 @@
 import { useState } from 'react';
 import type { PortfolioItem } from '@eventtrust/shared';
 import { MediaType } from '@eventtrust/shared';
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Play } from 'lucide-react';
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
+import { cloudinaryTransform } from '@/lib/cloudinary';
 
 interface PortfolioGalleryProps {
   items: PortfolioItem[];
@@ -36,9 +33,10 @@ export function PortfolioGallery({ items }: PortfolioGalleryProps) {
             {item.mediaType === MediaType.VIDEO ? (
               <>
                 <img
-                  src={item.mediaUrl.replace(/\.[^.]+$/, '.jpg')}
+                  src={cloudinaryTransform(item.mediaUrl.replace(/\.[^.]+$/, '.jpg'), 200, 200)}
                   alt={item.caption || 'Portfolio video'}
                   className="h-full w-full object-cover"
+                  loading="lazy"
                 />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                   <Play className="h-8 w-8 text-white" />
@@ -46,9 +44,10 @@ export function PortfolioGallery({ items }: PortfolioGalleryProps) {
               </>
             ) : (
               <img
-                src={item.mediaUrl}
+                src={cloudinaryTransform(item.mediaUrl, 200, 200)}
                 alt={item.caption || 'Portfolio image'}
-                className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                className="portfolio-hover h-full w-full object-cover transition-transform group-hover:scale-105"
+                loading="lazy"
               />
             )}
           </button>
@@ -63,12 +62,7 @@ export function PortfolioGallery({ items }: PortfolioGalleryProps) {
           {selected && (
             <div>
               {selected.mediaType === MediaType.VIDEO ? (
-                <video
-                  src={selected.mediaUrl}
-                  controls
-                  className="w-full"
-                  autoPlay
-                />
+                <video src={selected.mediaUrl} controls className="w-full" autoPlay />
               ) : (
                 <img
                   src={selected.mediaUrl}
@@ -76,9 +70,7 @@ export function PortfolioGallery({ items }: PortfolioGalleryProps) {
                   className="w-full"
                 />
               )}
-              {selected.caption && (
-                <p className="p-4 text-sm text-gray-600">{selected.caption}</p>
-              )}
+              {selected.caption && <p className="p-4 text-sm text-gray-600">{selected.caption}</p>}
             </div>
           )}
         </DialogContent>

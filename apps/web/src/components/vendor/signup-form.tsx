@@ -14,6 +14,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { apiClient } from '@/lib/api-client';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   UtensilsCrossed,
   Camera,
   Video,
@@ -243,18 +250,18 @@ export function VendorSignupForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="area">Area in Lagos</Label>
-            <select
-              id="area"
-              value={formData.area}
-              onChange={(e) => update('area', e.target.value)}
-              className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
-            >
-              {LAGOS_AREAS.map((area) => (
-                <option key={area} value={area}>
-                  {area}
-                </option>
-              ))}
-            </select>
+            <Select value={formData.area} onValueChange={(v) => update('area', v)}>
+              <SelectTrigger id="area">
+                <SelectValue placeholder="Select area" />
+              </SelectTrigger>
+              <SelectContent>
+                {LAGOS_AREAS.map((area) => (
+                  <SelectItem key={area} value={area}>
+                    {area}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {errors.area && <p className="text-sm text-red-600">{errors.area}</p>}
           </div>
         </div>
