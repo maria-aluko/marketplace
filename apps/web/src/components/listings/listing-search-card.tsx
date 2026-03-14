@@ -84,6 +84,14 @@ export function ListingSearchCard({ listing, compact = false }: ListingSearchCar
           {listing.title}
         </h3>
 
+        {/* Listing rating */}
+        {listing.reviewCount > 0 && (
+          <div className="mt-1 flex items-center gap-1">
+            <StarRating value={Math.round(listing.avgRating)} readonly size="xs" />
+            <span className="text-xs text-surface-500">({listing.reviewCount})</span>
+          </div>
+        )}
+
         {/* Description */}
         {!compact && (
           <p className="mt-1 text-sm text-surface-500 line-clamp-2">{listing.description}</p>

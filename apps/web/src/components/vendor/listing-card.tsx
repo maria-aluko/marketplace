@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { ListingResponse } from '@eventtrust/shared';
 import { CATEGORY_LABELS } from '@eventtrust/shared';
 import { Badge } from '@/components/ui/badge';
+import { StarRating } from '@/components/ui/star-rating';
 
 interface ListingCardProps {
   listing: ListingResponse;
@@ -36,6 +37,12 @@ export function ListingCard({ listing }: ListingCardProps) {
         )}
       </div>
       <h3 className="mt-2 font-medium text-surface-900 line-clamp-1">{listing.title}</h3>
+      {listing.reviewCount > 0 && (
+        <div className="mt-1 flex items-center gap-1">
+          <StarRating value={Math.round(listing.avgRating)} readonly size="xs" />
+          <span className="text-xs text-surface-500">({listing.reviewCount})</span>
+        </div>
+      )}
       <p className="mt-1 text-sm text-surface-500 line-clamp-2">{listing.description}</p>
       {(listing.priceFrom || listing.priceTo) && (
         <p className="mt-2 text-sm font-medium text-surface-700">

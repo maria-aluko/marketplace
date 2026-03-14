@@ -113,6 +113,8 @@ export interface ListingResponse {
   priceFrom?: number;
   priceTo?: number;
   photos: string[];
+  avgRating: number;
+  reviewCount: number;
   rentalDetails?: ListingRentalDetailsResponse;
   createdAt: string;
   updatedAt: string;
@@ -147,6 +149,7 @@ export interface ConfirmUploadPayload {
 // Review
 export interface CreateReviewPayload {
   vendorId: string;
+  listingId?: string;
   rating: number;
   body: string;
 }
@@ -154,6 +157,7 @@ export interface CreateReviewPayload {
 export interface ReviewResponse {
   id: string;
   vendorId: string;
+  listingId?: string;
   clientId: string;
   rating: number;
   body: string;

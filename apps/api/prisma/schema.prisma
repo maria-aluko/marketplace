@@ -179,6 +179,7 @@ model Review {
   id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   vendorId  String       @map("vendor_id") @db.Uuid
   clientId  String       @map("client_id") @db.Uuid
+  listingId String?      @map("listing_id") @db.Uuid
   rating    Int
   body      String
   status    ReviewStatus @default(PENDING)
@@ -188,10 +189,12 @@ model Review {
 
   vendor  Vendor       @relation(fields: [vendorId], references: [id], onDelete: Cascade)
   client  User         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  listing Listing?     @relation(fields: [listingId], references: [id], onDelete: SetNull)
   reply   VendorReply?
   dispute Dispute?
 
   @@index([vendorId, status])
+  @@index([listingId, status])
   @@map("reviews")
 }
 
@@ -263,8 +266,12 @@ model Listing {
   updatedAt   DateTime        @updatedAt @map("updated_at")
   deletedAt   DateTime?       @map("deleted_at")
 
+  avgRating   Float           @default(0) @map("avg_rating")
+  reviewCount Int             @default(0) @map("review_count")
+
   vendor        Vendor                @relation(fields: [vendorId], references: [id], onDelete: Cascade)
   rentalDetails ListingRentalDetails?
+  reviews       Review[]
 
   @@index([vendorId, listingType])
   @@index([listingType, category])

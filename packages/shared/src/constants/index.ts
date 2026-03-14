@@ -48,7 +48,8 @@ export const OTP_EXPIRY_MINUTES = 10;
 export const OTP_LENGTH = 6;
 
 export const REVIEW_MIN_BODY_LENGTH = 50;
-export const REVIEW_MAX_PER_VENDOR_PER_YEAR = 1;
+export const REVIEW_MAX_PER_VENDOR_PER_MONTH = 1;
+export const REVIEW_MAX_PER_LISTING_PER_MONTH = 1;
 
 export const VENDOR_REPLY_EDIT_WINDOW_HOURS = 48;
 export const DISPUTE_RAISE_WINDOW_HOURS = 72;

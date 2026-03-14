@@ -12,14 +12,14 @@ describe('ReviewScoreService', () => {
     vendor: {
       update: vi.fn(),
     },
+    listing: {
+      update: vi.fn(),
+    },
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ReviewScoreService,
-        { provide: PrismaService, useValue: mockPrisma },
-      ],
+      providers: [ReviewScoreService, { provide: PrismaService, useValue: mockPrisma }],
     }).compile();
 
     service = module.get<ReviewScoreService>(ReviewScoreService);
@@ -73,6 +73,58 @@ describe('ReviewScoreService', () => {
       expect(mockPrisma.review.aggregate).toHaveBeenCalledWith({
         where: {
           vendorId: 'vendor-1',
+          status: 'APPROVED',
+          deletedAt: null,
+        },
+        _avg: { rating: true },
+        _count: { rating: true },
+      });
+    });
+  });
+
+  describe('recalculateListing', () => {
+    it('should calculate correct avg and count for a listing', async () => {
+      mockPrisma.review.aggregate.mockResolvedValue({
+        _avg: { rating: 3.8 },
+        _count: { rating: 5 },
+      });
+      mockPrisma.listing.update.mockResolvedValue({});
+
+      const result = await service.recalculateListing('listing-1');
+
+      expect(result.avgRating).toBe(3.8);
+      expect(result.reviewCount).toBe(5);
+      expect(mockPrisma.listing.update).toHaveBeenCalledWith({
+        where: { id: 'listing-1' },
+        data: { avgRating: 3.8, reviewCount: 5 },
+      });
+    });
+
+    it('should handle zero listing reviews', async () => {
+      mockPrisma.review.aggregate.mockResolvedValue({
+        _avg: { rating: null },
+        _count: { rating: 0 },
+      });
+      mockPrisma.listing.update.mockResolvedValue({});
+
+      const result = await service.recalculateListing('listing-1');
+
+      expect(result.avgRating).toBe(0);
+      expect(result.reviewCount).toBe(0);
+    });
+
+    it('should only count APPROVED non-deleted reviews for listing', async () => {
+      mockPrisma.review.aggregate.mockResolvedValue({
+        _avg: { rating: 4 },
+        _count: { rating: 2 },
+      });
+      mockPrisma.listing.update.mockResolvedValue({});
+
+      await service.recalculateListing('listing-1');
+
+      expect(mockPrisma.review.aggregate).toHaveBeenCalledWith({
+        where: {
+          listingId: 'listing-1',
           status: 'APPROVED',
           deletedAt: null,
         },

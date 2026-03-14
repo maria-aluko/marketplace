@@ -305,6 +305,8 @@ export class SearchService {
         l.photos AS listing_photos,
         l.created_at AS listing_created_at,
         l.updated_at AS listing_updated_at,
+        l.avg_rating AS listing_avg_rating,
+        l.review_count AS listing_review_count,
         v.id AS v_id,
         v.slug AS v_slug,
         v.business_name AS v_business_name,
@@ -365,6 +367,8 @@ export class SearchService {
       title: row.listing_title,
       description: row.listing_description,
       photos: row.listing_photos ?? [],
+      avgRating: row.listing_avg_rating ?? 0,
+      reviewCount: row.listing_review_count ?? 0,
       createdAt:
         row.listing_created_at instanceof Date
           ? row.listing_created_at.toISOString()

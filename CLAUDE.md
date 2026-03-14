@@ -86,19 +86,19 @@ Modules are self-contained (own controller, service, DTOs). No direct cross-modu
 
 ## Shared Package (`@eventtrust/shared`)
 
-| In Shared | NOT in Shared |
-|-----------|---------------|
-| Enums (VendorStatus, UserRole, etc.) | Prisma client/generated types (backend only) |
-| `ListingType` enum: `service \| rental` | NestJS decorators, guards, pipes |
-| `RentalCategory` enum: `tent \| chairs_tables \| cooking_equipment \| generator \| lighting \| other_rental` | React components, hooks |
-| `DeliveryOption` enum: `pickup_only \| delivery_only \| both` | Environment config shapes |
-| `SubscriptionTier` enum: `free \| pro \| pro_plus` | Service implementations |
-| API request/response type interfaces | — |
-| `CreateServiceListingPayload`, `CreateRentalListingPayload`, `ListingResponse` types | — |
-| `createServiceListingSchema`, `createRentalListingSchema` Zod schemas | — |
-| Business rule constants (limits, weights) | — |
-| Zod validation schemas | — |
-| Lagos areas list | — |
+| In Shared                                                                                                    | NOT in Shared                                |
+| ------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
+| Enums (VendorStatus, UserRole, etc.)                                                                         | Prisma client/generated types (backend only) |
+| `ListingType` enum: `service \| rental`                                                                      | NestJS decorators, guards, pipes             |
+| `RentalCategory` enum: `tent \| chairs_tables \| cooking_equipment \| generator \| lighting \| other_rental` | React components, hooks                      |
+| `DeliveryOption` enum: `pickup_only \| delivery_only \| both`                                                | Environment config shapes                    |
+| `SubscriptionTier` enum: `free \| pro \| pro_plus`                                                           | Service implementations                      |
+| API request/response type interfaces                                                                         | —                                            |
+| `CreateServiceListingPayload`, `CreateRentalListingPayload`, `ListingResponse` types                         | —                                            |
+| `createServiceListingSchema`, `createRentalListingSchema` Zod schemas                                        | —                                            |
+| Business rule constants (limits, weights)                                                                    | —                                            |
+| Zod validation schemas                                                                                       | —                                            |
+| Lagos areas list                                                                                             | —                                            |
 
 ## Key Business Rules
 
@@ -107,7 +107,7 @@ Modules are self-contained (own controller, service, DTOs). No direct cross-modu
 - **Rental quantity:** `quantityAvailable` tracks total stock. Future inventory management will track `quantityBooked` vs `quantityAvailable`.
 - **Listing visibility:** Only listings under `status = 'active'` vendors appear in search results.
 - **Subscription tiers:** `free | pro | pro_plus` stored on Vendor. Tier limits (listing count, photo count) enforced in `ListingsService`. Schema-ready from Phase 2; business logic in Phase 3.
-- **Reviews:** One per vendor per client per calendar year. Min 50 chars (DB constraint). Vendor gets one reply per review, editable within 48hrs. Soft deletes only.
+- **Reviews:** One per vendor per client per calendar month (loose). One per listing per client per calendar month (strict). Min 50 chars (DB constraint). Reviews can optionally target a specific listing. Vendor gets one reply per review, editable within 48hrs. Soft deletes only.
 - **Disputes:** Vendor can raise within 72hrs of review approval. Status: `open → decided → appealed → closed`. One appeal allowed.
 - **Search ranking (ORDER BY in SQL):** `avg_rating * 0.5 + (LEAST(review_count, 50)/50 * 0.3) + (profile_complete_score * 0.1) + (recency_score * 0.1)`. Only `status = 'active'` vendors shown.
 - **Phone numbers:** Always E.164 format (`+234XXXXXXXXXX`), validated via Zod schema in `@eventtrust/shared`.
@@ -130,6 +130,7 @@ Key tables: `users`, `auth_identities`, `vendors`, `listings`, `listing_rental_d
 ## Coding Conventions
 
 ### NestJS Backend
+
 - Prisma client in global `PrismaModule`, injected via DI everywhere
 - Every state-changing endpoint calls `AuditService` before returning
 - Validation via `ZodValidationPipe` wrapping Zod schemas from `@eventtrust/shared`
@@ -138,6 +139,7 @@ Key tables: `users`, `auth_identities`, `vendors`, `listings`, `listing_rental_d
 - Soft deletes only on vendors, reviews, users (handled by Prisma extension)
 
 ### Next.js Frontend
+
 - Server components by default; client components only for interactive elements
 - **Two API utilities — never use raw `fetch()` in pages or components:**
   - **Client components:** `apiClient` (`src/lib/api-client.ts`) — handles CSRF tokens, auto-refresh on 401, `credentials: 'include'`
@@ -148,6 +150,7 @@ Key tables: `users`, `auth_identities`, `vendors`, `listings`, `listing_rental_d
 - Dynamic `og:image`, `og:title`, `og:description` on vendor profile pages (WhatsApp sharing is a primary discovery channel)
 
 ### Portfolio Upload Flow
+
 NestJS never handles binary files. Flow: frontend requests signed Cloudinary URL from NestJS → frontend uploads directly to Cloudinary → frontend confirms upload back to NestJS → NestJS stores media_url in DB. Max 10 images or 2 videos per vendor.
 
 ## Code Examples
@@ -213,13 +216,24 @@ async transition(vendorId: string, newStatus: VendorStatus, actorId: string, rea
 ```ts
 // apps/api/src/auth/auth.controller.ts — OTP verify sets cookies
 res.cookie(ACCESS_COOKIE_NAME, tokens.accessToken, {
-  httpOnly: true, secure: isProduction, sameSite: 'lax', path: '/', maxAge: 15 * 60 * 1000,
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: 'lax',
+  path: '/',
+  maxAge: 15 * 60 * 1000,
 });
 res.cookie(REFRESH_COOKIE_NAME, tokens.refreshToken, {
-  httpOnly: true, secure: isProduction, sameSite: 'lax', path: '/', maxAge: 7 * 24 * 60 * 60 * 1000,
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: 'lax',
+  path: '/',
+  maxAge: 7 * 24 * 60 * 60 * 1000,
 });
 res.cookie(CSRF_COOKIE_NAME, csrfToken, {
-  httpOnly: false, sameSite: 'lax', secure: isProduction, path: '/',  // readable by JS for double-submit
+  httpOnly: false,
+  sameSite: 'lax',
+  secure: isProduction,
+  path: '/', // readable by JS for double-submit
 });
 ```
 

@@ -26,4 +26,26 @@ export class ReviewScoreService {
 
     return { avgRating, reviewCount };
   }
+
+  async recalculateListing(listingId: string): Promise<{ avgRating: number; reviewCount: number }> {
+    const aggregate = await this.prisma.review.aggregate({
+      where: {
+        listingId,
+        status: 'APPROVED',
+        deletedAt: null,
+      },
+      _avg: { rating: true },
+      _count: { rating: true },
+    });
+
+    const avgRating = aggregate._avg.rating ?? 0;
+    const reviewCount = aggregate._count.rating;
+
+    await this.prisma.listing.update({
+      where: { id: listingId },
+      data: { avgRating, reviewCount },
+    });
+
+    return { avgRating, reviewCount };
+  }
 }

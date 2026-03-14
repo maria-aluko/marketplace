@@ -27,25 +27,53 @@ export class ReviewsService {
   ) {}
 
   async create(clientId: string, data: CreateReviewPayload): Promise<ReviewResponse> {
-    // Check one-per-year rule
-    const currentYear = new Date().getFullYear();
-    const startOfYear = new Date(currentYear, 0, 1);
-    const endOfYear = new Date(currentYear + 1, 0, 1);
+    // Check one-per-month per vendor rule (loose)
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-    const existing = await this.prisma.review.findFirst({
+    const existingVendorReview = await this.prisma.review.findFirst({
       where: {
         clientId,
         vendorId: data.vendorId,
         deletedAt: null,
         createdAt: {
-          gte: startOfYear,
-          lt: endOfYear,
+          gte: startOfMonth,
+          lt: endOfMonth,
         },
       },
     });
 
-    if (existing) {
-      throw new BadRequestException('You can only review this vendor once per calendar year');
+    if (existingVendorReview) {
+      throw new BadRequestException('You can only review this vendor once per calendar month');
+    }
+
+    // Check one-per-month per listing rule (strict, only if listing specified)
+    if (data.listingId) {
+      const existingListingReview = await this.prisma.review.findFirst({
+        where: {
+          clientId,
+          listingId: data.listingId,
+          deletedAt: null,
+          createdAt: {
+            gte: startOfMonth,
+            lt: endOfMonth,
+          },
+        },
+      });
+
+      if (existingListingReview) {
+        throw new BadRequestException('You can only review this listing once per calendar month');
+      }
+
+      // Verify listing exists and belongs to the vendor
+      const listing = await this.prisma.listing.findFirst({
+        where: { id: data.listingId, vendorId: data.vendorId, deletedAt: null },
+      });
+
+      if (!listing) {
+        throw new BadRequestException('Listing not found or does not belong to this vendor');
+      }
     }
 
     // Verify vendor exists and is active
@@ -62,6 +90,7 @@ export class ReviewsService {
       data: {
         vendorId: data.vendorId,
         clientId,
+        listingId: data.listingId ?? null,
         rating: data.rating,
         body: data.body,
         status: 'PENDING',
@@ -133,6 +162,10 @@ export class ReviewsService {
 
     await this.reviewScoreService.recalculate(review.vendorId);
 
+    if (review.listingId) {
+      await this.reviewScoreService.recalculateListing(review.listingId);
+    }
+
     await this.auditService.log({
       action: 'review.approved',
       actorId: adminId,
@@ -200,6 +233,10 @@ export class ReviewsService {
     });
 
     await this.reviewScoreService.recalculate(review.vendorId);
+
+    if (review.listingId) {
+      await this.reviewScoreService.recalculateListing(review.listingId);
+    }
 
     await this.auditService.log({
       action: 'review.removed',
@@ -335,6 +372,7 @@ export class ReviewsService {
     return {
       id: review.id,
       vendorId: review.vendorId,
+      listingId: review.listingId ?? undefined,
       clientId: review.clientId,
       rating: review.rating,
       body: review.body,

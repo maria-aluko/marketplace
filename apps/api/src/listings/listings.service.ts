@@ -237,6 +237,8 @@ export class ListingsService {
       title: listing.title,
       description: listing.description,
       photos: listing.photos ?? [],
+      avgRating: listing.avgRating ?? 0,
+      reviewCount: listing.reviewCount ?? 0,
       createdAt: listing.createdAt.toISOString(),
       updatedAt: listing.updatedAt.toISOString(),
     };
