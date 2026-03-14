@@ -9,6 +9,7 @@ import { CATEGORY_ICONS, RENTAL_CATEGORY_ICONS } from '@/lib/category-meta';
 
 interface ListingSearchCardProps {
   listing: ListingSearchResult;
+  compact?: boolean;
 }
 
 function formatPrice(kobo?: number): string {
@@ -20,7 +21,7 @@ function formatDeliveryOption(option: string): string {
   return option.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-export function ListingSearchCard({ listing }: ListingSearchCardProps) {
+export function ListingSearchCard({ listing, compact = false }: ListingSearchCardProps) {
   const isRental = listing.listingType === 'rental';
   const vendor = listing.vendor;
 
@@ -84,7 +85,9 @@ export function ListingSearchCard({ listing }: ListingSearchCardProps) {
         </h3>
 
         {/* Description */}
-        <p className="mt-1 text-sm text-surface-500 line-clamp-2">{listing.description}</p>
+        {!compact && (
+          <p className="mt-1 text-sm text-surface-500 line-clamp-2">{listing.description}</p>
+        )}
 
         {/* Price info */}
         <div className="mt-2">
@@ -116,33 +119,35 @@ export function ListingSearchCard({ listing }: ListingSearchCardProps) {
         </div>
 
         {/* Vendor mini-info */}
-        <div className="mt-3 flex items-center gap-2 border-t border-surface-100 pt-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1">
-              <span className="truncate text-sm font-medium text-surface-700">
-                {vendor.businessName}
-              </span>
-              {vendor.verified && (
-                <BadgeCheck
-                  className="h-3.5 w-3.5 shrink-0 text-primary-600"
-                  aria-label="Verified vendor"
-                />
-              )}
-            </div>
-            <div className="mt-0.5 flex items-center gap-2">
-              <span className="inline-flex items-center gap-0.5 text-xs text-surface-500">
-                <MapPin className="h-3 w-3" />
-                {vendor.area}
-              </span>
-              {vendor.reviewCount > 0 && (
-                <span className="flex items-center gap-1">
-                  <StarRating value={Math.round(vendor.avgRating)} readonly size="xs" />
-                  <span className="text-xs text-surface-500">({vendor.reviewCount})</span>
+        {!compact && (
+          <div className="mt-3 flex items-center gap-2 border-t border-surface-100 pt-3">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1">
+                <span className="truncate text-sm font-medium text-surface-700">
+                  {vendor.businessName}
                 </span>
-              )}
+                {vendor.verified && (
+                  <BadgeCheck
+                    className="h-3.5 w-3.5 shrink-0 text-primary-600"
+                    aria-label="Verified vendor"
+                  />
+                )}
+              </div>
+              <div className="mt-0.5 flex items-center gap-2">
+                <span className="inline-flex items-center gap-0.5 text-xs text-surface-500">
+                  <MapPin className="h-3 w-3" />
+                  {vendor.area}
+                </span>
+                {vendor.reviewCount > 0 && (
+                  <span className="flex items-center gap-1">
+                    <StarRating value={Math.round(vendor.avgRating)} readonly size="xs" />
+                    <span className="text-xs text-surface-500">({vendor.reviewCount})</span>
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </Link>
   );
