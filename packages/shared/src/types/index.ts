@@ -8,6 +8,7 @@ import {
   ListingType,
   RentalCategory,
   DeliveryOption,
+  RentalCondition,
 } from '../enums';
 
 // Auth
@@ -87,7 +88,7 @@ export interface CreateRentalListingPayload {
   pricePerDay: number; // kobo
   depositAmount?: number; // kobo
   deliveryOption: DeliveryOption;
-  condition?: string;
+  condition?: RentalCondition;
   photos?: string[];
 }
 
@@ -100,7 +101,7 @@ export interface ListingRentalDetailsResponse {
   pricePerDay: number;
   depositAmount?: number;
   deliveryOption: DeliveryOption;
-  condition?: string;
+  condition?: RentalCondition;
 }
 
 export interface ListingResponse {
@@ -248,6 +249,7 @@ export interface ListingVendorSummary {
   reviewCount: number;
   area: string;
   verified: boolean;
+  whatsappNumber?: string;
 }
 
 export interface ListingSearchResult extends ListingResponse {

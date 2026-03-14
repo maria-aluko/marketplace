@@ -13,7 +13,7 @@ interface VendorCardProps {
 
 function formatPrice(kobo?: number): string {
   if (!kobo) return '';
-  return `\u20A6${(kobo / 100).toLocaleString()}`;
+  return `\u20A6${(kobo / 100).toLocaleString('en-NG')}`;
 }
 
 export function VendorCard({ vendor }: VendorCardProps) {

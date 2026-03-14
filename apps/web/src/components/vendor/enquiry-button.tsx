@@ -4,14 +4,22 @@ interface EnquiryButtonProps {
   vendorName: string;
   whatsappNumber?: string;
   listingName?: string;
+  listingType?: string;
 }
 
-export function EnquiryButton({ vendorName, whatsappNumber, listingName }: EnquiryButtonProps) {
+export function EnquiryButton({
+  vendorName,
+  whatsappNumber,
+  listingName,
+  listingType,
+}: EnquiryButtonProps) {
   if (!whatsappNumber) return null;
 
   const phone = whatsappNumber.replace('+', '');
   const text = listingName
-    ? `Hi, I found "${vendorName}" on EventTrust Nigeria and I'm interested in "${listingName}".`
+    ? listingType
+      ? `Hi, I found "${vendorName}" on EventTrust Nigeria and I'm interested in "${listingName}" (${listingType}).`
+      : `Hi, I found "${vendorName}" on EventTrust Nigeria and I'm interested in "${listingName}".`
     : `Hi, I found "${vendorName}" on EventTrust Nigeria and I'm interested in your services.`;
   const message = encodeURIComponent(text);
 
@@ -23,7 +31,7 @@ export function EnquiryButton({ vendorName, whatsappNumber, listingName }: Enqui
       className="inline-flex items-center gap-2 rounded-md bg-green-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-700 transition-colors"
     >
       <MessageCircle className="h-4 w-4" />
-      WhatsApp Enquiry
+      Contact on WhatsApp
     </a>
   );
 }

@@ -65,7 +65,7 @@ describe('ListingsService', () => {
       pricePerDay: 15000,
       depositAmount: 5000,
       deliveryOption: 'BOTH',
-      condition: 'Like new',
+      condition: 'LIKE_NEW',
     },
     createdAt: now,
     updatedAt: now,
@@ -155,7 +155,7 @@ describe('ListingsService', () => {
         pricePerDay: 15000,
         depositAmount: 5000,
         deliveryOption: 'both' as any,
-        condition: 'Like new',
+        condition: 'like_new' as any,
       });
 
       expect(result.id).toBe('listing-2');
@@ -210,12 +210,10 @@ describe('ListingsService', () => {
 
     it('should update rental listing with details in a transaction', async () => {
       const listing = makeRentalListing();
-      mockPrisma.listing.findFirst
-        .mockResolvedValueOnce(listing)
-        .mockResolvedValueOnce({
-          ...listing,
-          rentalDetails: { ...listing.rentalDetails, quantityAvailable: 20 },
-        });
+      mockPrisma.listing.findFirst.mockResolvedValueOnce(listing).mockResolvedValueOnce({
+        ...listing,
+        rentalDetails: { ...listing.rentalDetails, quantityAvailable: 20 },
+      });
       mockPrisma.listing.update.mockResolvedValue(listing);
       mockPrisma.listingRentalDetails.update.mockResolvedValue({
         ...listing.rentalDetails,

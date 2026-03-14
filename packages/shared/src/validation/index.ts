@@ -5,6 +5,7 @@ import {
   MediaType,
   RentalCategory,
   DeliveryOption,
+  RentalCondition,
   ListingType,
 } from '../enums';
 import {
@@ -110,7 +111,7 @@ export const createRentalListingSchema = z.object({
   pricePerDay: z.number().int().positive(),
   depositAmount: z.number().int().nonnegative().optional(),
   deliveryOption: z.nativeEnum(DeliveryOption),
-  condition: z.string().max(500).optional(),
+  condition: z.nativeEnum(RentalCondition).optional(),
   photos: z.array(z.string().min(1)).max(LISTING_MAX_PHOTOS).optional(),
 });
 
@@ -126,7 +127,7 @@ export const updateRentalListingSchema = z.object({
   pricePerDay: z.number().int().positive().optional(),
   depositAmount: z.number().int().nonnegative().optional(),
   deliveryOption: z.nativeEnum(DeliveryOption).optional(),
-  condition: z.string().max(500).optional(),
+  condition: z.nativeEnum(RentalCondition).optional(),
   photos: z.array(z.string().min(1)).max(LISTING_MAX_PHOTOS).optional(),
 });
 

@@ -9,18 +9,18 @@ import type {
 } from '@eventtrust/shared';
 import { CATEGORY_LABELS } from '@eventtrust/shared';
 import { VendorCategory } from '@eventtrust/shared';
-import { ChevronRight, CalendarDays } from 'lucide-react';
+import { ChevronRight, CalendarDays, MessageCircle } from 'lucide-react';
 import { serverFetch } from '@/lib/server-api';
 import { cloudinaryTransform } from '@/lib/cloudinary';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/ui/star-rating';
-import { VendorActionBar } from '@/components/vendor/vendor-action-bar';
+import { ShareButton } from '@/components/vendor/share-button';
 import { VendorProfileTabs } from '@/components/vendor/vendor-profile-tabs';
+import { ListingCard } from '@/components/vendor/listing-card';
 import { CATEGORY_ICONS } from '@/lib/category-meta';
 
 interface Props {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ listing?: string }>;
 }
 
 async function getVendorBySlug(slug: string) {
@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 function formatPrice(kobo?: number): string {
   if (!kobo) return '';
-  return `\u20A6${(kobo / 100).toLocaleString()}`;
+  return `\u20A6${(kobo / 100).toLocaleString('en-NG')}`;
 }
 
 function formatMemberSince(dateStr: string): string {
@@ -65,9 +65,8 @@ function CoverImageFallback({ category }: { category: VendorCategory }) {
   );
 }
 
-export default async function VendorProfilePage({ params, searchParams }: Props) {
+export default async function VendorProfilePage({ params }: Props) {
   const { slug } = await params;
-  const { listing: listingName } = await searchParams;
   const vendor = await getVendorBySlug(slug);
   if (!vendor) notFound();
 
@@ -76,6 +75,8 @@ export default async function VendorProfilePage({ params, searchParams }: Props)
     serverFetch<ReviewResponse[]>(`/vendors/${vendor.id}/reviews`),
     serverFetch<ListingResponse[]>(`/vendors/${vendor.id}/listings`),
   ]);
+
+  const resolvedListings = listings ?? [];
 
   const priceRange =
     vendor.priceFrom || vendor.priceTo
@@ -131,6 +132,9 @@ export default async function VendorProfilePage({ params, searchParams }: Props)
               {vendor.businessName}
             </h1>
             {vendor.status === 'active' && <Badge variant="verified">Verified</Badge>}
+            <div className="ml-auto">
+              <ShareButton vendorName={vendor.businessName} slug={vendor.slug} />
+            </div>
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <Badge variant="secondary">{categoryLabel}</Badge>
@@ -155,23 +159,38 @@ export default async function VendorProfilePage({ params, searchParams }: Props)
         </div>
       </section>
 
-      {/* Tabbed sections */}
+      {/* Inline listings section */}
+      <section className="mt-8">
+        <h2 className="text-lg font-semibold text-surface-900">
+          Listings {resolvedListings.length > 0 && `(${resolvedListings.length})`}
+        </h2>
+        {resolvedListings.length > 0 ? (
+          <>
+            <p className="mt-1 text-sm text-surface-500 italic">
+              To enquire about a service or rental, browse the listings below and tap &lsquo;Contact
+              on WhatsApp&rsquo; on the one you&rsquo;re interested in.
+            </p>
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {resolvedListings.map((listing) => (
+                <ListingCard key={listing.id} listing={listing} />
+              ))}
+            </div>
+          </>
+        ) : (
+          <p className="mt-2 text-sm text-surface-500">No listings yet.</p>
+        )}
+      </section>
+
+      {/* Tabbed sections: About | Portfolio | Reviews */}
       <VendorProfileTabs
         vendorId={vendor.id}
         description={vendor.description}
         instagramHandle={vendor.instagramHandle}
-        listings={listings ?? []}
         portfolio={portfolio ?? []}
         reviews={reviews ?? []}
       />
 
-      {/* Sticky mobile action bar */}
-      <VendorActionBar
-        vendorName={vendor.businessName}
-        whatsappNumber={vendor.whatsappNumber}
-        slug={vendor.slug}
-        listingName={listingName}
-      />
+      <div className="h-4" />
     </div>
   );
 }

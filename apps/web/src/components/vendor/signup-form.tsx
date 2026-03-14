@@ -379,7 +379,8 @@ export function VendorSignupForm() {
               <div className="flex justify-between border-b pb-2">
                 <dt className="text-gray-500">Price Range</dt>
                 <dd className="font-medium">
-                  NGN {formData.priceFrom?.toLocaleString()} - {formData.priceTo?.toLocaleString()}
+                  NGN {formData.priceFrom?.toLocaleString('en-NG')} -{' '}
+                  {formData.priceTo?.toLocaleString('en-NG')}
                 </dd>
               </div>
             )}

@@ -30,7 +30,7 @@ export default async function HomePage() {
       {/* Hero section */}
       <section className="bg-gradient-to-b from-primary-50 to-white px-4 pb-12 pt-16">
         <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
-          <h1 className="text-3xl font-bold text-surface-900 sm:text-4xl">EventTrust Nigeria</h1>
+          <h1 className="text-3xl font-bold text-surface-900 sm:text-4xl">Test App</h1>
           <p className="mt-4 max-w-md text-surface-600">
             Find verified event services and equipment rentals in Lagos. Caterers, photographers,
             tents, generators, and more — all reviewed and trusted.

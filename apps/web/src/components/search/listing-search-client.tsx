@@ -350,10 +350,10 @@ export function ListingSearchPageClient({ defaultListingType }: ListingSearchPag
               className="inline-flex items-center gap-1 rounded-full bg-primary-100 px-3 py-1 text-xs font-medium text-primary-800"
             >
               {priceMin && priceMax
-                ? `₦${Number(priceMin).toLocaleString()} – ₦${Number(priceMax).toLocaleString()}`
+                ? `₦${Number(priceMin).toLocaleString('en-NG')} – ₦${Number(priceMax).toLocaleString('en-NG')}`
                 : priceMin
-                  ? `From ₦${Number(priceMin).toLocaleString()}`
-                  : `Up to ₦${Number(priceMax).toLocaleString()}`}
+                  ? `From ₦${Number(priceMin).toLocaleString('en-NG')}`
+                  : `Up to ₦${Number(priceMax).toLocaleString('en-NG')}`}
               <X className="h-3 w-3" />
             </button>
           )}

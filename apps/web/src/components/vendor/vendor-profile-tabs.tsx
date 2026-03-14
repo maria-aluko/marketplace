@@ -1,16 +1,14 @@
 'use client';
 
-import type { ListingResponse, ReviewResponse, PortfolioItem } from '@eventtrust/shared';
+import type { ReviewResponse, PortfolioItem } from '@eventtrust/shared';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { PortfolioGallery } from './portfolio-gallery';
 import { ReviewsList } from './reviews-list';
-import { ListingCard } from './listing-card';
 
 interface VendorProfileTabsProps {
   vendorId: string;
   description: string;
   instagramHandle?: string;
-  listings: ListingResponse[];
   portfolio: PortfolioItem[];
   reviews: ReviewResponse[];
 }
@@ -19,7 +17,6 @@ export function VendorProfileTabs({
   vendorId,
   description,
   instagramHandle,
-  listings,
   portfolio,
   reviews,
 }: VendorProfileTabsProps) {
@@ -31,12 +28,6 @@ export function VendorProfileTabs({
           className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
         >
           About
-        </TabsTrigger>
-        <TabsTrigger
-          value="listings"
-          className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-        >
-          Listings {listings.length > 0 && `(${listings.length})`}
         </TabsTrigger>
         <TabsTrigger
           value="portfolio"
@@ -58,18 +49,6 @@ export function VendorProfileTabs({
           <p className="mt-2 text-sm text-surface-500">
             Instagram: <span className="font-medium">@{instagramHandle.replace(/^@/, '')}</span>
           </p>
-        )}
-      </TabsContent>
-
-      <TabsContent value="listings" className="mt-6 content-auto">
-        {listings.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {listings.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-surface-500">No listings yet.</p>
         )}
       </TabsContent>
 

@@ -2,8 +2,16 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import type { ListingResponse, VendorResponse } from '@eventtrust/shared';
-import { CATEGORY_LABELS } from '@eventtrust/shared';
+import { CATEGORY_LABELS, RentalCondition } from '@eventtrust/shared';
 import { ChevronRight, Truck, MapPin, Package, Shield, CheckCircle2, Star } from 'lucide-react';
+
+const CONDITION_LABELS: Record<string, string> = {
+  [RentalCondition.NEW]: 'New',
+  [RentalCondition.LIKE_NEW]: 'Like New',
+  [RentalCondition.GOOD]: 'Good',
+  [RentalCondition.FAIR]: 'Fair',
+  [RentalCondition.POOR]: 'Poor',
+};
 import { serverFetch } from '@/lib/server-api';
 import { formatNaira } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -140,7 +148,9 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 {vendor.avgRating > 0 && (
                   <span className="inline-flex items-center gap-1">
                     <StarRating value={Math.round(vendor.avgRating)} readonly size="xs" />
-                    <span className="font-medium text-surface-700">{vendor.avgRating.toFixed(1)}</span>
+                    <span className="font-medium text-surface-700">
+                      {vendor.avgRating.toFixed(1)}
+                    </span>
                   </span>
                 )}
                 {vendor.reviewCount > 0 && (
@@ -219,7 +229,8 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 <dd>
                   <Badge variant="outline" className="text-xs">
                     <Shield className="mr-1 h-3 w-3" />
-                    {listing.rentalDetails.condition}
+                    {CONDITION_LABELS[listing.rentalDetails.condition] ??
+                      listing.rentalDetails.condition}
                   </Badge>
                 </dd>
               </>
@@ -235,6 +246,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
             vendorName={vendor.businessName}
             whatsappNumber={vendor.whatsappNumber}
             listingName={listing.title}
+            listingType={listing.listingType === 'rental' ? 'Equipment Rental' : 'Service'}
           />
           <ShareButton vendorName={listing.title} shareUrl={`/listings/${listing.id}`} />
           {!vendor.whatsappNumber && (

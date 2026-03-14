@@ -286,7 +286,7 @@ model ListingRentalDetails {
   pricePerDay       Int            @map("price_per_day")
   depositAmount     Int?           @map("deposit_amount")
   deliveryOption    DeliveryOption @map("delivery_option")
-  condition         String?
+  condition         RentalCondition?
 
   listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
@@ -317,6 +317,16 @@ enum DeliveryOption {
   BOTH
 
   @@map("delivery_option")
+}
+
+enum RentalCondition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+  POOR
+
+  @@map("rental_condition")
 }
 
 enum SubscriptionTier {

@@ -74,7 +74,7 @@ export class ListingsService {
           pricePerDay: data.pricePerDay,
           depositAmount: data.depositAmount,
           deliveryOption: data.deliveryOption.toUpperCase() as any,
-          condition: data.condition,
+          condition: data.condition ? (data.condition.toUpperCase() as any) : undefined,
         },
       });
 
@@ -135,7 +135,10 @@ export class ListingsService {
         rentalUpdateData.depositAmount = rentalData.depositAmount;
       if (rentalData.deliveryOption !== undefined)
         rentalUpdateData.deliveryOption = rentalData.deliveryOption.toUpperCase();
-      if (rentalData.condition !== undefined) rentalUpdateData.condition = rentalData.condition;
+      if (rentalData.condition !== undefined)
+        rentalUpdateData.condition = rentalData.condition
+          ? rentalData.condition.toUpperCase()
+          : null;
 
       updated = await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         const updatedListing = await tx.listing.update({
@@ -260,7 +263,9 @@ export class ListingsService {
         pricePerDay: listing.rentalDetails.pricePerDay,
         depositAmount: listing.rentalDetails.depositAmount ?? undefined,
         deliveryOption: listing.rentalDetails.deliveryOption.toLowerCase() as any,
-        condition: listing.rentalDetails.condition ?? undefined,
+        condition: listing.rentalDetails.condition
+          ? (listing.rentalDetails.condition.toLowerCase() as any)
+          : undefined,
       };
     }
 

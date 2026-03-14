@@ -10,7 +10,7 @@ export function cn(...inputs: ClassValue[]) {
  * e.g. 5000000 → "₦50,000"
  */
 export function formatNaira(kobo: number): string {
-  return `₦${(kobo / 100).toLocaleString()}`;
+  return `₦${(kobo / 100).toLocaleString('en-NG')}`;
 }
 
 /**

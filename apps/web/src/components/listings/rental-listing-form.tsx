@@ -7,6 +7,7 @@ import {
   updateRentalListingSchema,
   RentalCategory,
   DeliveryOption,
+  RentalCondition,
 } from '@eventtrust/shared';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,15 @@ import { ListingPhotoUploader } from './listing-photo-uploader';
 
 const RENTAL_CATEGORIES = Object.values(RentalCategory);
 const DELIVERY_OPTIONS = Object.values(DeliveryOption);
+const RENTAL_CONDITIONS = Object.values(RentalCondition);
+
+const CONDITION_LABELS: Record<RentalCondition, string> = {
+  [RentalCondition.NEW]: 'New',
+  [RentalCondition.LIKE_NEW]: 'Like New',
+  [RentalCondition.GOOD]: 'Good',
+  [RentalCondition.FAIR]: 'Fair',
+  [RentalCondition.POOR]: 'Poor',
+};
 
 interface RentalListingFormProps {
   listingId?: string;
@@ -213,13 +223,22 @@ export function RentalListingForm({ listingId, initialData }: RentalListingFormP
 
       <div className="space-y-2">
         <Label htmlFor="condition">Condition (optional)</Label>
-        <Input
-          id="condition"
-          name="condition"
+        <Select
           value={formData.condition}
-          onChange={handleChange}
+          onValueChange={(v) => setFormData((prev) => ({ ...prev, condition: v }))}
           disabled={submitting}
-        />
+        >
+          <SelectTrigger id="condition">
+            <SelectValue placeholder="Select condition" />
+          </SelectTrigger>
+          <SelectContent>
+            {RENTAL_CONDITIONS.map((cond) => (
+              <SelectItem key={cond} value={cond}>
+                {CONDITION_LABELS[cond]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-2">

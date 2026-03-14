@@ -70,6 +70,14 @@ export enum DeliveryOption {
   BOTH = 'both',
 }
 
+export enum RentalCondition {
+  NEW = 'new',
+  LIKE_NEW = 'like_new',
+  GOOD = 'good',
+  FAIR = 'fair',
+  POOR = 'poor',
+}
+
 export enum SubscriptionTier {
   FREE = 'free',
   PRO = 'pro',
