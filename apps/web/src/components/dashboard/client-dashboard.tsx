@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { LayoutDashboard, MessageSquare, Users, Wallet } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, Users, Wallet, FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,10 +9,11 @@ import Link from 'next/link';
 import { BudgetManager } from './budget-manager';
 import { GuestManager } from './guest-manager';
 import { EnquiriesManager } from './enquiries-manager';
+import { ReceivedInvoicesManager } from './received-invoices-manager';
 import { cn } from '@/lib/utils';
 import type { AuthUser } from '@eventtrust/shared';
 
-type Tab = 'home' | 'enquiries' | 'guests' | 'budget';
+type Tab = 'home' | 'enquiries' | 'invoices' | 'guests' | 'budget';
 
 interface ClientDashboardProps {
   user: AuthUser;
@@ -45,10 +46,11 @@ function HomeOverview({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         {(
           [
             { tab: 'enquiries' as Tab, label: 'Enquiries', icon: MessageSquare },
+            { tab: 'invoices' as Tab, label: 'Invoices', icon: FileText },
             { tab: 'guests' as Tab, label: 'Guests', icon: Users },
             { tab: 'budget' as Tab, label: 'Budget', icon: Wallet },
           ] as const
@@ -97,6 +99,7 @@ function HomeOverview({
 const NAV_ITEMS: { tab: Tab; label: string; icon: React.ElementType }[] = [
   { tab: 'home', label: 'Home', icon: LayoutDashboard },
   { tab: 'enquiries', label: 'Enquiries', icon: MessageSquare },
+  { tab: 'invoices', label: 'Invoices', icon: FileText },
   { tab: 'guests', label: 'Guests', icon: Users },
   { tab: 'budget', label: 'Budget', icon: Wallet },
 ];
@@ -111,6 +114,7 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
           <HomeOverview user={user} onNavigate={setActiveTab} />
         )}
         {activeTab === 'enquiries' && <EnquiriesManager />}
+        {activeTab === 'invoices' && <ReceivedInvoicesManager />}
         {activeTab === 'guests' && <GuestManager />}
         {activeTab === 'budget' && <BudgetManager />}
       </div>

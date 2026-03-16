@@ -43,7 +43,8 @@ export class InvoicesService {
       throw new NotFoundException('Vendor not found');
     }
 
-    // Validate inquiry ownership if provided
+    // Validate inquiry ownership if provided and capture clientId
+    let linkedClientId: string | null = null;
     if (data.inquiryId) {
       const inquiry = await this.prisma.inquiry.findFirst({
         where: { id: data.inquiryId, vendorId },
@@ -51,6 +52,7 @@ export class InvoicesService {
       if (!inquiry) {
         throw new BadRequestException('Inquiry not found or does not belong to this vendor');
       }
+      linkedClientId = inquiry.clientId ?? null;
     }
 
     const invoiceNumber = await this.generateInvoiceNumber();
@@ -64,6 +66,7 @@ export class InvoicesService {
     const invoice = await this.prisma.invoice.create({
       data: {
         vendorId,
+        clientId: linkedClientId,
         invoiceNumber,
         clientName: data.clientName,
         clientPhone: data.clientPhone ?? null,
@@ -324,6 +327,7 @@ export class InvoicesService {
     const invoices = await this.prisma.invoice.findMany({
       where: { clientId },
       orderBy: { createdAt: 'desc' },
+      include: { vendor: { select: { businessName: true } } },
     });
     return invoices.map((i: any) => this.toSummaryResponse(i));
   }
@@ -415,6 +419,7 @@ export class InvoicesService {
       totalKobo: invoice.totalKobo,
       confirmedAt: invoice.confirmedAt?.toISOString() ?? undefined,
       createdAt: invoice.createdAt.toISOString(),
+      vendorName: invoice.vendor?.businessName ?? undefined,
     };
   }
 

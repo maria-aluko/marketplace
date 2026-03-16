@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { LayoutDashboard, CalendarCheck, Store, Building2, MoreHorizontal } from 'lucide-react';
+import { LayoutDashboard, CalendarCheck, Store, Building2, Wallet } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SubscriptionBadge } from '@/components/dashboard/subscription-badge';
@@ -10,12 +10,15 @@ import { PortfolioManager } from '@/components/dashboard/portfolio-manager';
 import { ReviewsManager } from '@/components/dashboard/reviews-manager';
 import { BookingsManager } from '@/components/dashboard/bookings-manager';
 import { InvoiceBrandingSettings } from '@/components/dashboard/invoice-branding-settings';
+import { EnquiriesManager } from '@/components/dashboard/enquiries-manager';
+import { BudgetManager } from '@/components/dashboard/budget-manager';
+import { GuestManager } from '@/components/dashboard/guest-manager';
 import ListingsPage from '@/app/dashboard/listings/page';
 import { cn } from '@/lib/utils';
 import { SubscriptionTier } from '@eventtrust/shared';
 import type { AuthUser, VendorResponse } from '@eventtrust/shared';
 
-type VendorTab = 'home' | 'bookings' | 'listings' | 'profile' | 'more';
+type VendorTab = 'home' | 'bookings' | 'listings' | 'profile' | 'plan';
 
 interface VendorDashboardProps {
   user: AuthUser;
@@ -49,7 +52,7 @@ function VendorHomeOverview({
             { tab: 'bookings' as VendorTab, label: 'Bookings', icon: CalendarCheck },
             { tab: 'listings' as VendorTab, label: 'Listings', icon: Store },
             { tab: 'profile' as VendorTab, label: 'Profile', icon: Building2 },
-            { tab: 'more' as VendorTab, label: 'More', icon: MoreHorizontal },
+            { tab: 'plan' as VendorTab, label: 'Plan', icon: Wallet },
           ] as const
         ).map(({ tab, label, icon: Icon }) => (
           <button
@@ -91,7 +94,7 @@ const NAV_ITEMS: { tab: VendorTab; label: string; icon: React.ElementType }[] = 
   { tab: 'bookings', label: 'Bookings', icon: CalendarCheck },
   { tab: 'listings', label: 'Listings', icon: Store },
   { tab: 'profile', label: 'Profile', icon: Building2 },
-  { tab: 'more', label: 'More', icon: MoreHorizontal },
+  { tab: 'plan', label: 'Plan', icon: Wallet },
 ];
 
 export function VendorDashboard({ user, vendor }: VendorDashboardProps) {
@@ -132,21 +135,6 @@ export function VendorDashboard({ user, vendor }: VendorDashboardProps) {
                 <TabsTrigger value="portfolio" className="flex-1">
                   Portfolio
                 </TabsTrigger>
-              </TabsList>
-              <TabsContent value="details">
-                <ProfileEditForm vendorId={vendorId} />
-              </TabsContent>
-              <TabsContent value="portfolio">
-                <PortfolioManager vendorId={vendorId} />
-              </TabsContent>
-            </Tabs>
-          </div>
-        )}
-
-        {activeTab === 'more' && (
-          <div className="py-4">
-            <Tabs defaultValue="reviews" className="mb-4">
-              <TabsList className="w-full">
                 <TabsTrigger value="reviews" className="flex-1">
                   Reviews
                 </TabsTrigger>
@@ -154,6 +142,12 @@ export function VendorDashboard({ user, vendor }: VendorDashboardProps) {
                   Branding
                 </TabsTrigger>
               </TabsList>
+              <TabsContent value="details">
+                <ProfileEditForm vendorId={vendorId} />
+              </TabsContent>
+              <TabsContent value="portfolio">
+                <PortfolioManager vendorId={vendorId} />
+              </TabsContent>
               <TabsContent value="reviews">
                 <ReviewsManager vendorId={vendorId} />
               </TabsContent>
@@ -169,6 +163,33 @@ export function VendorDashboard({ user, vendor }: VendorDashboardProps) {
                     />
                   </CardContent>
                 </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        )}
+
+        {activeTab === 'plan' && (
+          <div className="py-4">
+            <Tabs defaultValue="enquiries" className="mb-4">
+              <TabsList className="w-full">
+                <TabsTrigger value="enquiries" className="flex-1">
+                  Enquiries
+                </TabsTrigger>
+                <TabsTrigger value="budget" className="flex-1">
+                  Budget
+                </TabsTrigger>
+                <TabsTrigger value="guests" className="flex-1">
+                  Guests
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="enquiries">
+                <EnquiriesManager />
+              </TabsContent>
+              <TabsContent value="budget">
+                <BudgetManager />
+              </TabsContent>
+              <TabsContent value="guests">
+                <GuestManager />
               </TabsContent>
             </Tabs>
           </div>

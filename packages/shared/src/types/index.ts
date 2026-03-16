@@ -592,6 +592,7 @@ export interface InvoiceSummaryResponse {
   totalKobo: number;
   confirmedAt?: string;
   createdAt: string;
+  vendorName?: string;  // populated on client-facing queries only
 }
 
 export interface VendorFunnelResponse {
