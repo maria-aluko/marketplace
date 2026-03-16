@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { VendorCard } from './vendor-card';
 import type { VendorResponse } from '@eventtrust/shared';
-import { VendorStatus, VendorCategory } from '@eventtrust/shared';
+import { VendorStatus, VendorCategory, SubscriptionTier } from '@eventtrust/shared';
 
 const mockVendor: VendorResponse = {
   id: 'v-1',
@@ -16,6 +16,7 @@ const mockVendor: VendorResponse = {
   reviewCount: 12,
   profileCompleteScore: 80,
   userId: 'u-1',
+  subscriptionTier: SubscriptionTier.FREE,
   priceFrom: 50000,
   priceTo: 200000,
   createdAt: '2025-01-01T00:00:00Z',

@@ -117,6 +117,7 @@ export class AdminService {
       profileCompleteScore: vendor.profileCompleteScore,
       coverImageUrl: vendor.coverImageUrl ?? undefined,
       userId: vendor.userId,
+      subscriptionTier: (vendor.subscriptionTier ?? 'FREE').toLowerCase() as any,
       createdAt: vendor.createdAt.toISOString(),
       updatedAt: vendor.updatedAt.toISOString(),
     };

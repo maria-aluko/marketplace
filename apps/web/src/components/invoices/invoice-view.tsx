@@ -67,15 +67,27 @@ export function InvoiceView({ invoice: initialInvoice, vendorName }: InvoiceView
     setConfirmed(true);
   };
 
+  const accentColor = invoice.branding?.accentColor ?? '#16a34a';
+
   return (
     <div className="mx-auto max-w-lg px-4 py-8">
       {/* Header */}
       <div className="mb-6 text-center">
+        {invoice.branding?.logoUrl && (
+          <img
+            src={invoice.branding.logoUrl}
+            alt="Vendor logo"
+            className="mx-auto mb-3 h-12 object-contain"
+          />
+        )}
         <p className="text-xs font-medium uppercase tracking-wider text-surface-400">
           EventTrust Nigeria
         </p>
         <h1 className="mt-1 text-2xl font-bold text-surface-900">Invoice</h1>
         <p className="text-sm text-surface-500">{invoice.invoiceNumber}</p>
+        {invoice.branding?.tagline && (
+          <p className="mt-1 text-sm italic text-surface-500">{invoice.branding.tagline}</p>
+        )}
         <div className="mt-2">
           <Badge variant={statusVariant(invoice.status as InvoiceStatus)}>
             {invoice.status}
@@ -183,7 +195,8 @@ export function InvoiceView({ invoice: initialInvoice, vendorName }: InvoiceView
           <div className="space-y-2">
             {error && <p className="text-sm text-red-500 text-center">{error}</p>}
             <Button
-              className="w-full bg-green-600 hover:bg-green-700"
+              className="w-full"
+              style={{ backgroundColor: accentColor }}
               size="lg"
               onClick={handleConfirm}
               disabled={confirming}
@@ -200,6 +213,11 @@ export function InvoiceView({ invoice: initialInvoice, vendorName }: InvoiceView
           </p>
         )}
       </div>
+
+      {/* Footer */}
+      {invoice.branding?.footerText && (
+        <p className="mt-6 text-center text-xs text-surface-400">{invoice.branding.footerText}</p>
+      )}
     </div>
   );
 }

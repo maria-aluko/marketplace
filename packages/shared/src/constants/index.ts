@@ -1,4 +1,4 @@
-import { VendorCategory, RentalCategory, DeliveryOption } from '../enums';
+import { VendorCategory, RentalCategory, DeliveryOption, SubscriptionTier } from '../enums';
 
 // Human-readable category labels for display
 export const CATEGORY_LABELS: Record<VendorCategory, string> = {
@@ -143,3 +143,7 @@ export const VALID_INVOICE_STATUS_TRANSITIONS: Record<string, string[]> = {
 } as const;
 
 export const INVOICE_NUMBER_PREFIX = 'EVT';
+
+// Invoice branding
+export const INVOICE_BRANDING_TIERS: SubscriptionTier[] = [SubscriptionTier.PRO, SubscriptionTier.PRO_PLUS];
+export const BRANDING_LOGO_MAX_SIZE_MB = 5;

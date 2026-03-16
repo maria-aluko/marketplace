@@ -13,6 +13,7 @@ import {
   InquiryStatus,
   InquirySource,
   InvoiceStatus,
+  SubscriptionTier,
 } from '../enums';
 
 // Auth
@@ -70,8 +71,27 @@ export interface VendorResponse {
   profileCompleteScore: number;
   coverImageUrl?: string;
   userId: string;
+  subscriptionTier: SubscriptionTier;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface UpdateSubscriptionTierPayload {
+  tier: SubscriptionTier;
+}
+
+// Invoice Branding
+export interface InvoiceBrandingResponse {
+  logoUrl?: string;
+  accentColor: string;
+  tagline?: string;
+  footerText?: string;
+}
+
+export interface UpdateInvoiceBrandingPayload {
+  accentColor?: string;
+  tagline?: string;
+  footerText?: string;
 }
 
 // Listing
@@ -555,6 +575,7 @@ export interface InvoiceResponse {
   confirmedAt?: string;
   completedAt?: string;
   items: InvoiceItemResponse[];
+  branding?: InvoiceBrandingResponse;
   createdAt: string;
   updatedAt: string;
 }

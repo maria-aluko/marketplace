@@ -106,7 +106,10 @@ export class InvoicesService {
   async findById(invoiceId: string, markViewed = false): Promise<InvoiceResponse> {
     const invoice = await this.prisma.invoice.findFirst({
       where: { id: invoiceId },
-      include: { items: { orderBy: { sortOrder: 'asc' } } },
+      include: {
+        items: { orderBy: { sortOrder: 'asc' } },
+        vendor: { include: { invoiceBranding: true } },
+      },
     });
 
     if (!invoice) {
@@ -367,6 +370,7 @@ export class InvoicesService {
   }
 
   toResponse(invoice: any): InvoiceResponse {
+    const branding = invoice.vendor?.invoiceBranding;
     return {
       id: invoice.id,
       vendorId: invoice.vendorId,
@@ -387,6 +391,14 @@ export class InvoicesService {
       confirmedAt: invoice.confirmedAt?.toISOString() ?? undefined,
       completedAt: invoice.completedAt?.toISOString() ?? undefined,
       items: (invoice.items ?? []).map((item: any) => this.toItemResponse(item)),
+      branding: branding
+        ? {
+            logoUrl: branding.logoUrl ?? undefined,
+            accentColor: branding.accentColor,
+            tagline: branding.tagline ?? undefined,
+            footerText: branding.footerText ?? undefined,
+          }
+        : undefined,
       createdAt: invoice.createdAt.toISOString(),
       updatedAt: invoice.updatedAt.toISOString(),
     };

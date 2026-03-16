@@ -8,7 +8,7 @@ import { AuditService } from '../audit/audit.service';
 import { VendorStatusService } from './services/vendor-status.service';
 import {
   VendorStatus,
-  UserRole,
+  SubscriptionTier,
   SLUG_MAX_LENGTH,
 } from '@eventtrust/shared';
 import type { CreateVendorPayload, UpdateVendorPayload, VendorResponse } from '@eventtrust/shared';
@@ -137,6 +137,32 @@ export class VendorsService {
     return vendor ? this.toResponse(vendor) : null;
   }
 
+  async updateSubscriptionTier(vendorId: string, tier: SubscriptionTier, actorId: string): Promise<VendorResponse> {
+    const vendor = await this.prisma.vendor.findFirst({
+      where: { id: vendorId, deletedAt: null },
+    });
+    if (!vendor) {
+      throw new NotFoundException('Vendor not found');
+    }
+
+    const oldTier = vendor.subscriptionTier;
+
+    const updated = await this.prisma.vendor.update({
+      where: { id: vendorId },
+      data: { subscriptionTier: tier.toUpperCase() as any },
+    });
+
+    await this.auditService.log({
+      action: 'vendor.subscription_changed',
+      actorId,
+      targetType: 'Vendor',
+      targetId: vendorId,
+      metadata: { oldTier, newTier: tier },
+    });
+
+    return this.toResponse(updated);
+  }
+
   calculateProfileCompleteness(data: Partial<CreateVendorPayload>): number {
     const fields = [
       data.businessName,
@@ -188,6 +214,7 @@ export class VendorsService {
       profileCompleteScore: vendor.profileCompleteScore,
       coverImageUrl: vendor.coverImageUrl ?? undefined,
       userId: vendor.userId,
+      subscriptionTier: (vendor.subscriptionTier ?? 'FREE').toLowerCase() as any,
       createdAt: vendor.createdAt.toISOString(),
       updatedAt: vendor.updatedAt.toISOString(),
     };

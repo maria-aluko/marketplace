@@ -10,6 +10,7 @@ import {
   GuestStatus,
   InquiryStatus,
   InquirySource,
+  SubscriptionTier,
 } from '../enums';
 import {
   REVIEW_MIN_BODY_LENGTH,
@@ -345,6 +346,22 @@ export const createInvoiceSchema = z.object({
   discountKobo: z.number().int().nonnegative().optional(),
   items: z.array(invoiceItemSchema).min(1).max(50),
   inquiryId: z.string().uuid().optional(),
+});
+
+// Subscription tier update (admin only)
+export const updateSubscriptionTierSchema = z.object({
+  tier: z.nativeEnum(SubscriptionTier),
+});
+
+// Invoice branding
+export const updateInvoiceBrandingSchema = z.object({
+  accentColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Must be a valid hex colour').optional(),
+  tagline: z.string().max(100).optional(),
+  footerText: z.string().max(200).optional(),
+});
+
+export const confirmLogoUploadSchema = z.object({
+  logoUrl: z.string().url(),
 });
 
 export const updateInvoiceSchema = z.object({

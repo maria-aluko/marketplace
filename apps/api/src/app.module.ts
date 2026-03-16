@@ -19,6 +19,7 @@ import { BudgetsModule } from './budgets/budgets.module';
 import { GuestListsModule } from './guest-lists/guest-lists.module';
 import { InquiriesModule } from './inquiries/inquiries.module';
 import { InvoicesModule } from './invoices/invoices.module';
+import { InvoiceBrandingModule } from './invoice-branding/invoice-branding.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { CsrfMiddleware } from './common/middleware/csrf.middleware';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
@@ -56,6 +57,7 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
     GuestListsModule,
     InquiriesModule,
     InvoicesModule,
+    InvoiceBrandingModule,
   ],
   providers: [
     {

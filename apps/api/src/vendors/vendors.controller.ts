@@ -22,11 +22,13 @@ import {
   createVendorSchema,
   updateVendorSchema,
   vendorStatusTransitionSchema,
+  updateSubscriptionTierSchema,
 } from '@eventtrust/shared';
 import type {
   CreateVendorPayload,
   UpdateVendorPayload,
   VendorStatusTransitionPayload,
+  UpdateSubscriptionTierPayload,
   AccessTokenPayload,
 } from '@eventtrust/shared';
 
@@ -101,5 +103,17 @@ export class VendorsController {
       body.reason,
     );
     return { data: this.vendorsService.toResponse(vendor) };
+  }
+
+  @Patch(':id/subscription')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  async updateSubscription(
+    @Param('id') id: string,
+    @CurrentUser() user: AccessTokenPayload,
+    @Body(new ZodValidationPipe(updateSubscriptionTierSchema)) body: UpdateSubscriptionTierPayload,
+  ) {
+    const vendor = await this.vendorsService.updateSubscriptionTier(id, body.tier, user.sub);
+    return { data: vendor };
   }
 }

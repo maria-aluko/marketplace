@@ -167,6 +167,7 @@ export class SearchService {
       profileCompleteScore: row.profile_complete_score,
       coverImageUrl: row.cover_image_url ?? undefined,
       userId: row.user_id,
+      subscriptionTier: (row.subscription_tier ?? 'FREE').toLowerCase() as any,
       createdAt:
         row.created_at instanceof Date ? row.created_at.toISOString() : String(row.created_at),
       updatedAt:

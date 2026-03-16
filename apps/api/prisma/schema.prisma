@@ -118,13 +118,14 @@ model Vendor {
 
   subscriptionTier SubscriptionTier @default(FREE) @map("subscription_tier")
 
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  portfolio VendorPortfolio[]
-  reviews   Review[]
-  disputes  Dispute[]
-  listings  Listing[]
-  inquiries Inquiry[]
-  invoices  Invoice[]
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  portfolio        VendorPortfolio[]
+  reviews          Review[]
+  disputes         Dispute[]
+  listings         Listing[]
+  inquiries        Inquiry[]
+  invoices         Invoice[]
+  invoiceBranding  InvoiceBranding?
 
   @@index([status, avgRating])
   @@index([category, area])
@@ -531,6 +532,23 @@ enum InvoiceStatus {
   CANCELLED
 
   @@map("invoice_status")
+}
+
+// ─── Invoice Branding ─────────────────────────────────────────────────────────
+
+model InvoiceBranding {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vendorId    String   @unique @map("vendor_id") @db.Uuid
+  logoUrl     String?  @map("logo_url")
+  accentColor String   @default("#16a34a") @map("accent_color")
+  tagline     String?
+  footerText  String?  @map("footer_text")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@map("invoice_branding")
 }
 
 // ─── Admin Log ───────────────────────────────────────────────────────────────
