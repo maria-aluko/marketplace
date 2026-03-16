@@ -87,7 +87,7 @@ export default function EditListingPage() {
               View Public Page
             </Button>
           </Link>
-          <Link href="/dashboard/listings">
+          <Link href="/dashboard">
             <Button variant="outline" size="sm">
               Back
             </Button>

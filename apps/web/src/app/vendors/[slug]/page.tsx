@@ -159,6 +159,15 @@ export default async function VendorProfilePage({ params }: Props) {
         </div>
       </section>
 
+      {/* Tabbed sections: About | Portfolio | Reviews */}
+      <VendorProfileTabs
+        vendorId={vendor.id}
+        description={vendor.description}
+        instagramHandle={vendor.instagramHandle}
+        portfolio={portfolio ?? []}
+        reviews={reviews ?? []}
+      />
+
       {/* Inline listings section */}
       <section className="mt-8">
         <h2 className="text-lg font-semibold text-surface-900">
@@ -180,15 +189,6 @@ export default async function VendorProfilePage({ params }: Props) {
           <p className="mt-2 text-sm text-surface-500">No listings yet.</p>
         )}
       </section>
-
-      {/* Tabbed sections: About | Portfolio | Reviews */}
-      <VendorProfileTabs
-        vendorId={vendor.id}
-        description={vendor.description}
-        instagramHandle={vendor.instagramHandle}
-        portfolio={portfolio ?? []}
-        reviews={reviews ?? []}
-      />
 
       <div className="h-4" />
     </div>

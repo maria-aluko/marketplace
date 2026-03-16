@@ -10,8 +10,10 @@ export default function NewRentalListingPage() {
     <div className="mx-auto max-w-2xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">New Rental Listing</h1>
-        <Link href="/dashboard/listings">
-          <Button variant="outline" size="sm">Back</Button>
+        <Link href="/dashboard">
+          <Button variant="outline" size="sm">
+            Back
+          </Button>
         </Link>
       </div>
       <Card>

@@ -51,9 +51,8 @@ export default function ListingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
+    <div className="mx-auto max-w-2xl">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">My Listings</h1>
         <div className="flex gap-2">
           <Link href="/dashboard/listings/new/service">
             <Button size="sm" variant="outline">

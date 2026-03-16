@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { ProfileEditForm } from '@/components/dashboard/profile-edit-form';
 import { PortfolioManager } from '@/components/dashboard/portfolio-manager';
 import { ReviewsManager } from '@/components/dashboard/reviews-manager';
+import ListingsPage from './listings/page';
 
 export default function DashboardPage() {
   const { user, isLoading, logout } = useAuth();
@@ -75,27 +76,22 @@ export default function DashboardPage() {
   // Vendor dashboard with tabs
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
-      <Tabs defaultValue="overview" className="w-full">
+      <Tabs defaultValue="listings" className="w-full">
         <TabsList className="w-full justify-start overflow-x-auto">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="listings">Listings</TabsTrigger>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
           <TabsTrigger value="reviews">Reviews</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview">
+        <TabsContent value="listings">
           <div className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Manage Listings</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="mb-4 text-sm text-surface-600">
-                  Create and manage your service and rental listings.
-                </p>
-                <Link href="/dashboard/listings">
-                  <Button variant="outline">View Listings</Button>
-                </Link>
+                <ListingsPage />
               </CardContent>
             </Card>
           </div>
@@ -113,11 +109,6 @@ export default function DashboardPage() {
           <ReviewsManager vendorId={user.vendorId} />
         </TabsContent>
       </Tabs>
-      <div className="mt-6 flex items-center justify-between">
-        <Button variant="outline" onClick={logout}>
-          Sign Out
-        </Button>
-      </div>
     </div>
   );
 }

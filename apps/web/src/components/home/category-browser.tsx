@@ -30,7 +30,7 @@ export function CategoryBrowser({
   const [selected, setSelected] = useState<Selection>('services');
 
   return (
-    <section className="mx-auto w-full max-w-5xl px-4 py-10">
+    <section className="mx-auto w-full max-w-5xl px-4">
       {/* CTA toggle */}
       <div className="mx-auto max-w-xs flex rounded-full border border-surface-200 bg-surface-50 p-1">
         <button
