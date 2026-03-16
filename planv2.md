@@ -210,8 +210,8 @@ Example dashboard structure:
 Vendor Dashboard
 
 Listings
-  Services
-  Rentals
+  Services - done
+  Rentals - done
 
 Bookings
   Service inquiries
@@ -220,7 +220,7 @@ Bookings
 Tools
   Calendar
   Customers
-  Invoices
+  Invoices - partially done
   Analytics
 ```
 
@@ -280,7 +280,7 @@ Available: 40
 
 Vendors can generate:
 
-- Branded invoices
+- Branded invoices - done
 - Payment links
 - Receipts
 
@@ -314,7 +314,7 @@ Many SMEs lack websites, so this is valuable.
 
 Features:
 
-- Budget calculator
+- Budget calculator - done
 - Vendor checklist
 - Event cost breakdown
 
