@@ -53,6 +53,10 @@ export class InquiriesService {
     const inquiries = await this.prisma.inquiry.findMany({
       where: { vendorId },
       orderBy: { createdAt: 'desc' },
+      include: {
+        client: { select: { phone: true } },
+        listing: { select: { title: true } },
+      },
     });
     return inquiries.map((i: any) => this.toResponse(i));
   }
@@ -124,6 +128,8 @@ export class InquiriesService {
       notes: inquiry.notes ?? undefined,
       status: inquiry.status,
       invoiceId: inquiry.invoiceId ?? undefined,
+      clientPhone: inquiry.client?.phone ?? undefined,
+      listingTitle: inquiry.listing?.title ?? undefined,
       createdAt: inquiry.createdAt.toISOString(),
       updatedAt: inquiry.updatedAt.toISOString(),
     };

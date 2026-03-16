@@ -9,6 +9,11 @@ import type { InvoiceResponse, CreateInvoicePayload, CreateInvoiceItemPayload } 
 
 interface InvoiceGeneratorProps {
   vendorId: string;
+  prefill?: {
+    clientPhone?: string;
+    inquiryId?: string;
+    listingTitle?: string;
+  };
   onCreated?: (invoice: InvoiceResponse) => void;
   onCancel?: () => void;
 }
@@ -21,14 +26,14 @@ function formatNaira(kobo: number) {
   return `₦${(kobo / 100).toLocaleString('en-NG')}`;
 }
 
-export function InvoiceGenerator({ vendorId, onCreated, onCancel }: InvoiceGeneratorProps) {
+export function InvoiceGenerator({ vendorId, prefill, onCreated, onCancel }: InvoiceGeneratorProps) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Step 1: client info
   const [clientName, setClientName] = useState('');
-  const [clientPhone, setClientPhone] = useState('');
+  const [clientPhone, setClientPhone] = useState(prefill?.clientPhone ?? '');
   const [clientEmail, setClientEmail] = useState('');
   const [eventDate, setEventDate] = useState('');
   const [eventLocation, setEventLocation] = useState('');
@@ -36,7 +41,7 @@ export function InvoiceGenerator({ vendorId, onCreated, onCancel }: InvoiceGener
 
   // Step 2: line items
   const [items, setItems] = useState<ItemForm[]>([
-    { _key: 1, description: '', quantity: 1, unitPriceKobo: 0, sortOrder: 0 },
+    { _key: 1, description: prefill?.listingTitle ?? '', quantity: 1, unitPriceKobo: 0, sortOrder: 0 },
   ]);
   const [discountKobo, setDiscountKobo] = useState(0);
 
@@ -73,6 +78,7 @@ export function InvoiceGenerator({ vendorId, onCreated, onCancel }: InvoiceGener
       notes: notes || undefined,
       discountKobo,
       items: items.map(({ _key, ...rest }) => rest),
+      inquiryId: prefill?.inquiryId,
     };
 
     const res = await apiClient.post<{ data: InvoiceResponse }>('/invoices', payload);

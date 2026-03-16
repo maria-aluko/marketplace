@@ -93,6 +93,25 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+function CopyPhone({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="inline-flex items-center gap-1 text-xs text-surface-400 hover:text-surface-600"
+    >
+      {copied ? <CheckCheck className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+    </button>
+  );
+}
+
 export function BookingsManager({ vendorId }: BookingsManagerProps) {
   const [activeTab, setActiveTab] = useState<'leads' | 'invoices'>('invoices');
   const [funnel, setFunnel] = useState<VendorFunnelResponse | null>(null);
@@ -100,6 +119,7 @@ export function BookingsManager({ vendorId }: BookingsManagerProps) {
   const [invoices, setInvoices] = useState<InvoiceSummaryResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [showGenerator, setShowGenerator] = useState(false);
+  const [selectedInquiry, setSelectedInquiry] = useState<InquiryResponse | null>(null);
 
   const webUrl = process.env.NEXT_PUBLIC_WEB_URL || 'https://eventtrust.com.ng';
 
@@ -118,12 +138,15 @@ export function BookingsManager({ vendorId }: BookingsManagerProps) {
 
   const handleInvoiceCreated = (invoice: InvoiceResponse) => {
     setShowGenerator(false);
-    // Refresh invoices list
-    apiClient
-      .get<{ data: InvoiceSummaryResponse[] }>(`/vendors/${vendorId}/invoices`)
-      .then((res) => {
-        if (res.success && res.data) setInvoices(res.data.data);
-      });
+    setSelectedInquiry(null);
+    // Refresh both lists
+    Promise.all([
+      apiClient.get<{ data: InvoiceSummaryResponse[] }>(`/vendors/${vendorId}/invoices`),
+      apiClient.get<{ data: InquiryResponse[] }>(`/vendors/${vendorId}/inquiries`),
+    ]).then(([invoicesRes, inquiriesRes]) => {
+      if (invoicesRes.success && invoicesRes.data) setInvoices(invoicesRes.data.data);
+      if (inquiriesRes.success && inquiriesRes.data) setInquiries(inquiriesRes.data.data);
+    });
   };
 
   if (loading) {
@@ -139,8 +162,20 @@ export function BookingsManager({ vendorId }: BookingsManagerProps) {
       <div className="py-4">
         <InvoiceGenerator
           vendorId={vendorId}
+          prefill={
+            selectedInquiry
+              ? {
+                  clientPhone: selectedInquiry.clientPhone,
+                  inquiryId: selectedInquiry.id,
+                  listingTitle: selectedInquiry.listingTitle,
+                }
+              : undefined
+          }
           onCreated={handleInvoiceCreated}
-          onCancel={() => setShowGenerator(false)}
+          onCancel={() => {
+            setShowGenerator(false);
+            setSelectedInquiry(null);
+          }}
         />
       </div>
     );
@@ -252,26 +287,74 @@ export function BookingsManager({ vendorId }: BookingsManagerProps) {
               </p>
             </div>
           ) : (
-            inquiries.map((inquiry) => (
-              <div
-                key={inquiry.id}
-                className="rounded-lg border border-surface-200 bg-white p-4 space-y-1"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <Badge variant="secondary" className="text-xs">
-                    {inquiry.status}
-                  </Badge>
-                  <span className="text-xs text-surface-400">{formatDate(inquiry.createdAt)}</span>
+            inquiries.map((inquiry) => {
+              const waPhone = inquiry.clientPhone?.replace('+', '');
+              return (
+                <div
+                  key={inquiry.id}
+                  className="rounded-lg border border-surface-200 bg-white p-4 space-y-2"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <Badge variant="secondary" className="text-xs">
+                      {inquiry.status}
+                    </Badge>
+                    <span className="text-xs text-surface-400">{formatDate(inquiry.createdAt)}</span>
+                  </div>
+
+                  {inquiry.clientPhone && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-surface-800">{inquiry.clientPhone}</span>
+                      <CopyPhone text={inquiry.clientPhone} />
+                      {waPhone && (
+                        <a
+                          href={`https://wa.me/${waPhone}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 hover:bg-green-100"
+                        >
+                          <MessageCircle className="h-3 w-3" />
+                          Open chat
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+                  {inquiry.listingTitle && (
+                    <p className="text-xs text-surface-500">re: {inquiry.listingTitle}</p>
+                  )}
+
+                  {inquiry.message && (
+                    <p className="text-sm text-surface-600 line-clamp-2">{inquiry.message}</p>
+                  )}
+
+                  <div className="flex items-center justify-between pt-1">
+                    <div className="flex items-center gap-1 text-xs text-surface-400">
+                      <MessageCircle className="h-3 w-3" />
+                      <span>{inquiry.source.replace(/_/g, ' ').toLowerCase()}</span>
+                    </div>
+
+                    {inquiry.invoiceId ? (
+                      <Link
+                        href={`/invoices/${inquiry.invoiceId}`}
+                        className="text-xs text-primary-600 hover:text-primary-800"
+                      >
+                        View Invoice
+                      </Link>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setSelectedInquiry(inquiry);
+                          setShowGenerator(true);
+                        }}
+                        className="text-xs font-medium text-primary-600 hover:text-primary-800"
+                      >
+                        Create Invoice
+                      </button>
+                    )}
+                  </div>
                 </div>
-                {inquiry.message && (
-                  <p className="text-sm text-surface-600 line-clamp-2">{inquiry.message}</p>
-                )}
-                <div className="flex items-center gap-1 text-xs text-surface-400">
-                  <MessageCircle className="h-3 w-3" />
-                  <span>{inquiry.source.replace('_', ' ').toLowerCase()}</span>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       )}
