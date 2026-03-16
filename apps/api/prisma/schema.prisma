@@ -23,6 +23,7 @@ model User {
   reviews        Review[]
   refreshTokens  RefreshToken[]
   budgets        Budget[]
+  guestLists     GuestList[]
 
   @@map("users")
 }
@@ -371,6 +372,53 @@ model BudgetItem {
 
   @@index([budgetId])
   @@map("budget_items")
+}
+
+// ─── Guest Lists ─────────────────────────────────────────────────────────────
+
+model GuestList {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  name         String
+  eventDate    DateTime? @map("event_date") @db.Date
+  plannedCount Int?      @map("planned_count")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guests Guest[]
+
+  @@index([userId])
+  @@map("guest_lists")
+}
+
+model Guest {
+  id             String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  guestListId    String      @map("guest_list_id") @db.Uuid
+  name           String
+  phone          String?
+  status         GuestStatus @default(PENDING)
+  invitationSent Boolean     @default(false) @map("invitation_sent")
+  plusOne        Boolean     @default(false) @map("plus_one")
+  plusOneName    String?     @map("plus_one_name")
+  notes          String?
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  guestList GuestList @relation(fields: [guestListId], references: [id], onDelete: Cascade)
+
+  @@index([guestListId])
+  @@map("guests")
+}
+
+enum GuestStatus {
+  PENDING
+  INVITED
+  COMING
+  NOT_COMING
+
+  @@map("guest_status")
 }
 
 // ─── Admin Log ───────────────────────────────────────────────────────────────

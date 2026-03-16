@@ -9,6 +9,7 @@ import {
   RentalCategory,
   DeliveryOption,
   RentalCondition,
+  GuestStatus,
 } from '../enums';
 
 // Auth
@@ -322,6 +323,81 @@ export interface UpdateBudgetItemPayload {
   budgeted?: number;
   actual?: number;
   notes?: string;
+}
+
+// Guest List
+export interface GuestResponse {
+  id: string;
+  guestListId: string;
+  name: string;
+  phone?: string;
+  status: GuestStatus;
+  invitationSent: boolean;
+  plusOne: boolean;
+  plusOneName?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GuestListResponse {
+  id: string;
+  userId: string;
+  name: string;
+  eventDate?: string;
+  plannedCount?: number;
+  guests: GuestResponse[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GuestListSummaryResponse {
+  id: string;
+  userId: string;
+  name: string;
+  eventDate?: string;
+  plannedCount?: number;
+  totalGuests: number;
+  totalAttending: number;
+  totalDeclined: number;
+  totalPending: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateGuestListPayload {
+  name: string;
+  eventDate?: string;
+  plannedCount?: number;
+}
+
+export interface UpdateGuestListPayload {
+  name?: string;
+  eventDate?: string;
+  plannedCount?: number;
+}
+
+export interface CreateGuestPayload {
+  name: string;
+  phone?: string;
+  status?: GuestStatus;
+  plusOne?: boolean;
+  plusOneName?: string;
+  notes?: string;
+}
+
+export interface UpdateGuestPayload {
+  name?: string;
+  phone?: string;
+  status?: GuestStatus;
+  invitationSent?: boolean;
+  plusOne?: boolean;
+  plusOneName?: string;
+  notes?: string;
+}
+
+export interface BulkCreateGuestsPayload {
+  guests: Array<{ name: string; phone?: string }>;
 }
 
 // Admin

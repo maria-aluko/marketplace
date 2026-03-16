@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { BudgetManager } from './budget-manager';
+import { GuestManager } from './guest-manager';
 import { cn } from '@/lib/utils';
 import type { AuthUser } from '@eventtrust/shared';
 
@@ -109,7 +110,7 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
           <HomeOverview user={user} onNavigate={setActiveTab} />
         )}
         {activeTab === 'enquiries' && <ComingSoon label="Enquiries" />}
-        {activeTab === 'guests' && <ComingSoon label="Guest List" />}
+        {activeTab === 'guests' && <GuestManager />}
         {activeTab === 'budget' && <BudgetManager />}
       </div>
 

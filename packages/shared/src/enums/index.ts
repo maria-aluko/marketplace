@@ -83,3 +83,10 @@ export enum SubscriptionTier {
   PRO = 'pro',
   PRO_PLUS = 'pro_plus',
 }
+
+export enum GuestStatus {
+  PENDING = 'PENDING',
+  INVITED = 'INVITED',
+  COMING = 'COMING',
+  NOT_COMING = 'NOT_COMING',
+}

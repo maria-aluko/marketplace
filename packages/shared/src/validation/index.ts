@@ -7,6 +7,7 @@ import {
   DeliveryOption,
   RentalCondition,
   ListingType,
+  GuestStatus,
 } from '../enums';
 import {
   REVIEW_MIN_BODY_LENGTH,
@@ -237,6 +238,63 @@ export const updateBudgetItemSchema = z.object({
   budgeted: z.number().int().nonnegative().optional(),
   actual: z.number().int().nonnegative().optional(),
   notes: z.string().max(200).optional(),
+});
+
+// Guest List
+const GUEST_LIST_NAME_MAX = 100;
+
+export const createGuestListSchema = z.object({
+  name: z.string().min(1).max(GUEST_LIST_NAME_MAX),
+  eventDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format')
+    .optional(),
+  plannedCount: z.number().int().positive().optional(),
+});
+
+export const updateGuestListSchema = z.object({
+  name: z.string().min(1).max(GUEST_LIST_NAME_MAX).optional(),
+  eventDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format')
+    .optional(),
+  plannedCount: z.number().int().positive().optional(),
+});
+
+const guestPhoneSchema = z
+  .string()
+  .regex(/^\+[1-9]\d{7,14}$/, 'Must be E.164 format e.g. +2348012345678')
+  .optional();
+
+export const createGuestSchema = z.object({
+  name: z.string().min(1).max(100),
+  phone: guestPhoneSchema,
+  status: z.nativeEnum(GuestStatus).optional(),
+  plusOne: z.boolean().optional(),
+  plusOneName: z.string().max(100).optional(),
+  notes: z.string().max(300).optional(),
+});
+
+export const updateGuestSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  phone: guestPhoneSchema,
+  status: z.nativeEnum(GuestStatus).optional(),
+  invitationSent: z.boolean().optional(),
+  plusOne: z.boolean().optional(),
+  plusOneName: z.string().max(100).optional(),
+  notes: z.string().max(300).optional(),
+});
+
+export const bulkCreateGuestsSchema = z.object({
+  guests: z
+    .array(
+      z.object({
+        name: z.string().min(1).max(100),
+        phone: guestPhoneSchema,
+      }),
+    )
+    .min(1)
+    .max(100),
 });
 
 // Portfolio
