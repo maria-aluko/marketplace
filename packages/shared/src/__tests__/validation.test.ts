@@ -233,7 +233,7 @@ describe('createRentalListingSchema', () => {
     expect(createRentalListingSchema.safeParse({
       ...validRentalListing,
       depositAmount: 5000,
-      condition: 'Like new',
+      condition: 'like_new',
       photos: ['img_tent1', 'img_tent2'],
     }).success).toBe(true);
   });

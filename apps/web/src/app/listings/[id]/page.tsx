@@ -243,8 +243,10 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
       {vendor && (
         <div className="mb-8 flex flex-wrap items-center gap-3">
           <EnquiryButton
+            vendorId={vendor.id}
             vendorName={vendor.businessName}
             whatsappNumber={vendor.whatsappNumber}
+            listingId={listing.id}
             listingName={listing.title}
             listingType={listing.listingType === 'rental' ? 'Equipment Rental' : 'Service'}
           />

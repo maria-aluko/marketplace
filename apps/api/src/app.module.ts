@@ -1,6 +1,7 @@
-import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD, APP_FILTER } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { PrismaModule } from './prisma/prisma.module';
@@ -16,6 +17,8 @@ import { AdminModule } from './admin/admin.module';
 import { SearchModule } from './search/search.module';
 import { BudgetsModule } from './budgets/budgets.module';
 import { GuestListsModule } from './guest-lists/guest-lists.module';
+import { InquiriesModule } from './inquiries/inquiries.module';
+import { InvoicesModule } from './invoices/invoices.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { CsrfMiddleware } from './common/middleware/csrf.middleware';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
@@ -37,6 +40,7 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
             : undefined,
       },
     }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     HealthModule,
     AuditModule,
@@ -50,6 +54,8 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
     SearchModule,
     BudgetsModule,
     GuestListsModule,
+    InquiriesModule,
+    InvoicesModule,
   ],
   providers: [
     {
@@ -66,7 +72,14 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(CsrfMiddleware)
-      .exclude('auth/otp/request', 'auth/otp/verify', 'auth/refresh', 'auth/csrf-token', 'health')
+      .exclude(
+        'auth/otp/request',
+        'auth/otp/verify',
+        'auth/refresh',
+        'auth/csrf-token',
+        'health',
+        { path: 'invoices/:id/confirm', method: RequestMethod.POST },
+      )
       .forRoutes('*');
   }
 }

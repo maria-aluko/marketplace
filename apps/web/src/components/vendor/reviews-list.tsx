@@ -1,5 +1,6 @@
 import type { ReviewResponse } from '@eventtrust/shared';
 import { StarRating } from '@/components/ui/star-rating';
+import { Badge } from '@/components/ui/badge';
 import { WriteReviewButton } from './write-review-button';
 
 interface ReviewsListProps {
@@ -29,9 +30,14 @@ export function ReviewsList({ reviews, vendorId }: ReviewsListProps) {
     <div className="space-y-6">
       {reviews.map((review) => (
         <div key={review.id} className="border-b border-surface-100 pb-6 last:border-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <StarRating value={review.rating} readonly size="sm" />
             <span className="text-xs text-surface-500">{formatDate(review.createdAt)}</span>
+            {review.isVerified && (
+              <Badge variant="verified" className="text-[10px] px-1.5 py-0">
+                Verified Booking
+              </Badge>
+            )}
           </div>
           <p className="mt-2 text-sm text-surface-700">{review.body}</p>
 

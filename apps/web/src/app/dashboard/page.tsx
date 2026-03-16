@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfileEditForm } from '@/components/dashboard/profile-edit-form';
 import { PortfolioManager } from '@/components/dashboard/portfolio-manager';
 import { ReviewsManager } from '@/components/dashboard/reviews-manager';
+import { BookingsManager } from '@/components/dashboard/bookings-manager';
 import { ClientDashboard } from '@/components/dashboard/client-dashboard';
 import ListingsPage from './listings/page';
 
@@ -36,13 +37,25 @@ export default function DashboardPage() {
   // Vendor dashboard with tabs
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
-      <Tabs defaultValue="listings" className="w-full">
+      <Tabs defaultValue="bookings" className="w-full">
         <TabsList className="w-full justify-start overflow-x-auto">
+          <TabsTrigger value="bookings">Bookings</TabsTrigger>
           <TabsTrigger value="listings">Listings</TabsTrigger>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
           <TabsTrigger value="reviews">Reviews</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="bookings">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Bookings & Invoices</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <BookingsManager vendorId={user.vendorId} />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="listings">
           <div className="space-y-4">

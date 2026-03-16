@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { BudgetManager } from './budget-manager';
 import { GuestManager } from './guest-manager';
+import { EnquiriesManager } from './enquiries-manager';
 import { cn } from '@/lib/utils';
 import type { AuthUser } from '@eventtrust/shared';
 
@@ -109,7 +110,7 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
         {activeTab === 'home' && (
           <HomeOverview user={user} onNavigate={setActiveTab} />
         )}
-        {activeTab === 'enquiries' && <ComingSoon label="Enquiries" />}
+        {activeTab === 'enquiries' && <EnquiriesManager />}
         {activeTab === 'guests' && <GuestManager />}
         {activeTab === 'budget' && <BudgetManager />}
       </div>

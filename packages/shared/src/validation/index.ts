@@ -8,6 +8,8 @@ import {
   RentalCondition,
   ListingType,
   GuestStatus,
+  InquiryStatus,
+  InquirySource,
 } from '../enums';
 import {
   REVIEW_MIN_BODY_LENGTH,
@@ -136,6 +138,7 @@ export const updateRentalListingSchema = z.object({
 export const createReviewSchema = z.object({
   vendorId: z.string().uuid(),
   listingId: z.string().uuid().optional(),
+  invoiceId: z.string().uuid().optional(),
   rating: z.number().int().min(1).max(5),
   body: z.string().min(REVIEW_MIN_BODY_LENGTH).max(2000),
 });
@@ -303,4 +306,60 @@ export const confirmUploadSchema = z.object({
   mediaUrl: z.string().url(),
   mediaType: z.nativeEnum(MediaType),
   caption: z.string().max(200).optional(),
+});
+
+// Inquiry
+export const createInquirySchema = z.object({
+  vendorId: z.string().uuid(),
+  listingId: z.string().uuid().optional(),
+  source: z.nativeEnum(InquirySource),
+  message: z.string().max(1000).optional(),
+});
+
+export const updateInquiryStatusSchema = z.object({
+  status: z.nativeEnum(InquiryStatus),
+  notes: z.string().max(500).optional(),
+});
+
+// Invoice
+const invoiceItemSchema = z.object({
+  description: z.string().min(1).max(200),
+  quantity: z.number().int().positive(),
+  unitPriceKobo: z.number().int().nonnegative(),
+  sortOrder: z.number().int().nonnegative().optional(),
+});
+
+export const createInvoiceSchema = z.object({
+  clientName: z.string().min(1).max(100),
+  clientPhone: z
+    .string()
+    .regex(/^\+[1-9]\d{7,14}$/, 'Must be E.164 format')
+    .optional(),
+  clientEmail: z.string().email().optional(),
+  eventDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD')
+    .optional(),
+  eventLocation: z.string().max(200).optional(),
+  notes: z.string().max(2000).optional(),
+  discountKobo: z.number().int().nonnegative().optional(),
+  items: z.array(invoiceItemSchema).min(1).max(50),
+  inquiryId: z.string().uuid().optional(),
+});
+
+export const updateInvoiceSchema = z.object({
+  clientName: z.string().min(1).max(100).optional(),
+  clientPhone: z
+    .string()
+    .regex(/^\+[1-9]\d{7,14}$/, 'Must be E.164 format')
+    .optional(),
+  clientEmail: z.string().email().optional(),
+  eventDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD')
+    .optional(),
+  eventLocation: z.string().max(200).optional(),
+  notes: z.string().max(2000).optional(),
+  discountKobo: z.number().int().nonnegative().optional(),
+  items: z.array(invoiceItemSchema).min(1).max(50).optional(),
 });

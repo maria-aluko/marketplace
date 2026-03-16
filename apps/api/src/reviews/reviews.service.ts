@@ -86,11 +86,23 @@ export class ReviewsService {
       throw new NotFoundException('Vendor not found or not active');
     }
 
+    // Validate invoiceId ownership if provided
+    if (data.invoiceId) {
+      const invoice = await this.prisma.invoice.findFirst({
+        where: { id: data.invoiceId, vendorId: data.vendorId, clientId },
+        select: { id: true },
+      });
+      if (!invoice) {
+        throw new BadRequestException('Invoice not found or does not belong to this booking');
+      }
+    }
+
     const review = await this.prisma.review.create({
       data: {
         vendorId: data.vendorId,
         clientId,
         listingId: data.listingId ?? null,
+        invoiceId: data.invoiceId ?? null,
         rating: data.rating,
         body: data.body,
         status: 'PENDING',
@@ -377,6 +389,7 @@ export class ReviewsService {
       rating: review.rating,
       body: review.body,
       status: review.status.toLowerCase() as any,
+      isVerified: review.invoiceId != null,
       reply: review.reply ? this.toReplyResponse(review.reply) : undefined,
       createdAt: review.createdAt.toISOString(),
       updatedAt: review.updatedAt.toISOString(),

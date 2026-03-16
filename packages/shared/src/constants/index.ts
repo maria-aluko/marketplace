@@ -122,3 +122,24 @@ export const VALID_STATUS_TRANSITIONS: Record<string, string[]> = {
   active: ['suspended'],
   suspended: ['active'],
 } as const;
+
+// Inquiry status transitions
+export const VALID_INQUIRY_STATUS_TRANSITIONS: Record<string, string[]> = {
+  NEW: ['CONTACTED', 'BOOKED', 'CANCELLED'],
+  CONTACTED: ['BOOKED', 'CANCELLED'],
+  BOOKED: ['COMPLETED', 'CANCELLED'],
+  COMPLETED: [],
+  CANCELLED: [],
+} as const;
+
+// Invoice status transitions
+export const VALID_INVOICE_STATUS_TRANSITIONS: Record<string, string[]> = {
+  DRAFT: ['SENT', 'CANCELLED'],
+  SENT: ['VIEWED', 'CONFIRMED', 'CANCELLED'],
+  VIEWED: ['CONFIRMED', 'CANCELLED'],
+  CONFIRMED: ['COMPLETED', 'CANCELLED'],
+  COMPLETED: [],
+  CANCELLED: [],
+} as const;
+
+export const INVOICE_NUMBER_PREFIX = 'EVT';

@@ -90,3 +90,26 @@ export enum GuestStatus {
   COMING = 'COMING',
   NOT_COMING = 'NOT_COMING',
 }
+
+export enum InquiryStatus {
+  NEW = 'NEW',
+  CONTACTED = 'CONTACTED',
+  BOOKED = 'BOOKED',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum InquirySource {
+  WHATSAPP_BUTTON = 'WHATSAPP_BUTTON',
+  ENQUIRY_FORM = 'ENQUIRY_FORM',
+  MANUAL = 'MANUAL',
+}
+
+export enum InvoiceStatus {
+  DRAFT = 'DRAFT',
+  SENT = 'SENT',
+  VIEWED = 'VIEWED',
+  CONFIRMED = 'CONFIRMED',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}

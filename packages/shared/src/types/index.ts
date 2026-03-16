@@ -10,6 +10,9 @@ import {
   DeliveryOption,
   RentalCondition,
   GuestStatus,
+  InquiryStatus,
+  InquirySource,
+  InvoiceStatus,
 } from '../enums';
 
 // Auth
@@ -152,6 +155,7 @@ export interface ConfirmUploadPayload {
 export interface CreateReviewPayload {
   vendorId: string;
   listingId?: string;
+  invoiceId?: string;
   rating: number;
   body: string;
 }
@@ -164,6 +168,7 @@ export interface ReviewResponse {
   rating: number;
   body: string;
   status: ReviewStatus;
+  isVerified: boolean;
   reply?: VendorReplyResponse;
   createdAt: string;
   updatedAt: string;
@@ -459,6 +464,118 @@ export interface OtpRequestResponse {
 // Auth Response (tokens in httpOnly cookies, not body)
 export interface AuthResponse {
   user: AuthUser;
+}
+
+// Inquiry
+export interface CreateInquiryPayload {
+  vendorId: string;
+  listingId?: string;
+  source: InquirySource;
+  message?: string;
+}
+
+export interface UpdateInquiryStatusPayload {
+  status: InquiryStatus;
+  notes?: string;
+}
+
+export interface InquiryResponse {
+  id: string;
+  clientId: string;
+  vendorId: string;
+  listingId?: string;
+  source: InquirySource;
+  message?: string;
+  notes?: string;
+  status: InquiryStatus;
+  invoiceId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Invoice
+export interface CreateInvoiceItemPayload {
+  description: string;
+  quantity: number;
+  unitPriceKobo: number;
+  sortOrder?: number;
+}
+
+export interface CreateInvoicePayload {
+  clientName: string;
+  clientPhone?: string;
+  clientEmail?: string;
+  eventDate?: string;
+  eventLocation?: string;
+  notes?: string;
+  discountKobo?: number;
+  items: CreateInvoiceItemPayload[];
+  inquiryId?: string;
+}
+
+export interface UpdateInvoicePayload {
+  clientName?: string;
+  clientPhone?: string;
+  clientEmail?: string;
+  eventDate?: string;
+  eventLocation?: string;
+  notes?: string;
+  discountKobo?: number;
+  items?: CreateInvoiceItemPayload[];
+}
+
+export interface InvoiceItemResponse {
+  id: string;
+  invoiceId: string;
+  description: string;
+  quantity: number;
+  unitPriceKobo: number;
+  totalKobo: number;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface InvoiceResponse {
+  id: string;
+  vendorId: string;
+  clientId?: string;
+  invoiceNumber: string;
+  status: InvoiceStatus;
+  clientName: string;
+  clientPhone?: string;
+  clientEmail?: string;
+  eventDate?: string;
+  eventLocation?: string;
+  notes?: string;
+  subtotalKobo: number;
+  discountKobo: number;
+  totalKobo: number;
+  sentAt?: string;
+  viewedAt?: string;
+  confirmedAt?: string;
+  completedAt?: string;
+  items: InvoiceItemResponse[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InvoiceSummaryResponse {
+  id: string;
+  vendorId: string;
+  invoiceNumber: string;
+  status: InvoiceStatus;
+  clientName: string;
+  eventDate?: string;
+  totalKobo: number;
+  confirmedAt?: string;
+  createdAt: string;
+}
+
+export interface VendorFunnelResponse {
+  inquiriesThisMonth: number;
+  invoicesSentThisMonth: number;
+  confirmedBookingsThisMonth: number;
+  completedThisMonth: number;
 }
 
 // Health
