@@ -2,17 +2,15 @@
 
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Link from 'next/link';
 import { ProfileEditForm } from '@/components/dashboard/profile-edit-form';
 import { PortfolioManager } from '@/components/dashboard/portfolio-manager';
 import { ReviewsManager } from '@/components/dashboard/reviews-manager';
+import { ClientDashboard } from '@/components/dashboard/client-dashboard';
 import ListingsPage from './listings/page';
 
 export default function DashboardPage() {
-  const { user, isLoading, logout } = useAuth();
+  const { user, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -30,47 +28,9 @@ export default function DashboardPage() {
     );
   }
 
-  // Non-vendor user: simple dashboard
+  // Non-vendor user: client dashboard
   if (!user.vendorId) {
-    return (
-      <div className="mx-auto max-w-2xl px-4 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <Button variant="outline" onClick={logout}>
-            Sign Out
-          </Button>
-        </div>
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Your Profile</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <p>
-                <span className="text-surface-500">Phone:</span> {user.phone}
-              </p>
-              <p>
-                <span className="text-surface-500">Role:</span>{' '}
-                <Badge variant="secondary">{user.role}</Badge>
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Become a Vendor</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="mb-4 text-sm text-surface-600">
-                List your business on EventTrust and get discovered by clients in Lagos.
-              </p>
-              <Link href="/vendor/signup">
-                <Button>Create Vendor Profile</Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
+    return <ClientDashboard user={user} />;
   }
 
   // Vendor dashboard with tabs

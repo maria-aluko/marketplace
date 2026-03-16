@@ -14,6 +14,7 @@ import { PortfolioModule } from './portfolio/portfolio.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { AdminModule } from './admin/admin.module';
 import { SearchModule } from './search/search.module';
+import { BudgetsModule } from './budgets/budgets.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { CsrfMiddleware } from './common/middleware/csrf.middleware';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
@@ -46,6 +47,7 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
     ReviewsModule,
     AdminModule,
     SearchModule,
+    BudgetsModule,
   ],
   providers: [
     {

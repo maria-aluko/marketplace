@@ -22,6 +22,7 @@ model User {
   vendor         Vendor?
   reviews        Review[]
   refreshTokens  RefreshToken[]
+  budgets        Budget[]
 
   @@map("users")
 }
@@ -335,6 +336,41 @@ enum SubscriptionTier {
   PRO_PLUS
 
   @@map("subscription_tier")
+}
+
+// ─── Budgets ─────────────────────────────────────────────────────────────────
+
+model Budget {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  name        String
+  totalAmount Int?      @map("total_amount")
+  eventDate   DateTime? @map("event_date") @db.Date
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  user  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items BudgetItem[]
+
+  @@index([userId])
+  @@map("budgets")
+}
+
+model BudgetItem {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  budgetId  String   @map("budget_id") @db.Uuid
+  name      String
+  budgeted  Int      @default(0)
+  actual    Int      @default(0)
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  budget Budget @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+
+  @@index([budgetId])
+  @@map("budget_items")
 }
 
 // ─── Admin Log ───────────────────────────────────────────────────────────────

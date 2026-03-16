@@ -262,6 +262,68 @@ export interface SearchListingsResponse {
   total: number;
 }
 
+// Budget
+export interface BudgetItemResponse {
+  id: string;
+  budgetId: string;
+  name: string;
+  budgeted: number;
+  actual: number;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BudgetResponse {
+  id: string;
+  userId: string;
+  name: string;
+  totalAmount?: number;  // kobo — overall budget cap set by user
+  eventDate?: string;
+  items: BudgetItemResponse[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BudgetSummaryResponse {
+  id: string;
+  userId: string;
+  name: string;
+  totalAmount?: number;  // kobo
+  eventDate?: string;
+  itemCount: number;
+  totalBudgeted: number;
+  totalActual: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateBudgetPayload {
+  name: string;
+  totalAmount?: number;  // kobo
+  eventDate?: string;
+}
+
+export interface UpdateBudgetPayload {
+  name?: string;
+  totalAmount?: number;  // kobo, send 0 to clear
+  eventDate?: string;
+}
+
+export interface CreateBudgetItemPayload {
+  name: string;
+  budgeted: number;
+  actual?: number;
+  notes?: string;
+}
+
+export interface UpdateBudgetItemPayload {
+  name?: string;
+  budgeted?: number;
+  actual?: number;
+  notes?: string;
+}
+
 // Admin
 export interface AdminAnalytics {
   totalVendors: number;

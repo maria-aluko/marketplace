@@ -202,6 +202,43 @@ export const vendorStatusTransitionSchema = z.object({
   reason: z.string().max(500).optional(),
 });
 
+// Budget
+const BUDGET_NAME_MIN = 1;
+const BUDGET_NAME_MAX = 100;
+const BUDGET_ITEM_NAME_MAX = 80;
+
+export const createBudgetSchema = z.object({
+  name: z.string().min(BUDGET_NAME_MIN).max(BUDGET_NAME_MAX),
+  totalAmount: z.number().int().nonnegative().optional(),
+  eventDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format')
+    .optional(),
+});
+
+export const updateBudgetSchema = z.object({
+  name: z.string().min(BUDGET_NAME_MIN).max(BUDGET_NAME_MAX).optional(),
+  totalAmount: z.number().int().nonnegative().optional(),
+  eventDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format')
+    .optional(),
+});
+
+export const createBudgetItemSchema = z.object({
+  name: z.string().min(1).max(BUDGET_ITEM_NAME_MAX),
+  budgeted: z.number().int().nonnegative(),
+  actual: z.number().int().nonnegative().optional(),
+  notes: z.string().max(200).optional(),
+});
+
+export const updateBudgetItemSchema = z.object({
+  name: z.string().min(1).max(BUDGET_ITEM_NAME_MAX).optional(),
+  budgeted: z.number().int().nonnegative().optional(),
+  actual: z.number().int().nonnegative().optional(),
+  notes: z.string().max(200).optional(),
+});
+
 // Portfolio
 export const confirmUploadSchema = z.object({
   publicId: z.string().min(1),

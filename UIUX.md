@@ -74,7 +74,7 @@ Referenced in docs as critical for the target demographic but not implemented.
 
 ### Priority 4 — Dashboard improvements
 
-**Current state:** Tabbed dashboard (Overview, Profile, Portfolio, Reviews) with profile edit form, portfolio manager with upload, and reviews manager with reply. Overview tab is very basic (phone, role, vendor profile link, listings link).
+**Current state:** Tabbed dashboard (Listings, Profile, Portfolio, Reviews) with profile edit form, portfolio manager with upload, and reviews manager with reply. Overview tab is very basic (phone, role, vendor profile link, listings link).
 
 **Improvements:**
 
