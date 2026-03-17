@@ -137,6 +137,9 @@ Key tables: `users`, `auth_identities`, `vendors`, `listings`, `listing_rental_d
 - Admin endpoints require both `JwtAuthGuard` AND `RolesGuard('admin')`
 - `VendorOwnerGuard` checks `req.user.vendorId === params.id` on vendor mutations
 - Soft deletes only on vendors, reviews, users (handled by Prisma extension)
+- No direct cross-module service imports — use events or shared interfaces Prevents circular dependencies as codebase grows
+- Phone numbers validated to E.164 format in a custom pipe before any service sees them Consistent format for OTP matching and future WhatsApp integration
+- Rate limiting on OTP endpoints: 3 requests per phone per 10 minutes Prevents SMS bombing — Termii costs money per SMS
 
 ### Next.js Frontend
 
@@ -146,7 +149,7 @@ Key tables: `users`, `auth_identities`, `vendors`, `listings`, `listing_rental_d
   - **Server components:** `serverFetch<T>(path, options?)` (`src/lib/server-api.ts`) — lightweight fetch with Next.js caching (`revalidate`, `tags`), returns `T | null`
 - JWT in httpOnly cookies only, CSRF token in requests
 - Mobile-first CSS (375px base, scale up)
-- All forms must show loading and error states
+- All forms must show loading and error states — no silent failures Nigerian network latency means users need constant feedback
 - Dynamic `og:image`, `og:title`, `og:description` on vendor profile pages (WhatsApp sharing is a primary discovery channel)
 
 ### Portfolio Upload Flow

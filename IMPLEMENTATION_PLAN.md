@@ -20,23 +20,6 @@ eventtrust/
 
 ---
 
-## Tech Stack
-
-| Layer    | Choice                             | Why                                              |
-| -------- | ---------------------------------- | ------------------------------------------------ |
-| API      | NestJS 11                          | Modular, guards/pipes/interceptors, DI           |
-| Database | Supabase Postgres + Prisma ORM     | Type-safe queries, version-controlled migrations |
-| OTP/SMS  | Termii                             | Nigerian provider, cheaper than Twilio           |
-| Media    | Cloudinary                         | Signed URL uploads, CDN, auto-optimization       |
-| Email    | Resend                             | Free tier: 3,000/month                           |
-| Frontend | Next.js 15 (App Router)            | SSR for SEO, PWA for Android                     |
-| Styling  | Tailwind CSS + shadcn/ui           | Mobile-first, accessible                         |
-| Auth     | Phone OTP → JWT (httpOnly cookies) | Argon2 OTP hashing, refresh token rotation       |
-| Testing  | Vitest, Supertest, Playwright      | Unit, E2E, browser tests                         |
-| CI/CD    | GitHub Actions + Turborepo cache   | Lint → typecheck → test → build                  |
-
----
-
 ## Security Layers
 
 | Layer              | Implementation                                     |
@@ -72,17 +55,6 @@ Full Prisma schema at `apps/api/prisma/schema.prisma`. Key models:
 | AdminLog             | Append-only audit trail                                                            |
 
 Key enums: `ListingType` (SERVICE\|RENTAL), `RentalCategory` (tent\|chairs_tables\|cooking_equipment\|generator\|lighting\|other_rental), `DeliveryOption` (pickup_only\|delivery_only\|both), `SubscriptionTier` (free\|pro\|pro_plus)
-
----
-
-## Key Business Rules
-
-- **Vendor status:** `draft → pending → active | changes_requested | suspended`
-- **Reviews:** One per vendor per client per year. Min 50 chars. Vendor gets one reply (editable 48hrs).
-- **Disputes:** Vendor raises within 72hrs. One appeal within 48hrs.
-- **Search ranking:** `avg_rating × 0.5 + review_count_score × 0.3 + profile_completeness × 0.1 + recency × 0.1`
-- **Phone numbers:** E.164 format (`+234XXXXXXXXXX`)
-- **OTP:** Max 3 requests/phone/10 min. Max 5 verify attempts/OTP.
 
 ---
 
