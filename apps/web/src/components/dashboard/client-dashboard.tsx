@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { LayoutDashboard, MessageSquare, Users, Wallet, FileText } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, Users, Wallet, FileText, UserCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +12,7 @@ import { EnquiriesManager } from './enquiries-manager';
 import { ReceivedInvoicesManager } from './received-invoices-manager';
 import { cn } from '@/lib/utils';
 import type { AuthUser } from '@eventtrust/shared';
+import { ClientProfileSetupSheet } from '@/components/client/client-profile-setup-sheet';
 
 type Tab = 'home' | 'enquiries' | 'invoices' | 'guests' | 'budget';
 
@@ -31,9 +32,11 @@ function ComingSoon({ label }: { label: string }) {
 function HomeOverview({
   user,
   onNavigate,
+  onOpenProfileSheet,
 }: {
   user: AuthUser;
   onNavigate: (tab: Tab) => void;
+  onOpenProfileSheet: () => void;
 }) {
   return (
     <div className="space-y-4 py-4">
@@ -45,6 +48,22 @@ function HomeOverview({
           </Badge>
         </div>
       </div>
+
+      {!user.clientProfileId && (
+        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+          <UserCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-amber-800">Add your name</p>
+            <p className="text-xs text-amber-700">So vendors know who is contacting them.</p>
+          </div>
+          <button
+            onClick={onOpenProfileSheet}
+            className="shrink-0 rounded-md bg-amber-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-amber-700 transition-colors"
+          >
+            Add
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         {(
@@ -106,12 +125,17 @@ const NAV_ITEMS: { tab: Tab; label: string; icon: React.ElementType }[] = [
 
 export function ClientDashboard({ user }: ClientDashboardProps) {
   const [activeTab, setActiveTab] = useState<Tab>('home');
+  const [profileSheetOpen, setProfileSheetOpen] = useState(false);
 
   return (
     <div className="relative">
       <div className="pb-20 px-4">
         {activeTab === 'home' && (
-          <HomeOverview user={user} onNavigate={setActiveTab} />
+          <HomeOverview
+            user={user}
+            onNavigate={setActiveTab}
+            onOpenProfileSheet={() => setProfileSheetOpen(true)}
+          />
         )}
         {activeTab === 'enquiries' && <EnquiriesManager />}
         {activeTab === 'invoices' && <ReceivedInvoicesManager />}
@@ -136,6 +160,12 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
           ))}
         </div>
       </nav>
+
+      <ClientProfileSetupSheet
+        open={profileSheetOpen}
+        onOpenChange={setProfileSheetOpen}
+        onSuccess={() => setProfileSheetOpen(false)}
+      />
     </div>
   );
 }

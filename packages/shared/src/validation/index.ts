@@ -364,6 +364,17 @@ export const confirmLogoUploadSchema = z.object({
   logoUrl: z.string().url(),
 });
 
+// Client Profile
+export const createClientProfileSchema = z.object({
+  displayName: z.string().min(2, 'Display name must be at least 2 characters').max(60, 'Display name must be at most 60 characters'),
+  email: z.string().email('Must be a valid email address').optional(),
+});
+
+export const updateClientProfileSchema = z.object({
+  displayName: z.string().min(2, 'Display name must be at least 2 characters').max(60, 'Display name must be at most 60 characters').optional(),
+  email: z.string().email('Must be a valid email address').optional(),
+});
+
 export const updateInvoiceSchema = z.object({
   clientName: z.string().min(1).max(100).optional(),
   clientPhone: z

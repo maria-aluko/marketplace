@@ -28,6 +28,9 @@ describe('AuthService', () => {
     vendor: {
       findFirst: vi.fn(),
     },
+    clientProfile: {
+      findUnique: vi.fn(),
+    },
     refreshToken: {
       create: vi.fn(),
       findUnique: vi.fn(),
@@ -149,6 +152,7 @@ describe('AuthService', () => {
       mockPrisma.otpRequest.update.mockResolvedValue({});
       mockPrisma.user.findUnique.mockResolvedValue(mockUser);
       mockPrisma.vendor.findFirst.mockResolvedValue(null);
+      mockPrisma.clientProfile.findUnique.mockResolvedValue(null);
       mockPrisma.refreshToken.create.mockResolvedValue({ id: 'rt-1' });
 
       const result = await service.verifyOtp('+2348012345678', '123456');
@@ -198,6 +202,7 @@ describe('AuthService', () => {
       });
       mockPrisma.refreshToken.update.mockResolvedValue({});
       mockPrisma.vendor.findFirst.mockResolvedValue(null);
+      mockPrisma.clientProfile.findUnique.mockResolvedValue(null);
       mockPrisma.refreshToken.create.mockResolvedValue({ id: 'rt-2' });
 
       const result = await service.refreshTokens('valid-token');

@@ -20,6 +20,7 @@ model User {
 
   authIdentities AuthIdentity[]
   vendor         Vendor?
+  clientProfile  ClientProfile?
   reviews        Review[]
   refreshTokens  RefreshToken[]
   budgets        Budget[]
@@ -549,6 +550,21 @@ model InvoiceBranding {
   vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
 
   @@map("invoice_branding")
+}
+
+// ─── Client Profiles ─────────────────────────────────────────────────────────
+
+model ClientProfile {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @unique @map("user_id") @db.Uuid
+  displayName String   @map("display_name")
+  email       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("client_profiles")
 }
 
 // ─── Admin Log ───────────────────────────────────────────────────────────────

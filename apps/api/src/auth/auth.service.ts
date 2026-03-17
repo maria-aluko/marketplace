@@ -115,16 +115,18 @@ export class AuthService {
       });
     }
 
-    // Check for vendor
-    const vendor = await this.prisma.vendor.findFirst({
-      where: { userId: user.id, deletedAt: null },
-    });
+    // Check for vendor and client profile
+    const [vendor, clientProfile] = await Promise.all([
+      this.prisma.vendor.findFirst({ where: { userId: user.id, deletedAt: null } }),
+      this.prisma.clientProfile.findUnique({ where: { userId: user.id } }),
+    ]);
 
     const authUser: AuthUser = {
       id: user.id,
       phone: user.phone,
       role: user.role as any,
       vendorId: vendor?.id,
+      clientProfileId: clientProfile?.id,
     };
 
     const tokens = await this.generateTokens(authUser);
@@ -174,16 +176,18 @@ export class AuthService {
       data: { revokedAt: new Date() },
     });
 
-    // Find vendor
-    const vendor = await this.prisma.vendor.findFirst({
-      where: { userId: storedToken.userId, deletedAt: null },
-    });
+    // Find vendor and client profile
+    const [vendor, clientProfile] = await Promise.all([
+      this.prisma.vendor.findFirst({ where: { userId: storedToken.userId, deletedAt: null } }),
+      this.prisma.clientProfile.findUnique({ where: { userId: storedToken.userId } }),
+    ]);
 
     const authUser: AuthUser = {
       id: storedToken.user.id,
       phone: storedToken.user.phone,
       role: storedToken.user.role as any,
       vendorId: vendor?.id,
+      clientProfileId: clientProfile?.id,
     };
 
     return this.generateTokens(authUser);
@@ -209,7 +213,7 @@ export class AuthService {
     user: AuthUser,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const accessToken = this.jwtService.sign(
-      { sub: user.id, role: user.role, vendorId: user.vendorId },
+      { sub: user.id, role: user.role, vendorId: user.vendorId, clientProfileId: user.clientProfileId },
       { expiresIn: '15m' },
     );
 
@@ -231,15 +235,17 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) return null;
 
-    const vendor = await this.prisma.vendor.findFirst({
-      where: { userId: user.id, deletedAt: null },
-    });
+    const [vendor, clientProfile] = await Promise.all([
+      this.prisma.vendor.findFirst({ where: { userId: user.id, deletedAt: null } }),
+      this.prisma.clientProfile.findUnique({ where: { userId: user.id } }),
+    ]);
 
     return {
       id: user.id,
       phone: user.phone,
       role: user.role as any,
       vendorId: vendor?.id,
+      clientProfileId: clientProfile?.id,
     };
   }
 

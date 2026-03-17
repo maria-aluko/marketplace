@@ -6,13 +6,15 @@ import { OTP_LENGTH } from '@eventtrust/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/use-auth';
+import type { AuthUser } from '@eventtrust/shared';
 
 interface OtpVerifyFormProps {
   phone: string;
   onBack: () => void;
+  onSuccess?: (user: AuthUser) => void;
 }
 
-export function OtpVerifyForm({ phone, onBack }: OtpVerifyFormProps) {
+export function OtpVerifyForm({ phone, onBack, onSuccess }: OtpVerifyFormProps) {
   const [digits, setDigits] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [resendTimer, setResendTimer] = useState(60);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -95,8 +97,12 @@ export function OtpVerifyForm({ phone, onBack }: OtpVerifyFormProps) {
 
     const user = await verifyOtp(phone, code);
     if (user) {
-      const redirect = searchParams.get('redirect') || '/dashboard';
-      router.push(redirect);
+      if (onSuccess) {
+        onSuccess(user);
+      } else {
+        const redirect = searchParams.get('redirect') || '/dashboard';
+        router.push(redirect);
+      }
     }
   };
 

@@ -36,6 +36,27 @@ export interface AuthUser {
   phone: string;
   role: UserRole;
   vendorId?: string;
+  clientProfileId?: string;
+}
+
+// Client Profile
+export interface CreateClientProfilePayload {
+  displayName: string;
+  email?: string;
+}
+
+export interface UpdateClientProfilePayload {
+  displayName?: string;
+  email?: string;
+}
+
+export interface ClientProfileResponse {
+  id: string;
+  userId: string;
+  displayName: string;
+  email?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Vendor
@@ -463,6 +484,7 @@ export interface AccessTokenPayload {
   sub: string;
   role: UserRole;
   vendorId?: string;
+  clientProfileId?: string;
 }
 
 export interface RefreshTokenPayload {
