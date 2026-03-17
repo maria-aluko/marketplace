@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import type { ListingResponse, VendorResponse } from '@eventtrust/shared';
 import { CATEGORY_LABELS, RentalCondition } from '@eventtrust/shared';
-import { ChevronRight, Truck, MapPin, Package, Shield, CheckCircle2, Star } from 'lucide-react';
+import { ChevronRight, Truck, MapPin, Package, Shield, CheckCircle2, Star, ImageOff } from 'lucide-react';
 
 const CONDITION_LABELS: Record<string, string> = {
   [RentalCondition.NEW]: 'New',
@@ -171,10 +171,14 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         </div>
       )}
 
-      {/* Photo carousel */}
-      {listing.photos.length > 0 && (
+      {/* Photo carousel / fallback */}
+      {listing.photos.length > 0 ? (
         <div className="mb-6">
           <PhotoCarousel photos={listing.photos} alt={listing.title} />
+        </div>
+      ) : (
+        <div className="mb-6 flex aspect-[3/2] w-full items-center justify-center rounded-lg bg-surface-100">
+          <ImageOff className="h-12 w-12 text-surface-300" />
         </div>
       )}
 
