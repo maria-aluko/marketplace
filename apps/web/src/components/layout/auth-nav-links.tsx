@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
+import { UserRole } from '@eventtrust/shared';
 
 interface AuthNavLinksProps {
   mobile?: boolean;
@@ -33,6 +34,11 @@ export function AuthNavLinks({ mobile, onLinkClick }: AuthNavLinksProps) {
         <Link href="/dashboard" className={linkClass} onClick={onLinkClick}>
           Dashboard
         </Link>
+        {user?.role?.toLowerCase() === UserRole.ADMIN && (
+          <Link href="/admin" className={linkClass} onClick={onLinkClick}>
+            Admin
+          </Link>
+        )}
         <button
           onClick={() => {
             logout();

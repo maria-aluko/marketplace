@@ -1,14 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { apiClient } from '@/lib/api-client';
 import { ClientDashboard } from '@/components/dashboard/client-dashboard';
 import { VendorDashboard } from '@/components/dashboard/vendor-dashboard';
+import { UserRole } from '@eventtrust/shared';
 import type { VendorResponse } from '@eventtrust/shared';
 
 export default function DashboardPage() {
   const { user, isLoading } = useAuth();
+  const router = useRouter();
   const [vendor, setVendor] = useState<VendorResponse | null>(null);
 
   useEffect(() => {
@@ -20,6 +23,12 @@ export default function DashboardPage() {
       });
     }
   }, [user?.vendorId]);
+
+  useEffect(() => {
+    if (!isLoading && user?.role?.toLowerCase() === UserRole.ADMIN) {
+      router.replace('/admin');
+    }
+  }, [user, isLoading, router]);
 
   if (isLoading) {
     return (

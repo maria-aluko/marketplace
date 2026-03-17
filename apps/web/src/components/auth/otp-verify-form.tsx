@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { OTP_LENGTH } from '@eventtrust/shared';
+import { OTP_LENGTH, UserRole } from '@eventtrust/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/use-auth';
@@ -100,7 +100,8 @@ export function OtpVerifyForm({ phone, onBack, onSuccess }: OtpVerifyFormProps) 
       if (onSuccess) {
         onSuccess(user);
       } else {
-        const redirect = searchParams.get('redirect') || '/dashboard';
+        const redirect = searchParams.get('redirect') ||
+          (user.role?.toLowerCase() === UserRole.ADMIN ? '/admin' : '/dashboard');
         router.push(redirect);
       }
     }
