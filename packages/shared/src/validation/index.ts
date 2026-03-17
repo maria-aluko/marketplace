@@ -138,14 +138,22 @@ export const updateRentalListingSchema = z.object({
 // Review
 export const createReviewSchema = z.object({
   vendorId: z.string().uuid(),
+  invoiceId: z.string().uuid(),
   listingId: z.string().uuid().optional(),
-  invoiceId: z.string().uuid().optional(),
   rating: z.number().int().min(1).max(5),
   body: z.string().min(REVIEW_MIN_BODY_LENGTH).max(2000),
 });
 
 export const createVendorReplySchema = z.object({
   body: z.string().min(10).max(1000),
+});
+
+// Client reviews (vendor → client)
+export const createClientReviewSchema = z.object({
+  clientId: z.string().uuid(),
+  invoiceId: z.string().uuid(),
+  rating: z.number().int().min(1).max(5),
+  body: z.string().max(200).optional(),
 });
 
 // Dispute

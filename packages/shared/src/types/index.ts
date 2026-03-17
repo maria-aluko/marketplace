@@ -195,10 +195,16 @@ export interface ConfirmUploadPayload {
 // Review
 export interface CreateReviewPayload {
   vendorId: string;
+  invoiceId: string;
   listingId?: string;
-  invoiceId?: string;
   rating: number;
   body: string;
+}
+
+export interface ReviewDisputeSummary {
+  id: string;
+  status: DisputeStatus;
+  updatedAt: string;
 }
 
 export interface ReviewResponse {
@@ -211,6 +217,7 @@ export interface ReviewResponse {
   status: ReviewStatus;
   isVerified: boolean;
   reply?: VendorReplyResponse;
+  dispute?: ReviewDisputeSummary;
   createdAt: string;
   updatedAt: string;
 }
@@ -225,6 +232,26 @@ export interface VendorReplyResponse {
 
 export interface CreateVendorReplyPayload {
   body: string;
+}
+
+// Client Review (vendor → client)
+export interface CreateClientReviewPayload {
+  clientId: string;
+  invoiceId: string;
+  rating: number;
+  body?: string;
+}
+
+export interface ClientReviewResponse {
+  id: string;
+  vendorId: string;
+  clientId: string;
+  invoiceId: string;
+  rating: number;
+  body?: string;
+  status: ReviewStatus;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Dispute
@@ -531,9 +558,11 @@ export interface InquiryResponse {
   notes?: string;
   status: InquiryStatus;
   invoiceId?: string;
-  clientPhone?: string;   // populated on vendor-facing queries only
-  clientName?: string;    // populated on vendor-facing queries only
-  listingTitle?: string;  // populated when listingId is set
+  clientPhone?: string;        // populated on vendor-facing queries only
+  clientName?: string;         // populated on vendor-facing queries only
+  listingTitle?: string;       // populated when listingId is set
+  clientTrustScore?: number;   // populated on vendor-facing queries when client has reviews
+  clientReviewCount?: number;  // populated on vendor-facing queries
   createdAt: string;
   updatedAt: string;
 }

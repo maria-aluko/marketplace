@@ -11,8 +11,8 @@ interface WriteReviewButtonProps {
 export function WriteReviewButton({ vendorId }: WriteReviewButtonProps) {
   const { user, isAuthenticated } = useAuth();
 
-  // Vendors should not review other vendors from this button
-  if (user?.vendorId) return null;
+  // Only hide the button when viewing own vendor profile
+  if (user?.vendorId === vendorId) return null;
 
   if (!isAuthenticated) {
     return (

@@ -24,6 +24,9 @@ describe('ReviewsService', () => {
     user: {
       findUnique: vi.fn(),
     },
+    invoice: {
+      findFirst: vi.fn(),
+    },
     vendorReply: {
       create: vi.fn(),
       update: vi.fn(),
@@ -83,15 +86,28 @@ describe('ReviewsService', () => {
     vi.clearAllMocks();
   });
 
+  const makeInvoice = (overrides?: any) => ({
+    id: 'invoice-1',
+    vendorId: 'vendor-1',
+    clientId: 'client-1',
+    clientPhone: '+2348012345678',
+    status: 'CONFIRMED',
+    ...overrides,
+  });
+
   describe('create', () => {
     it('should create review with PENDING status', async () => {
-      mockPrisma.review.findFirst.mockResolvedValue(null); // no existing review
+      mockPrisma.review.findFirst
+        .mockResolvedValueOnce(null) // no existing vendor review this month
+        .mockResolvedValueOnce(null); // no duplicate invoice review
+      mockPrisma.invoice.findFirst.mockResolvedValue(makeInvoice());
+      mockPrisma.user.findUnique.mockResolvedValue({ phone: '+2348012345678' });
       mockPrisma.vendor.findFirst.mockResolvedValue({ id: 'vendor-1', userId: 'vendor-user-1' });
       mockPrisma.review.create.mockResolvedValue(makeReview());
-      mockPrisma.user.findUnique.mockResolvedValue({ phone: '+2348012345678' });
 
       const result = await service.create('client-1', {
         vendorId: 'vendor-1',
+        invoiceId: 'invoice-1',
         rating: 4,
         body: 'Great service, highly recommend this vendor for events in Lagos!',
       });
@@ -100,7 +116,7 @@ describe('ReviewsService', () => {
       expect(result.status).toBe('pending');
       expect(mockPrisma.review.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({ status: 'PENDING' }),
+          data: expect.objectContaining({ status: 'PENDING', invoiceId: 'invoice-1' }),
         }),
       );
       expect(mockAudit.log).toHaveBeenCalledWith(
@@ -108,41 +124,89 @@ describe('ReviewsService', () => {
       );
     });
 
-    it('should reject duplicate review in same calendar year', async () => {
+    it('should reject duplicate review in same calendar month', async () => {
       mockPrisma.review.findFirst.mockResolvedValue(makeReview());
 
       await expect(
         service.create('client-1', {
           vendorId: 'vendor-1',
+          invoiceId: 'invoice-1',
           rating: 5,
           body: 'Another review that should be rejected since one already exists.',
         }),
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('should allow review in new calendar year', async () => {
-      // Simulate no existing review this year
+    it('should reject review when invoice does not exist', async () => {
+      mockPrisma.review.findFirst.mockResolvedValue(null); // no existing review
+      mockPrisma.invoice.findFirst.mockResolvedValue(null); // invoice not found
+
+      await expect(
+        service.create('client-1', {
+          vendorId: 'vendor-1',
+          invoiceId: 'invoice-999',
+          rating: 4,
+          body: 'Review for an invoice that does not exist in the system.',
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should reject review when invoice belongs to a different vendor', async () => {
       mockPrisma.review.findFirst.mockResolvedValue(null);
-      mockPrisma.vendor.findFirst.mockResolvedValue({ id: 'vendor-1', userId: 'vendor-user-1' });
-      mockPrisma.review.create.mockResolvedValue(makeReview());
+      mockPrisma.invoice.findFirst.mockResolvedValue(makeInvoice({ vendorId: 'vendor-other' }));
+
+      await expect(
+        service.create('client-1', {
+          vendorId: 'vendor-1',
+          invoiceId: 'invoice-1',
+          rating: 4,
+          body: 'Review with mismatched vendor on the invoice provided.',
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should reject review when invoice status is DRAFT', async () => {
+      mockPrisma.review.findFirst.mockResolvedValue(null);
+      mockPrisma.invoice.findFirst.mockResolvedValue(makeInvoice({ status: 'DRAFT' }));
       mockPrisma.user.findUnique.mockResolvedValue({ phone: '+2348012345678' });
 
-      const result = await service.create('client-1', {
-        vendorId: 'vendor-1',
-        rating: 4,
-        body: 'This is a valid review for this year, exceeding the minimum length.',
-      });
+      await expect(
+        service.create('client-1', {
+          vendorId: 'vendor-1',
+          invoiceId: 'invoice-1',
+          rating: 4,
+          body: 'Review for an invoice that has not been confirmed yet.',
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
 
-      expect(result).toBeDefined();
+    it('should reject duplicate review for same invoice', async () => {
+      mockPrisma.review.findFirst
+        .mockResolvedValueOnce(null) // no existing vendor review this month
+        .mockResolvedValueOnce(makeReview()); // duplicate invoice review
+      mockPrisma.invoice.findFirst.mockResolvedValue(makeInvoice());
+      mockPrisma.user.findUnique.mockResolvedValue({ phone: '+2348012345678' });
+
+      await expect(
+        service.create('client-1', {
+          vendorId: 'vendor-1',
+          invoiceId: 'invoice-1',
+          rating: 4,
+          body: 'Attempting to submit a second review for the same invoice.',
+        }),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw NotFoundException if vendor not found', async () => {
       mockPrisma.review.findFirst.mockResolvedValue(null);
+      mockPrisma.invoice.findFirst.mockResolvedValue(makeInvoice());
+      mockPrisma.user.findUnique.mockResolvedValue({ phone: '+2348012345678' });
       mockPrisma.vendor.findFirst.mockResolvedValue(null);
 
       await expect(
         service.create('client-1', {
           vendorId: 'vendor-999',
+          invoiceId: 'invoice-1',
           rating: 4,
           body: 'Review for a vendor that does not exist in the system.',
         }),

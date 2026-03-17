@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { ReviewResponse } from '@eventtrust/shared';
-import { createVendorReplySchema, VENDOR_REPLY_EDIT_WINDOW_HOURS } from '@eventtrust/shared';
+import { createVendorReplySchema, VENDOR_REPLY_EDIT_WINDOW_HOURS, DISPUTE_RAISE_WINDOW_HOURS, DISPUTE_APPEAL_WINDOW_HOURS } from '@eventtrust/shared';
 import { apiClient } from '@/lib/api-client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { StarRating } from '@/components/ui/star-rating';
+import { DisputeForm } from './dispute-form';
 
 interface ReviewsManagerProps {
   vendorId: string;
@@ -27,6 +29,25 @@ function isWithinEditWindow(createdAt: string): boolean {
   return Date.now() - created < windowMs;
 }
 
+function isWithinDisputeWindow(updatedAt: string): boolean {
+  const updated = new Date(updatedAt).getTime();
+  const windowMs = DISPUTE_RAISE_WINDOW_HOURS * 60 * 60 * 1000;
+  return Date.now() - updated < windowMs;
+}
+
+function isWithinAppealWindow(updatedAt: string): boolean {
+  const updated = new Date(updatedAt).getTime();
+  const windowMs = DISPUTE_APPEAL_WINDOW_HOURS * 60 * 60 * 1000;
+  return Date.now() - updated < windowMs;
+}
+
+const DISPUTE_STATUS_LABELS: Record<string, string> = {
+  open: 'Dispute: Open',
+  decided: 'Dispute: Decided',
+  appealed: 'Dispute: Under Appeal',
+  closed: 'Dispute: Closed',
+};
+
 export function ReviewsManager({ vendorId }: ReviewsManagerProps) {
   const [reviews, setReviews] = useState<ReviewResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +56,8 @@ export function ReviewsManager({ vendorId }: ReviewsManagerProps) {
   const [replyBody, setReplyBody] = useState('');
   const [replyError, setReplyError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [disputingReview, setDisputingReview] = useState<string | null>(null);
+  const [appealingDispute, setAppealingDispute] = useState<string | null>(null);
 
   const loadReviews = useCallback(async () => {
     setLoading(true);
@@ -110,12 +133,24 @@ export function ReviewsManager({ vendorId }: ReviewsManagerProps) {
               const canReply = !review.reply;
               const canEdit = review.reply && isWithinEditWindow(review.reply.createdAt);
               const editExpired = review.reply && !isWithinEditWindow(review.reply.createdAt);
+              const canDispute =
+                review.status === 'approved' &&
+                !review.dispute &&
+                isWithinDisputeWindow(review.updatedAt);
+              const canAppeal =
+                review.dispute?.status === 'decided' &&
+                isWithinAppealWindow(review.dispute.updatedAt);
 
               return (
                 <div key={review.id} className="border-b border-surface-100 pb-6 last:border-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <StarRating value={review.rating} readonly size="sm" />
                     <span className="text-xs text-surface-500">{formatDate(review.createdAt)}</span>
+                    {review.dispute && (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                        {DISPUTE_STATUS_LABELS[review.dispute.status] ?? 'Dispute'}
+                      </Badge>
+                    )}
                   </div>
                   <p className="mt-2 text-sm text-surface-700">{review.body}</p>
 
@@ -201,6 +236,53 @@ export function ReviewsManager({ vendorId }: ReviewsManagerProps) {
                     >
                       Reply
                     </Button>
+                  )}
+
+                  {/* File Dispute button */}
+                  {canDispute && disputingReview !== review.id && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="mt-2 ml-1 text-amber-600 hover:text-amber-700"
+                      onClick={() => setDisputingReview(review.id)}
+                    >
+                      File Dispute
+                    </Button>
+                  )}
+
+                  {/* Dispute form */}
+                  {disputingReview === review.id && (
+                    <div className="mt-3">
+                      <DisputeForm
+                        reviewId={review.id}
+                        onSuccess={() => { setDisputingReview(null); loadReviews(); }}
+                        onCancel={() => setDisputingReview(null)}
+                      />
+                    </div>
+                  )}
+
+                  {/* Appeal button */}
+                  {canAppeal && appealingDispute !== review.dispute!.id && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="mt-2 ml-1 text-blue-600 hover:text-blue-700"
+                      onClick={() => setAppealingDispute(review.dispute!.id)}
+                    >
+                      Appeal Decision
+                    </Button>
+                  )}
+
+                  {/* Appeal form */}
+                  {review.dispute && appealingDispute === review.dispute.id && (
+                    <div className="mt-3">
+                      <DisputeForm
+                        disputeId={review.dispute.id}
+                        isAppeal
+                        onSuccess={() => { setAppealingDispute(null); loadReviews(); }}
+                        onCancel={() => setAppealingDispute(null)}
+                      />
+                    </div>
                   )}
                 </div>
               );

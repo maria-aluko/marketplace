@@ -23,7 +23,8 @@
       "Bash(cd C:/Users/maria/Desktop/Projects/naijaDev/apps/web && pnpm vitest run src/components/reviews/review-form.test.tsx 2>&1 | grep -E \"✓|×|Error|Received|toBeDisabled|fill-yellow\" | head -20)",
       "Bash(cd C:/Users/maria/Desktop/Projects/naijaDev/apps/web && pnpm vitest run src/components/reviews/review-form.test.tsx --reporter verbose 2>&1 | grep -E \"✓|×\" | head -10)",
       "Bash(cd:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(pnpm test:*)"
     ]
   }
 }

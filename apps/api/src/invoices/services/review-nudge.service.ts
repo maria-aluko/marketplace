@@ -39,7 +39,7 @@ export class ReviewNudgeService {
 
     for (const invoice of invoices) {
       try {
-        const reviewUrl = `${process.env.WEB_URL || 'https://eventtrust.com.ng'}/vendors/${invoice.vendorId}/review`;
+        const reviewUrl = `${process.env.WEB_URL || 'https://eventtrust.com.ng'}/reviews/new/${invoice.vendorId}?invoiceId=${invoice.id}`;
         const message = `Hi! How was your event with ${invoice.vendor.businessName}? Share your experience: ${reviewUrl}`;
 
         await this.notificationsService.sendSms(invoice.clientPhone!, message);

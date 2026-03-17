@@ -21,6 +21,7 @@ import { InquiriesModule } from './inquiries/inquiries.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { InvoiceBrandingModule } from './invoice-branding/invoice-branding.module';
 import { ClientsModule } from './clients/clients.module';
+import { DisputesModule } from './disputes/disputes.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { CsrfMiddleware } from './common/middleware/csrf.middleware';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
@@ -60,6 +61,7 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
     InvoicesModule,
     InvoiceBrandingModule,
     ClientsModule,
+    DisputesModule,
   ],
   providers: [
     {

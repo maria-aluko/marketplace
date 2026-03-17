@@ -41,6 +41,12 @@ export function ReviewsList({ reviews, vendorId }: ReviewsListProps) {
           </div>
           <p className="mt-2 text-sm text-surface-700">{review.body}</p>
 
+          {review.dispute && (
+            <p className="mt-2 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+              This review has an active dispute.
+            </p>
+          )}
+
           {review.reply && (
             <div className="mt-3 ml-4 border-l-2 border-surface-200 pl-4">
               <p className="text-xs font-medium text-surface-500">Vendor reply</p>

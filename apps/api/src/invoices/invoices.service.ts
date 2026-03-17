@@ -323,13 +323,33 @@ export class InvoicesService {
     return invoices.map((i: any) => this.toSummaryResponse(i));
   }
 
-  async findByClient(clientId: string): Promise<InvoiceSummaryResponse[]> {
+  async findByClient(
+    clientId: string,
+    vendorId?: string,
+    statuses?: string[],
+  ): Promise<InvoiceSummaryResponse[]> {
+    const where: any = { clientId };
+    if (vendorId) where.vendorId = vendorId;
+    if (statuses && statuses.length > 0) where.status = { in: statuses };
+
     const invoices = await this.prisma.invoice.findMany({
-      where: { clientId },
+      where,
       orderBy: { createdAt: 'desc' },
       include: { vendor: { select: { businessName: true } } },
     });
     return invoices.map((i: any) => this.toSummaryResponse(i));
+  }
+
+  async findByClientAndId(clientId: string, invoiceId: string): Promise<InvoiceResponse | null> {
+    const invoice = await this.prisma.invoice.findFirst({
+      where: { id: invoiceId, clientId },
+      include: {
+        items: { orderBy: { sortOrder: 'asc' } },
+        vendor: { include: { invoiceBranding: true } },
+      },
+    });
+
+    return invoice ? this.toResponse(invoice) : null;
   }
 
   async getFunnel(vendorId: string): Promise<VendorFunnelResponse> {

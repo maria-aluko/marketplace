@@ -86,15 +86,42 @@ export class ReviewsService {
       throw new NotFoundException('Vendor not found or not active');
     }
 
-    // Validate invoiceId ownership if provided
-    if (data.invoiceId) {
-      const invoice = await this.prisma.invoice.findFirst({
-        where: { id: data.invoiceId, vendorId: data.vendorId, clientId },
-        select: { id: true },
-      });
-      if (!invoice) {
-        throw new BadRequestException('Invoice not found or does not belong to this booking');
-      }
+    // Validate invoice — ownership, vendor match, and eligible status
+    const invoice = await this.prisma.invoice.findFirst({
+      where: { id: data.invoiceId },
+      select: { id: true, vendorId: true, clientId: true, clientPhone: true, status: true },
+    });
+
+    if (!invoice) {
+      throw new BadRequestException('Invoice not found');
+    }
+
+    if (invoice.vendorId !== data.vendorId) {
+      throw new BadRequestException('Invoice does not belong to this vendor');
+    }
+
+    const clientMatch =
+      invoice.clientId === clientId ||
+      (invoice.clientPhone != null &&
+        invoice.clientPhone ===
+          (await this.prisma.user.findUnique({ where: { id: clientId }, select: { phone: true } }))
+            ?.phone);
+
+    if (!clientMatch) {
+      throw new BadRequestException('Invoice does not belong to this client');
+    }
+
+    const eligibleStatuses = ['CONFIRMED', 'COMPLETED'];
+    if (!eligibleStatuses.includes(invoice.status)) {
+      throw new BadRequestException('Invoice must be CONFIRMED or COMPLETED before leaving a review');
+    }
+
+    // Prevent duplicate review for same invoice
+    const existingInvoiceReview = await this.prisma.review.findFirst({
+      where: { invoiceId: data.invoiceId, deletedAt: null },
+    });
+    if (existingInvoiceReview) {
+      throw new BadRequestException('A review has already been submitted for this invoice');
     }
 
     const review = await this.prisma.review.create({
@@ -102,12 +129,12 @@ export class ReviewsService {
         vendorId: data.vendorId,
         clientId,
         listingId: data.listingId ?? null,
-        invoiceId: data.invoiceId ?? null,
+        invoiceId: data.invoiceId,
         rating: data.rating,
         body: data.body,
         status: 'PENDING',
       },
-      include: { reply: true },
+      include: { reply: true, dispute: { select: { id: true, status: true, updatedAt: true } } },
     });
 
     await this.auditService.log({
@@ -141,7 +168,7 @@ export class ReviewsService {
 
     const reviews = await this.prisma.review.findMany({
       where,
-      include: { reply: true },
+      include: { reply: true, dispute: { select: { id: true, status: true, updatedAt: true } } },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -151,7 +178,7 @@ export class ReviewsService {
   async findById(reviewId: string): Promise<ReviewResponse | null> {
     const review = await this.prisma.review.findFirst({
       where: { id: reviewId, deletedAt: null },
-      include: { reply: true },
+      include: { reply: true, dispute: { select: { id: true, status: true, updatedAt: true } } },
     });
 
     return review ? this.toResponse(review) : null;
@@ -169,7 +196,7 @@ export class ReviewsService {
     const updated = await this.prisma.review.update({
       where: { id: reviewId },
       data: { status: 'APPROVED' },
-      include: { reply: true },
+      include: { reply: true, dispute: { select: { id: true, status: true, updatedAt: true } } },
     });
 
     await this.reviewScoreService.recalculate(review.vendorId);
@@ -216,7 +243,7 @@ export class ReviewsService {
     const updated = await this.prisma.review.update({
       where: { id: reviewId },
       data: { status: 'REJECTED' },
-      include: { reply: true },
+      include: { reply: true, dispute: { select: { id: true, status: true, updatedAt: true } } },
     });
 
     await this.auditService.log({
@@ -267,7 +294,7 @@ export class ReviewsService {
   ): Promise<VendorReplyResponse> {
     const review = await this.prisma.review.findFirst({
       where: { id: reviewId, deletedAt: null },
-      include: { reply: true },
+      include: { reply: true, dispute: { select: { id: true, status: true, updatedAt: true } } },
     });
 
     if (!review) {
@@ -308,7 +335,7 @@ export class ReviewsService {
   ): Promise<VendorReplyResponse> {
     const review = await this.prisma.review.findFirst({
       where: { id: reviewId, deletedAt: null },
-      include: { reply: true },
+      include: { reply: true, dispute: { select: { id: true, status: true, updatedAt: true } } },
     });
 
     if (!review) {
@@ -362,7 +389,7 @@ export class ReviewsService {
     const [reviews, total] = await Promise.all([
       this.prisma.review.findMany({
         where,
-        include: { reply: true },
+        include: { reply: true, dispute: { select: { id: true, status: true, updatedAt: true } } },
         orderBy: { createdAt: 'desc' },
         take: limit + 1,
       }),
@@ -391,6 +418,13 @@ export class ReviewsService {
       status: review.status.toLowerCase() as any,
       isVerified: review.invoiceId != null,
       reply: review.reply ? this.toReplyResponse(review.reply) : undefined,
+      dispute: review.dispute
+        ? {
+            id: review.dispute.id,
+            status: review.dispute.status.toLowerCase() as any,
+            updatedAt: review.dispute.updatedAt.toISOString(),
+          }
+        : undefined,
       createdAt: review.createdAt.toISOString(),
       updatedAt: review.updatedAt.toISOString(),
     };

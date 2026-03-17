@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -187,9 +188,14 @@ export function InvoiceView({ invoice: initialInvoice, vendorName }: InvoiceView
       {/* CTA */}
       <div className="mt-6">
         {confirmed ? (
-          <div className="flex items-center justify-center gap-2 rounded-lg bg-green-50 border border-green-200 p-4 text-green-700">
-            <CheckCircle2 className="h-5 w-5" />
-            <p className="font-medium">Booking Confirmed!</p>
+          <div className="space-y-3">
+            <div className="flex items-center justify-center gap-2 rounded-lg bg-green-50 border border-green-200 p-4 text-green-700">
+              <CheckCircle2 className="h-5 w-5" />
+              <p className="font-medium">Booking Confirmed!</p>
+            </div>
+            <Link href={`/reviews/new/${invoice.vendorId}?invoiceId=${invoice.id}`}>
+              <Button variant="outline" className="w-full">Write a Review</Button>
+            </Link>
           </div>
         ) : canConfirm ? (
           <div className="space-y-2">

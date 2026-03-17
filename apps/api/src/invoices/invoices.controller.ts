@@ -5,9 +5,11 @@ import {
   Patch,
   Param,
   Body,
+  Query,
   HttpCode,
   HttpStatus,
   UseGuards,
+  NotFoundException,
 } from '@nestjs/common';
 import { InvoicesService } from './invoices.service';
 import { InvoiceOwnerGuard } from './guards/invoice-owner.guard';
@@ -105,8 +107,23 @@ export class ClientInvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
 
   @Get()
-  async findByClient(@CurrentUser() user: AccessTokenPayload) {
-    const invoices = await this.invoicesService.findByClient(user.sub);
+  async findByClient(
+    @CurrentUser() user: AccessTokenPayload,
+    @Query('vendorId') vendorId?: string,
+    @Query('status') status?: string,
+  ) {
+    const statuses = status ? status.split(',') : undefined;
+    const invoices = await this.invoicesService.findByClient(user.sub, vendorId, statuses);
     return { data: invoices };
+  }
+
+  @Get(':id')
+  async findByClientAndId(
+    @Param('id') id: string,
+    @CurrentUser() user: AccessTokenPayload,
+  ) {
+    const invoice = await this.invoicesService.findByClientAndId(user.sub, id);
+    if (!invoice) throw new NotFoundException('Invoice not found');
+    return { data: invoice };
   }
 }

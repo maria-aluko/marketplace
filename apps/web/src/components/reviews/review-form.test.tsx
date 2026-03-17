@@ -16,14 +16,14 @@ describe('ReviewForm', () => {
   });
 
   it('renders rating and body fields', () => {
-    render(<ReviewForm vendorId="00000000-0000-0000-0000-000000000001" vendorName="Test Vendor" vendorSlug="test-vendor" />);
+    render(<ReviewForm vendorId="00000000-0000-0000-0000-000000000001" vendorName="Test Vendor" vendorSlug="test-vendor" invoiceId="00000000-0000-0000-0000-000000000099" />);
     expect(screen.getByText('Rating')).toBeInTheDocument();
     expect(screen.getByLabelText('Your Review')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /submit review/i })).toBeInTheDocument();
   });
 
   it('validates minimum body length', async () => {
-    render(<ReviewForm vendorId="00000000-0000-0000-0000-000000000001" vendorName="Test Vendor" vendorSlug="test-vendor" />);
+    render(<ReviewForm vendorId="00000000-0000-0000-0000-000000000001" vendorName="Test Vendor" vendorSlug="test-vendor" invoiceId="00000000-0000-0000-0000-000000000099" />);
 
     // Set rating
     fireEvent.click(screen.getByLabelText('4 stars'));
@@ -40,7 +40,7 @@ describe('ReviewForm', () => {
   });
 
   it('validates rating is required', async () => {
-    render(<ReviewForm vendorId="00000000-0000-0000-0000-000000000001" vendorName="Test Vendor" vendorSlug="test-vendor" />);
+    render(<ReviewForm vendorId="00000000-0000-0000-0000-000000000001" vendorName="Test Vendor" vendorSlug="test-vendor" invoiceId="00000000-0000-0000-0000-000000000099" />);
 
     fireEvent.change(screen.getByLabelText('Your Review'), {
       target: { value: 'A'.repeat(60) },
@@ -56,7 +56,7 @@ describe('ReviewForm', () => {
   it('submits review and shows success', async () => {
     mockPost.mockResolvedValue({ success: true, data: {} });
 
-    render(<ReviewForm vendorId="00000000-0000-0000-0000-000000000001" vendorName="Test Vendor" vendorSlug="test-vendor" />);
+    render(<ReviewForm vendorId="00000000-0000-0000-0000-000000000001" vendorName="Test Vendor" vendorSlug="test-vendor" invoiceId="00000000-0000-0000-0000-000000000099" />);
 
     // Click 4th star - verify it's enabled first
     const starBtn = screen.getByLabelText('4 stars');
@@ -93,7 +93,7 @@ describe('ReviewForm', () => {
       error: 'You have already reviewed this vendor this year',
     });
 
-    render(<ReviewForm vendorId="00000000-0000-0000-0000-000000000001" vendorName="Test Vendor" vendorSlug="test-vendor" />);
+    render(<ReviewForm vendorId="00000000-0000-0000-0000-000000000001" vendorName="Test Vendor" vendorSlug="test-vendor" invoiceId="00000000-0000-0000-0000-000000000099" />);
 
     fireEvent.click(screen.getByLabelText('4 stars'));
     fireEvent.change(screen.getByLabelText('Your Review'), {

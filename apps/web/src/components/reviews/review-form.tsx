@@ -13,9 +13,11 @@ interface ReviewFormProps {
   vendorId: string;
   vendorName: string;
   vendorSlug: string;
+  invoiceId: string;
+  invoiceNumber?: string;
 }
 
-export function ReviewForm({ vendorId, vendorName, vendorSlug }: ReviewFormProps) {
+export function ReviewForm({ vendorId, vendorName, vendorSlug, invoiceId, invoiceNumber }: ReviewFormProps) {
   const [rating, setRating] = useState(0);
   const [body, setBody] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -28,7 +30,7 @@ export function ReviewForm({ vendorId, vendorName, vendorSlug }: ReviewFormProps
     setErrors({});
     setApiError(null);
 
-    const result = createReviewSchema.safeParse({ vendorId, rating, body });
+    const result = createReviewSchema.safeParse({ vendorId, invoiceId, rating, body });
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
       for (const issue of result.error.issues) {
@@ -40,7 +42,7 @@ export function ReviewForm({ vendorId, vendorName, vendorSlug }: ReviewFormProps
     }
 
     setSubmitting(true);
-    const response = await apiClient.post('/reviews', { vendorId, rating, body });
+    const response = await apiClient.post('/reviews', { vendorId, invoiceId, rating, body });
     setSubmitting(false);
 
     if (!response.success) {
@@ -69,6 +71,14 @@ export function ReviewForm({ vendorId, vendorName, vendorSlug }: ReviewFormProps
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {invoiceNumber && (
+        <div className="rounded-md bg-surface-50 border border-surface-200 px-3 py-2">
+          <p className="text-xs text-surface-500">
+            Booking: <span className="font-medium text-surface-700">#{invoiceNumber}</span>
+          </p>
+        </div>
+      )}
+
       <div>
         <Label>Rating</Label>
         <div className="mt-1">

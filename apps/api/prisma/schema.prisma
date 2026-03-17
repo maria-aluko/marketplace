@@ -11,12 +11,14 @@ datasource db {
 // ─── Users ───────────────────────────────────────────────────────────────────
 
 model User {
-  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  phone     String    @unique
-  role      UserRole  @default(CLIENT)
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phone            String    @unique
+  role             UserRole  @default(CLIENT)
+  clientTrustScore Float     @default(0) @map("client_trust_score")
+  clientReviewCount Int      @default(0) @map("client_review_count")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
 
   authIdentities AuthIdentity[]
   vendor         Vendor?
@@ -27,6 +29,7 @@ model User {
   guestLists     GuestList[]
   inquiries      Inquiry[]
   invoices       Invoice[]
+  clientReviews  ClientReview[]
 
   @@map("users")
 }
@@ -127,6 +130,7 @@ model Vendor {
   inquiries        Inquiry[]
   invoices         Invoice[]
   invoiceBranding  InvoiceBranding?
+  clientReviews    ClientReview[]
 
   @@index([status, avgRating])
   @@index([category, area])
@@ -258,6 +262,27 @@ enum DisputeStatus {
   CLOSED
 
   @@map("dispute_status")
+}
+
+// ─── Client Reviews (vendor → client) ────────────────────────────────────────
+
+model ClientReview {
+  id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vendorId  String       @map("vendor_id") @db.Uuid
+  clientId  String       @map("client_id") @db.Uuid
+  invoiceId String       @unique @map("invoice_id") @db.Uuid
+  rating    Int
+  body      String?
+  status    ReviewStatus @default(PENDING)
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  vendor  Vendor  @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  client  User    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([clientId, status])
+  @@map("client_reviews")
 }
 
 // ─── Listings ────────────────────────────────────────────────────────────────
@@ -498,11 +523,12 @@ model Invoice {
   createdAt         DateTime      @default(now()) @map("created_at")
   updatedAt         DateTime      @updatedAt @map("updated_at")
 
-  vendor  Vendor        @relation(fields: [vendorId], references: [id], onDelete: Cascade)
-  client  User?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
-  inquiry Inquiry?
-  items   InvoiceItem[]
-  reviews Review[]
+  vendor       Vendor        @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  client       User?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  inquiry      Inquiry?
+  items        InvoiceItem[]
+  reviews      Review[]
+  clientReview ClientReview?
 
   @@index([vendorId, status])
   @@index([eventDate, status])

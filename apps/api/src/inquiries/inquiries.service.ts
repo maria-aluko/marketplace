@@ -57,6 +57,8 @@ export class InquiriesService {
         client: {
           select: {
             phone: true,
+            clientTrustScore: true,
+            clientReviewCount: true,
             clientProfile: { select: { displayName: true } },
           },
         },
@@ -136,6 +138,8 @@ export class InquiriesService {
       clientPhone: inquiry.client?.phone ?? undefined,
       clientName: inquiry.client?.clientProfile?.displayName ?? undefined,
       listingTitle: inquiry.listing?.title ?? undefined,
+      clientTrustScore: inquiry.client?.clientTrustScore ?? undefined,
+      clientReviewCount: inquiry.client?.clientReviewCount ?? undefined,
       createdAt: inquiry.createdAt.toISOString(),
       updatedAt: inquiry.updatedAt.toISOString(),
     };

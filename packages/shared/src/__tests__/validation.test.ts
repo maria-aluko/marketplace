@@ -90,18 +90,31 @@ describe('createVendorSchema', () => {
 });
 
 describe('createReviewSchema', () => {
-  it('accepts valid review', () => {
+  const INVOICE_ID = '660e8400-e29b-41d4-a716-446655440001';
+
+  it('accepts valid review with invoiceId', () => {
     const result = createReviewSchema.safeParse({
       vendorId: '550e8400-e29b-41d4-a716-446655440000',
+      invoiceId: INVOICE_ID,
       rating: 5,
       body: 'This vendor provided excellent service. Would definitely recommend to anyone looking for quality catering.',
     });
     expect(result.success).toBe(true);
   });
 
+  it('rejects review missing invoiceId', () => {
+    const result = createReviewSchema.safeParse({
+      vendorId: '550e8400-e29b-41d4-a716-446655440000',
+      rating: 5,
+      body: 'This vendor provided excellent service. Would definitely recommend to anyone looking for quality catering.',
+    });
+    expect(result.success).toBe(false);
+  });
+
   it('rejects review body under 50 chars', () => {
     const result = createReviewSchema.safeParse({
       vendorId: '550e8400-e29b-41d4-a716-446655440000',
+      invoiceId: INVOICE_ID,
       rating: 5,
       body: 'Too short',
     });
@@ -111,6 +124,7 @@ describe('createReviewSchema', () => {
   it('rejects rating outside 1-5', () => {
     const result = createReviewSchema.safeParse({
       vendorId: '550e8400-e29b-41d4-a716-446655440000',
+      invoiceId: INVOICE_ID,
       rating: 6,
       body: 'This is a long enough review body that should pass the minimum character requirement.',
     });
