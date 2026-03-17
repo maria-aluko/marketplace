@@ -10,6 +10,7 @@ import type { InvoiceResponse, CreateInvoicePayload, CreateInvoiceItemPayload } 
 interface InvoiceGeneratorProps {
   vendorId: string;
   prefill?: {
+    clientName?: string;
     clientPhone?: string;
     inquiryId?: string;
     listingTitle?: string;
@@ -32,7 +33,7 @@ export function InvoiceGenerator({ vendorId, prefill, onCreated, onCancel }: Inv
   const [error, setError] = useState<string | null>(null);
 
   // Step 1: client info
-  const [clientName, setClientName] = useState('');
+  const [clientName, setClientName] = useState(prefill?.clientName ?? '');
   const [clientPhone, setClientPhone] = useState(prefill?.clientPhone ?? '');
   const [clientEmail, setClientEmail] = useState('');
   const [eventDate, setEventDate] = useState('');

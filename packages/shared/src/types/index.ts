@@ -532,6 +532,7 @@ export interface InquiryResponse {
   status: InquiryStatus;
   invoiceId?: string;
   clientPhone?: string;   // populated on vendor-facing queries only
+  clientName?: string;    // populated on vendor-facing queries only
   listingTitle?: string;  // populated when listingId is set
   createdAt: string;
   updatedAt: string;

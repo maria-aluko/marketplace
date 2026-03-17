@@ -165,6 +165,7 @@ export function BookingsManager({ vendorId }: BookingsManagerProps) {
           prefill={
             selectedInquiry
               ? {
+                  clientName: selectedInquiry.clientName,
                   clientPhone: selectedInquiry.clientPhone,
                   inquiryId: selectedInquiry.id,
                   listingTitle: selectedInquiry.listingTitle,
@@ -300,6 +301,10 @@ export function BookingsManager({ vendorId }: BookingsManagerProps) {
                     </Badge>
                     <span className="text-xs text-surface-400">{formatDate(inquiry.createdAt)}</span>
                   </div>
+
+                  {inquiry.clientName && (
+                    <p className="text-sm font-semibold text-surface-900">{inquiry.clientName}</p>
+                  )}
 
                   {inquiry.clientPhone && (
                     <div className="flex items-center gap-2">

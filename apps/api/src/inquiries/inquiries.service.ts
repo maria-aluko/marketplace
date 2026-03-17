@@ -54,7 +54,12 @@ export class InquiriesService {
       where: { vendorId },
       orderBy: { createdAt: 'desc' },
       include: {
-        client: { select: { phone: true } },
+        client: {
+          select: {
+            phone: true,
+            clientProfile: { select: { displayName: true } },
+          },
+        },
         listing: { select: { title: true } },
       },
     });
@@ -129,6 +134,7 @@ export class InquiriesService {
       status: inquiry.status,
       invoiceId: inquiry.invoiceId ?? undefined,
       clientPhone: inquiry.client?.phone ?? undefined,
+      clientName: inquiry.client?.clientProfile?.displayName ?? undefined,
       listingTitle: inquiry.listing?.title ?? undefined,
       createdAt: inquiry.createdAt.toISOString(),
       updatedAt: inquiry.updatedAt.toISOString(),
