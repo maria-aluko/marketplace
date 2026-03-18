@@ -38,6 +38,11 @@ export function ReviewsList({ reviews, vendorId }: ReviewsListProps) {
                 Verified Booking
               </Badge>
             )}
+            {review.listingTitle && (
+              <span className="text-xs text-surface-500 bg-surface-100 px-1.5 py-0.5 rounded">
+                re: {review.listingTitle}
+              </span>
+            )}
           </div>
           <p className="mt-2 text-sm text-surface-700">{review.body}</p>
 

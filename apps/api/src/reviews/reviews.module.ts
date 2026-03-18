@@ -5,6 +5,7 @@ import { ClientReviewService } from './services/client-review.service';
 import {
   ReviewsController,
   VendorReviewsController,
+  ListingReviewsController,
   ReviewReplyController,
   AdminReviewsController,
   ClientReviewsController,
@@ -17,7 +18,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [AuditModule, NotificationsModule],
-  controllers: [ReviewsController, VendorReviewsController, ReviewReplyController, AdminReviewsController, ClientReviewsController, AdminClientReviewsController],
+  controllers: [ReviewsController, VendorReviewsController, ListingReviewsController, ReviewReplyController, AdminReviewsController, ClientReviewsController, AdminClientReviewsController],
   providers: [ReviewsService, ReviewScoreService, ClientReviewService, ReviewOwnerGuard, RolesGuard],
   exports: [ReviewsService, ClientReviewService],
 })

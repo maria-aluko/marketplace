@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Calendar, MapPin } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Calendar, Clock, MapPin } from 'lucide-react';
 import type { InvoiceResponse } from '@eventtrust/shared';
 import { InvoiceStatus } from '@eventtrust/shared';
 
@@ -41,6 +42,7 @@ function statusVariant(status: InvoiceStatus) {
 }
 
 export function InvoiceView({ invoice: initialInvoice, vendorName }: InvoiceViewProps) {
+  const router = useRouter();
   const [invoice, setInvoice] = useState(initialInvoice);
   const [confirming, setConfirming] = useState(false);
   const [confirmed, setConfirmed] = useState(
@@ -72,6 +74,14 @@ export function InvoiceView({ invoice: initialInvoice, vendorName }: InvoiceView
 
   return (
     <div className="mx-auto max-w-lg px-4 py-8">
+      <button
+        onClick={() => router.back()}
+        className="mb-4 flex items-center gap-1 text-sm text-surface-500 hover:text-surface-700"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back
+      </button>
+
       {/* Header */}
       <div className="mb-6 text-center">
         {invoice.branding?.logoUrl && (
@@ -117,6 +127,12 @@ export function InvoiceView({ invoice: initialInvoice, vendorName }: InvoiceView
               <div className="flex items-center gap-2 text-surface-600">
                 <Calendar className="h-4 w-4 flex-shrink-0 text-surface-400" />
                 <span>{formatDate(invoice.eventDate)}</span>
+              </div>
+            )}
+            {invoice.dueDate && (
+              <div className="flex items-center gap-2 text-surface-600">
+                <Clock className="h-4 w-4 flex-shrink-0 text-surface-400" />
+                <span>Due: {formatDate(invoice.dueDate)}</span>
               </div>
             )}
             {invoice.eventLocation && (

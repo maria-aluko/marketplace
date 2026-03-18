@@ -211,6 +211,7 @@ export interface ReviewResponse {
   id: string;
   vendorId: string;
   listingId?: string;
+  listingTitle?: string;
   clientId: string;
   rating: number;
   body: string;
@@ -580,6 +581,7 @@ export interface CreateInvoicePayload {
   clientPhone?: string;
   clientEmail?: string;
   eventDate?: string;
+  dueDate?: string;
   eventLocation?: string;
   notes?: string;
   discountKobo?: number;
@@ -592,6 +594,7 @@ export interface UpdateInvoicePayload {
   clientPhone?: string;
   clientEmail?: string;
   eventDate?: string;
+  dueDate?: string;
   eventLocation?: string;
   notes?: string;
   discountKobo?: number;
@@ -619,6 +622,7 @@ export interface InvoiceResponse {
   clientPhone?: string;
   clientEmail?: string;
   eventDate?: string;
+  dueDate?: string;
   eventLocation?: string;
   notes?: string;
   subtotalKobo: number;

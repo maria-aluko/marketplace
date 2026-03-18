@@ -50,6 +50,18 @@ export class ReviewsController {
   }
 }
 
+@Controller('listings/:listingId/reviews')
+export class ListingReviewsController {
+  constructor(private readonly reviewsService: ReviewsService) {}
+
+  @Public()
+  @Get()
+  async findByListingId(@Param('listingId') listingId: string) {
+    const reviews = await this.reviewsService.findByListingId(listingId);
+    return { data: reviews };
+  }
+}
+
 @Controller('vendors/:vendorId/reviews')
 export class VendorReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}

@@ -168,17 +168,30 @@ export class ReviewsService {
 
     const reviews = await this.prisma.review.findMany({
       where,
-      include: { reply: true, dispute: { select: { id: true, status: true, updatedAt: true } } },
+      include: { reply: true, dispute: { select: { id: true, status: true, updatedAt: true } }, listing: { select: { title: true } } },
       orderBy: { createdAt: 'desc' },
     });
 
     return reviews.map((r: any) => this.toResponse(r));
   }
 
+  async findByListingId(listingId: string): Promise<ReviewResponse[]> {
+    const reviews = await this.prisma.review.findMany({
+      where: { listingId, status: 'APPROVED', deletedAt: null },
+      include: {
+        reply: true,
+        dispute: { select: { id: true, status: true, updatedAt: true } },
+        listing: { select: { title: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    return reviews.map((r: any) => this.toResponse(r));
+  }
+
   async findById(reviewId: string): Promise<ReviewResponse | null> {
     const review = await this.prisma.review.findFirst({
       where: { id: reviewId, deletedAt: null },
-      include: { reply: true, dispute: { select: { id: true, status: true, updatedAt: true } } },
+      include: { reply: true, dispute: { select: { id: true, status: true, updatedAt: true } }, listing: { select: { title: true } } },
     });
 
     return review ? this.toResponse(review) : null;
@@ -196,7 +209,7 @@ export class ReviewsService {
     const updated = await this.prisma.review.update({
       where: { id: reviewId },
       data: { status: 'APPROVED' },
-      include: { reply: true, dispute: { select: { id: true, status: true, updatedAt: true } } },
+      include: { reply: true, dispute: { select: { id: true, status: true, updatedAt: true } }, listing: { select: { title: true } } },
     });
 
     await this.reviewScoreService.recalculate(review.vendorId);
@@ -243,7 +256,7 @@ export class ReviewsService {
     const updated = await this.prisma.review.update({
       where: { id: reviewId },
       data: { status: 'REJECTED' },
-      include: { reply: true, dispute: { select: { id: true, status: true, updatedAt: true } } },
+      include: { reply: true, dispute: { select: { id: true, status: true, updatedAt: true } }, listing: { select: { title: true } } },
     });
 
     await this.auditService.log({
@@ -389,7 +402,7 @@ export class ReviewsService {
     const [reviews, total] = await Promise.all([
       this.prisma.review.findMany({
         where,
-        include: { reply: true, dispute: { select: { id: true, status: true, updatedAt: true } } },
+        include: { reply: true, dispute: { select: { id: true, status: true, updatedAt: true } }, listing: { select: { title: true } } },
         orderBy: { createdAt: 'desc' },
         take: limit + 1,
       }),
@@ -412,6 +425,7 @@ export class ReviewsService {
       id: review.id,
       vendorId: review.vendorId,
       listingId: review.listingId ?? undefined,
+      listingTitle: review.listing?.title ?? undefined,
       clientId: review.clientId,
       rating: review.rating,
       body: review.body,

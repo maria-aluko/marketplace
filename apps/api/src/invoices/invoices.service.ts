@@ -72,6 +72,7 @@ export class InvoicesService {
         clientPhone: data.clientPhone ?? null,
         clientEmail: data.clientEmail ?? null,
         eventDate: data.eventDate ? new Date(data.eventDate) : null,
+        dueDate: data.dueDate ? new Date(data.dueDate) : null,
         eventLocation: data.eventLocation ?? null,
         notes: data.notes ?? null,
         subtotalKobo,
@@ -154,6 +155,7 @@ export class InvoicesService {
     if (data.clientPhone !== undefined) updateData.clientPhone = data.clientPhone;
     if (data.clientEmail !== undefined) updateData.clientEmail = data.clientEmail;
     if (data.eventDate !== undefined) updateData.eventDate = data.eventDate ? new Date(data.eventDate) : null;
+    if (data.dueDate !== undefined) updateData.dueDate = data.dueDate ? new Date(data.dueDate) : null;
     if (data.eventLocation !== undefined) updateData.eventLocation = data.eventLocation;
     if (data.notes !== undefined) updateData.notes = data.notes;
     if (data.discountKobo !== undefined) updateData.discountKobo = data.discountKobo;
@@ -405,6 +407,7 @@ export class InvoicesService {
       clientPhone: invoice.clientPhone ?? undefined,
       clientEmail: invoice.clientEmail ?? undefined,
       eventDate: invoice.eventDate?.toISOString().split('T')[0] ?? undefined,
+      dueDate: invoice.dueDate?.toISOString().split('T')[0] ?? undefined,
       eventLocation: invoice.eventLocation ?? undefined,
       notes: invoice.notes ?? undefined,
       subtotalKobo: invoice.subtotalKobo,

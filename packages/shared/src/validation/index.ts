@@ -349,6 +349,10 @@ export const createInvoiceSchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD')
     .optional(),
+  dueDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD')
+    .optional(),
   eventLocation: z.string().max(200).optional(),
   notes: z.string().max(2000).optional(),
   discountKobo: z.number().int().nonnegative().optional(),
@@ -391,6 +395,10 @@ export const updateInvoiceSchema = z.object({
     .optional(),
   clientEmail: z.string().email().optional(),
   eventDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD')
+    .optional(),
+  dueDate: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD')
     .optional(),

@@ -510,6 +510,7 @@ model Invoice {
   clientPhone       String?       @map("client_phone")
   clientEmail       String?       @map("client_email")
   eventDate         DateTime?     @map("event_date") @db.Date
+  dueDate           DateTime?     @map("due_date") @db.Date
   eventLocation     String?       @map("event_location")
   notes             String?
   subtotalKobo      Int           @default(0) @map("subtotal_kobo")

@@ -37,6 +37,7 @@ export function InvoiceGenerator({ vendorId, prefill, onCreated, onCancel }: Inv
   const [clientPhone, setClientPhone] = useState(prefill?.clientPhone ?? '');
   const [clientEmail, setClientEmail] = useState('');
   const [eventDate, setEventDate] = useState('');
+  const [dueDate, setDueDate] = useState('');
   const [eventLocation, setEventLocation] = useState('');
   const [notes, setNotes] = useState('');
 
@@ -75,6 +76,7 @@ export function InvoiceGenerator({ vendorId, prefill, onCreated, onCancel }: Inv
       clientPhone: clientPhone || undefined,
       clientEmail: clientEmail || undefined,
       eventDate: eventDate || undefined,
+      dueDate: dueDate || undefined,
       eventLocation: eventLocation || undefined,
       notes: notes || undefined,
       discountKobo,
@@ -141,6 +143,15 @@ export function InvoiceGenerator({ vendorId, prefill, onCreated, onCancel }: Inv
               type="date"
               value={eventDate}
               onChange={(e) => setEventDate(e.target.value)}
+              className="mt-1 w-full rounded-md border border-surface-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-surface-700">Payment Due Date</label>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
               className="mt-1 w-full rounded-md border border-surface-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none"
             />
           </div>
@@ -300,6 +311,7 @@ export function InvoiceGenerator({ vendorId, prefill, onCreated, onCancel }: Inv
           <p className="font-medium">{clientName}</p>
           {clientPhone && <p className="text-surface-500">{clientPhone}</p>}
           {eventDate && <p className="text-surface-500">Event: {eventDate}</p>}
+          {dueDate && <p className="text-surface-500">Due: {dueDate}</p>}
           {eventLocation && <p className="text-surface-500">{eventLocation}</p>}
         </div>
 

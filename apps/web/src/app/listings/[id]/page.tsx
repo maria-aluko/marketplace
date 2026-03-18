@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import type { ListingResponse, VendorResponse } from '@eventtrust/shared';
+import type { ListingResponse, VendorResponse, ReviewResponse } from '@eventtrust/shared';
 import { CATEGORY_LABELS, RentalCondition } from '@eventtrust/shared';
 import { ChevronRight, Truck, MapPin, Package, Shield, CheckCircle2, Star, ImageOff } from 'lucide-react';
 
@@ -20,6 +20,7 @@ import { ListingCard } from '@/components/vendor/listing-card';
 import { EnquiryButton } from '@/components/vendor/enquiry-button';
 import { ShareButton } from '@/components/vendor/share-button';
 import { StarRating } from '@/components/ui/star-rating';
+import { ReviewsList } from '@/components/vendor/reviews-list';
 
 const DELIVERY_META: Record<string, { icon: typeof Truck; label: string }> = {
   delivery_only: { icon: Truck, label: 'Delivery only' },
@@ -51,11 +52,13 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const listing = await serverFetch<ListingResponse>(`/listings/${id}`);
   if (!listing) notFound();
 
-  // Fetch vendor + all listings in parallel for "similar listings"
-  const [vendor, allListings] = await Promise.all([
+  // Fetch vendor, all listings, and listing reviews in parallel
+  const [vendor, allListings, listingReviewsData] = await Promise.all([
     serverFetch<VendorResponse>(`/vendors/${listing.vendorId}`),
     serverFetch<{ data: ListingResponse[] }>('/listings', { revalidate: 120 }),
+    serverFetch<{ data: ReviewResponse[] }>(`/listings/${listing.id}/reviews`),
   ]);
+  const listingReviews = listingReviewsData?.data ?? [];
 
   // Similar listings: same type+category, excluding current listing
   const similar = (allListings?.data ?? [])
@@ -264,6 +267,14 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
             </Link>
           )}
         </div>
+      )}
+
+      {/* Reviews */}
+      {(listing.reviewCount > 0 || listingReviews.length > 0) && vendor && (
+        <section className="border-t pt-6 mb-8">
+          <h2 className="mb-4 text-lg font-semibold">Reviews</h2>
+          <ReviewsList reviews={listingReviews} vendorId={vendor.id} />
+        </section>
       )}
 
       {/* Similar Listings */}
