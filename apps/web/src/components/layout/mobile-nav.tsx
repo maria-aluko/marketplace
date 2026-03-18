@@ -18,7 +18,7 @@ export function MobileNav() {
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 top-14 border-b border-surface-200 bg-white p-4 shadow-lg">
+        <div className="absolute left-0 right-0 top-16 border-b border-surface-200 bg-white p-4 shadow-lg">
           <nav className="flex flex-col space-y-3">
             <AuthNavLinks mobile onLinkClick={() => setOpen(false)} />
           </nav>

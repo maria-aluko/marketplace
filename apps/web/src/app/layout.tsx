@@ -1,8 +1,16 @@
 import type { Metadata, Viewport } from 'next';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { AuthProvider } from '@/lib/auth-context';
+
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-plus-jakarta',
+  display: 'swap',
+  weight: ['500', '600', '700', '800'],
+});
 
 export const metadata: Metadata = {
   title: 'EventTrust Nigeria - Find Verified Event Vendors in Lagos',
@@ -25,7 +33,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={plusJakarta.variable}>
       <body className="min-h-screen bg-white antialiased">
         <AuthProvider>
           <div className="flex min-h-screen flex-col">

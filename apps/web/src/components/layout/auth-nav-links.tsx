@@ -60,7 +60,15 @@ export function AuthNavLinks({ mobile, onLinkClick }: AuthNavLinksProps) {
       <Link href="/equipment" className={linkClass} onClick={onLinkClick}>
         Equipment
       </Link>
-      <Link href="/vendor/signup" className={linkClass} onClick={onLinkClick}>
+      <Link
+        href="/vendor/signup"
+        className={
+          mobile
+            ? 'rounded-md border border-primary-600 px-3 py-2 text-center text-sm font-medium text-primary-600 hover:bg-primary-50'
+            : 'rounded-md border border-primary-600 px-4 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-50'
+        }
+        onClick={onLinkClick}
+      >
         List Your Business
       </Link>
       <Link href="/login" className={primaryLinkClass} onClick={onLinkClick}>

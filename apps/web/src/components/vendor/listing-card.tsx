@@ -3,6 +3,7 @@ import type { ListingResponse } from '@eventtrust/shared';
 import { CATEGORY_LABELS } from '@eventtrust/shared';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/ui/star-rating';
+import { cn } from '@/lib/utils';
 
 interface ListingCardProps {
   listing: ListingResponse;
@@ -19,7 +20,11 @@ export function ListingCard({ listing }: ListingCardProps) {
   return (
     <Link
       href={`/listings/${listing.id}`}
-      className="block rounded-lg border border-surface-200 bg-white p-4 transition-shadow hover:shadow-md"
+      className={cn(
+        "block rounded-lg border border-surface-200 bg-white p-4 transition-colors hover:border-primary-300 hover:shadow-md",
+        "border-l-4",
+        isRental ? "border-l-celebration-500" : "border-l-primary-500"
+      )}
     >
       <div className="flex items-center gap-2">
         <Badge variant={isRental ? 'rental' : 'service'} className="text-xs">

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/ui/star-rating';
 import { ProfileCompletenessRing } from '@/components/ui/profile-completeness-ring';
 import { cloudinaryTransform } from '@/lib/cloudinary';
+import { CATEGORY_ICONS } from '@/lib/category-meta';
 
 interface VendorCardProps {
   vendor: VendorResponse;
@@ -25,7 +26,7 @@ export function VendorCard({ vendor }: VendorCardProps) {
   return (
     <Link
       href={`/vendors/${vendor.slug}`}
-      className="group block overflow-hidden rounded-lg border border-surface-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+      className="group block overflow-hidden rounded-lg border border-surface-200 bg-white shadow-sm transition-colors hover:border-primary-300 hover:shadow-md"
     >
       <div className="aspect-[16/9] bg-surface-100">
         {vendor.coverImageUrl ? (
@@ -36,8 +37,8 @@ export function VendorCard({ vendor }: VendorCardProps) {
             loading="lazy"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-surface-400 text-sm">
-            No image
+          <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary-100 to-primary-50">
+            {(() => { const Icon = CATEGORY_ICONS[vendor.category]; return Icon ? <Icon className="h-10 w-10 text-primary-400" /> : null; })()}
           </div>
         )}
       </div>

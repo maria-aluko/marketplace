@@ -65,9 +65,13 @@ const config: Config = {
       screens: {
         xs: '375px',
       },
+      fontFamily: {
+        display: ['var(--font-plus-jakarta)', 'system-ui', 'sans-serif'],
+      },
       borderRadius: {
         // Slightly softer than shadcn default for mobile friendliness
         DEFAULT: '0.625rem',
+        card: '0.75rem',
       },
     },
   },

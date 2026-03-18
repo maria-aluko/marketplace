@@ -43,7 +43,7 @@ export function ListingSearchCard({ listing, compact = false }: ListingSearchCar
     : null;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-surface-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+    <div className="overflow-hidden rounded-lg border border-surface-200 bg-white shadow-sm transition-colors hover:border-primary-300 hover:shadow-md">
       <Link href={`/listings/${listing.id}`} className="group block">
         {/* Image / fallback */}
         <div className="aspect-[16/9] bg-surface-100">
@@ -171,7 +171,7 @@ export function ListingSearchCard({ listing, compact = false }: ListingSearchCar
             href={`https://wa.me/${whatsappPhone}?text=${whatsappText}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors"
+            className="mt-3 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-primary-600 px-4 py-2.5 text-base font-semibold text-white hover:bg-primary-700 transition-colors"
           >
             <MessageCircle className="h-4 w-4" />
             Contact on WhatsApp

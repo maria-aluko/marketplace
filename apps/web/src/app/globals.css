@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Display font CSS variable: --font-plus-jakarta — injected by layout.tsx via next/font */
+
 :root {
   /* Brand */
   --color-primary:        #059669;
