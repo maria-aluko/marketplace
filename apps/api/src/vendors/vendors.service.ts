@@ -46,6 +46,9 @@ export class VendorsService {
         priceTo: data.priceTo,
         whatsappNumber: data.whatsappNumber ?? user?.phone,
         instagramHandle: data.instagramHandle,
+        primaryRentalCategory: data.primaryRentalCategory
+          ? (data.primaryRentalCategory.toUpperCase() as any)
+          : undefined,
         profileCompleteScore: this.calculateProfileCompleteness(data),
       },
     });
@@ -84,6 +87,8 @@ export class VendorsService {
     if (data.priceTo !== undefined) updateData.priceTo = data.priceTo;
     if (data.whatsappNumber !== undefined) updateData.whatsappNumber = data.whatsappNumber;
     if (data.instagramHandle !== undefined) updateData.instagramHandle = data.instagramHandle;
+    if (data.primaryRentalCategory !== undefined)
+      updateData.primaryRentalCategory = data.primaryRentalCategory.toUpperCase();
 
     const merged = { ...vendor, ...data };
     updateData.profileCompleteScore = this.calculateProfileCompleteness({
@@ -208,6 +213,9 @@ export class VendorsService {
       priceTo: vendor.priceTo ? Number(vendor.priceTo) : undefined,
       whatsappNumber: vendor.whatsappNumber ?? undefined,
       instagramHandle: vendor.instagramHandle ?? undefined,
+      primaryRentalCategory: vendor.primaryRentalCategory
+        ? (vendor.primaryRentalCategory.toLowerCase() as any)
+        : undefined,
       status: vendor.status.toLowerCase() as any,
       avgRating: vendor.avgRating,
       reviewCount: vendor.reviewCount,

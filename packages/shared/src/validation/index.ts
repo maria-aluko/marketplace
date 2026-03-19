@@ -40,9 +40,9 @@ export const otpVerifySchema = z.object({
 
 // Vendor
 const vendorBaseSchema = z.object({
-  businessName: z.string().min(2).max(100),
+  businessName: z.string().min(2, 'Business name must be at least 2 characters').max(100),
   category: z.nativeEnum(VendorCategory),
-  description: z.string().min(20).max(2000),
+  description: z.string().min(20, 'Description must be at least 20 characters').max(2000),
   area: z.string().refine((val) => (LAGOS_AREAS as readonly string[]).includes(val), {
     message: 'Must be a valid Lagos area',
   }),
@@ -54,6 +54,7 @@ const vendorBaseSchema = z.object({
     .string()
     .regex(/^@?[\w.]{1,30}$/, 'Invalid Instagram handle')
     .optional(),
+  primaryRentalCategory: z.nativeEnum(RentalCategory).optional(),
 });
 
 const priceRangeRefinement = <T extends { priceFrom?: number; priceTo?: number }>(data: T) => {
@@ -62,6 +63,15 @@ const priceRangeRefinement = <T extends { priceFrom?: number; priceTo?: number }
   }
   return true;
 };
+
+export const vendorStep0Schema = vendorBaseSchema.pick({ businessName: true, category: true, area: true });
+export const vendorStep1Schema = vendorBaseSchema
+  .pick({ description: true, priceFrom: true, priceTo: true, address: true })
+  .refine(priceRangeRefinement, {
+    message: 'priceFrom must be less than or equal to priceTo',
+    path: ['priceTo'],
+  });
+export const vendorStep2Schema = vendorBaseSchema.pick({ whatsappNumber: true, instagramHandle: true });
 
 export const createVendorSchema = vendorBaseSchema.refine(priceRangeRefinement, {
   message: 'priceFrom must be less than or equal to priceTo',

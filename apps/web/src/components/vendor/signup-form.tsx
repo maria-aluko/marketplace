@@ -4,9 +4,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   VendorCategory,
+  RentalCategory,
   LAGOS_AREAS,
   CATEGORY_LABELS,
+  RENTAL_CATEGORY_LABELS,
   createVendorSchema,
+  vendorStep0Schema,
+  vendorStep1Schema,
+  vendorStep2Schema,
 } from '@eventtrust/shared';
 import type { CreateVendorPayload } from '@eventtrust/shared';
 import { Button } from '@/components/ui/button';
@@ -31,11 +36,18 @@ import {
   Sparkles,
   CalendarCheck,
   MoreHorizontal,
+  Tent,
+  Armchair,
+  Flame,
+  Zap,
+  Lightbulb,
+  Package,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 const STEPS = ['Business Info', 'Details', 'Contact', 'Review'];
-const categories = Object.values(VendorCategory);
+const serviceCategories = Object.values(VendorCategory);
+const rentalCategories = Object.values(RentalCategory);
 
 const CATEGORY_ICONS: Record<VendorCategory, LucideIcon> = {
   [VendorCategory.CATERER]: UtensilsCrossed,
@@ -50,8 +62,19 @@ const CATEGORY_ICONS: Record<VendorCategory, LucideIcon> = {
   [VendorCategory.OTHER]: MoreHorizontal,
 };
 
+const RENTAL_CATEGORY_ICONS: Record<RentalCategory, LucideIcon> = {
+  [RentalCategory.TENT]: Tent,
+  [RentalCategory.CHAIRS_TABLES]: Armchair,
+  [RentalCategory.COOKING_EQUIPMENT]: Flame,
+  [RentalCategory.GENERATOR]: Zap,
+  [RentalCategory.LIGHTING]: Lightbulb,
+  [RentalCategory.OTHER_RENTAL]: Package,
+};
+
 const STORAGE_KEY = 'eventtrust_vendor_signup_draft';
 const STORAGE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+type VendorType = 'service' | 'rental';
 
 const initialFormData: CreateVendorPayload = {
   businessName: '',
@@ -60,7 +83,7 @@ const initialFormData: CreateVendorPayload = {
   area: LAGOS_AREAS[0],
 };
 
-function loadDraft(): { step: number; formData: CreateVendorPayload } | null {
+function loadDraft(): { step: number; formData: CreateVendorPayload; vendorType: VendorType } | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
@@ -69,7 +92,11 @@ function loadDraft(): { step: number; formData: CreateVendorPayload } | null {
       localStorage.removeItem(STORAGE_KEY);
       return null;
     }
-    return { step: parsed.step ?? 0, formData: { ...initialFormData, ...parsed.formData } };
+    return {
+      step: parsed.step ?? 0,
+      formData: { ...initialFormData, ...parsed.formData },
+      vendorType: parsed.vendorType ?? 'service',
+    };
   } catch {
     return null;
   }
@@ -79,20 +106,24 @@ export function VendorSignupForm() {
   const draft = typeof window !== 'undefined' ? loadDraft() : null;
   const [step, setStep] = useState(draft?.step ?? 0);
   const [formData, setFormData] = useState<CreateVendorPayload>(draft?.formData ?? initialFormData);
+  const [vendorType, setVendorType] = useState<VendorType>(draft?.vendorType ?? 'service');
   const [showDraftBanner, setShowDraftBanner] = useState(!!draft);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const router = useRouter();
 
-  // Persist draft to localStorage on step/formData changes
+  // Persist draft to localStorage on step/formData/vendorType changes
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, formData, savedAt: Date.now() }));
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ step, formData, vendorType, savedAt: Date.now() }),
+      );
     } catch {
       // Storage full or unavailable — ignore
     }
-  }, [step, formData]);
+  }, [step, formData, vendorType]);
 
   const clearDraft = () => {
     localStorage.removeItem(STORAGE_KEY);
@@ -102,10 +133,11 @@ export function VendorSignupForm() {
     clearDraft();
     setStep(0);
     setFormData(initialFormData);
+    setVendorType('service');
     setShowDraftBanner(false);
   };
 
-  const update = (field: string, value: any) => {
+  const update = (field: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => {
       const next = { ...prev };
@@ -114,34 +146,47 @@ export function VendorSignupForm() {
     });
   };
 
-  const validateStep = (): boolean => {
-    const stepErrors: Record<string, string> = {};
-
-    if (step === 0) {
-      if (!formData.businessName || formData.businessName.length < 2) {
-        stepErrors.businessName = 'Business name must be at least 2 characters';
-      }
-      if (!formData.category) stepErrors.category = 'Select a category';
-      if (!formData.area) stepErrors.area = 'Select an area';
-    } else if (step === 1) {
-      if (!formData.description || formData.description.length < 20) {
-        stepErrors.description = 'Description must be at least 20 characters';
-      }
-      if (
-        formData.priceFrom !== undefined &&
-        formData.priceTo !== undefined &&
-        formData.priceFrom > formData.priceTo
-      ) {
-        stepErrors.priceTo = 'Max price must be greater than min price';
-      }
+  const handleBlur = (field: string) => {
+    const schema =
+      step === 0 ? vendorStep0Schema : step === 1 ? vendorStep1Schema : vendorStep2Schema;
+    const result = schema.safeParse(formData);
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors as Record<string, string[] | undefined>;
+      const msg = fieldErrors[field]?.[0];
+      if (msg) setErrors((prev) => ({ ...prev, [field]: msg }));
     }
+  };
 
-    setErrors(stepErrors);
-    return Object.keys(stepErrors).length === 0;
+  const validateStep = (): boolean => {
+    const schema =
+      step === 0 ? vendorStep0Schema : step === 1 ? vendorStep1Schema : vendorStep2Schema;
+    const result = schema.safeParse(formData);
+    if (!result.success) {
+      const flat = result.error.flatten();
+      const stepErrors: Record<string, string> = {};
+      for (const [key, msgs] of Object.entries(flat.fieldErrors)) {
+        const m = (msgs as string[] | undefined)?.[0];
+        if (m) stepErrors[key] = m;
+      }
+      if (flat.formErrors[0]) stepErrors._form = flat.formErrors[0];
+      setErrors(stepErrors);
+      return false;
+    }
+    setErrors({});
+    return true;
   };
 
   const handleNext = () => {
     if (validateStep()) setStep((s) => s + 1);
+  };
+
+  const handleVendorTypeChange = (type: VendorType) => {
+    setVendorType(type);
+    if (type === 'rental') {
+      setFormData((prev) => ({ ...prev, primaryRentalCategory: undefined, category: VendorCategory.OTHER }));
+    } else {
+      setFormData((prev) => ({ ...prev, primaryRentalCategory: undefined, category: VendorCategory.CATERER }));
+    }
   };
 
   const handleSubmit = async () => {
@@ -213,41 +258,92 @@ export function VendorSignupForm() {
       {/* Step 1: Business Info */}
       {step === 0 && (
         <div className="space-y-4">
+          {/* Vendor type toggle */}
+          <div className="space-y-2">
+            <Label>Vendor Type</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {(['service', 'rental'] as VendorType[]).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => handleVendorTypeChange(type)}
+                  className={`rounded-lg border-2 px-3 py-2.5 text-sm font-medium transition-colors ${
+                    vendorType === type
+                      ? 'border-primary-600 bg-primary-50 text-primary-700'
+                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  {type === 'service' ? 'Service Provider' : 'Equipment Rental'}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="businessName">Business Name</Label>
             <Input
               id="businessName"
               value={formData.businessName}
               onChange={(e) => update('businessName', e.target.value)}
+              onBlur={() => handleBlur('businessName')}
               placeholder="e.g. Lagos Catering Co"
             />
             {errors.businessName && <p className="text-sm text-red-600">{errors.businessName}</p>}
           </div>
+
           <div className="space-y-2">
-            <Label>Category</Label>
-            <div className="grid grid-cols-2 gap-2">
-              {categories.map((cat) => {
-                const Icon = CATEGORY_ICONS[cat];
-                const isSelected = formData.category === cat;
-                return (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => update('category', cat)}
-                    className={`flex items-center gap-2 rounded-lg border-2 px-3 py-2.5 text-left text-sm transition-colors ${
-                      isSelected
-                        ? 'border-primary-600 bg-primary-50 text-primary-700'
-                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    <Icon className="h-5 w-5 shrink-0" />
-                    <span className="font-medium">{CATEGORY_LABELS[cat] ?? cat}</span>
-                  </button>
-                );
-              })}
-            </div>
+            <Label>{vendorType === 'rental' ? 'Rental Specialty' : 'Category'}</Label>
+            {vendorType === 'service' ? (
+              <div className="grid grid-cols-2 gap-2">
+                {serviceCategories.map((cat) => {
+                  const Icon = CATEGORY_ICONS[cat];
+                  const isSelected = formData.category === cat;
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => update('category', cat)}
+                      className={`flex items-center gap-2 rounded-lg border-2 px-3 py-2.5 text-left text-sm transition-colors ${
+                        isSelected
+                          ? 'border-primary-600 bg-primary-50 text-primary-700'
+                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      <Icon className="h-5 w-5 shrink-0" />
+                      <span className="font-medium">{CATEGORY_LABELS[cat] ?? cat}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                {rentalCategories.map((cat) => {
+                  const Icon = RENTAL_CATEGORY_ICONS[cat];
+                  const isSelected = formData.primaryRentalCategory === cat;
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => {
+                        update('primaryRentalCategory', cat);
+                        update('category', VendorCategory.OTHER);
+                      }}
+                      className={`flex items-center gap-2 rounded-lg border-2 px-3 py-2.5 text-left text-sm transition-colors ${
+                        isSelected
+                          ? 'border-primary-600 bg-primary-50 text-primary-700'
+                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      <Icon className="h-5 w-5 shrink-0" />
+                      <span className="font-medium">{RENTAL_CATEGORY_LABELS[cat] ?? cat}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             {errors.category && <p className="text-sm text-red-600">{errors.category}</p>}
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="area">Area in Lagos</Label>
             <Select value={formData.area} onValueChange={(v) => update('area', v)}>
@@ -276,10 +372,18 @@ export function VendorSignupForm() {
               id="description"
               value={formData.description}
               onChange={(e) => update('description', e.target.value)}
+              onBlur={() => handleBlur('description')}
               rows={4}
               placeholder="Tell potential clients about your business..."
               className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
+            <p
+              className={`text-xs ${
+                formData.description.length < 20 ? 'text-amber-500' : 'text-gray-400'
+              }`}
+            >
+              {formData.description.length} / 2000
+            </p>
             {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -331,6 +435,7 @@ export function VendorSignupForm() {
               type="tel"
               value={formData.whatsappNumber ?? ''}
               onChange={(e) => update('whatsappNumber', e.target.value || undefined)}
+              onBlur={() => handleBlur('whatsappNumber')}
               placeholder="+234XXXXXXXXXX"
             />
             {errors.whatsappNumber && (
@@ -343,6 +448,7 @@ export function VendorSignupForm() {
               id="instagramHandle"
               value={formData.instagramHandle ?? ''}
               onChange={(e) => update('instagramHandle', e.target.value || undefined)}
+              onBlur={() => handleBlur('instagramHandle')}
               placeholder="@yourbusiness"
             />
             {errors.instagramHandle && (
@@ -364,7 +470,9 @@ export function VendorSignupForm() {
             <div className="flex justify-between border-b pb-2">
               <dt className="text-gray-500">Category</dt>
               <dd className="font-medium">
-                {CATEGORY_LABELS[formData.category] ?? formData.category}
+                {formData.primaryRentalCategory
+                  ? `Equipment Rental – ${RENTAL_CATEGORY_LABELS[formData.primaryRentalCategory]}`
+                  : (CATEGORY_LABELS[formData.category] ?? formData.category)}
               </dd>
             </div>
             <div className="flex justify-between border-b pb-2">

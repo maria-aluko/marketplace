@@ -109,9 +109,10 @@ model Vendor {
   address              String?
   priceFrom            Decimal?     @map("price_from") @db.Decimal(10, 2)
   priceTo              Decimal?     @map("price_to") @db.Decimal(10, 2)
-  whatsappNumber       String?      @map("whatsapp_number")
-  instagramHandle      String?      @map("instagram_handle")
-  coverImageUrl        String?      @map("cover_image_url")
+  whatsappNumber         String?      @map("whatsapp_number")
+  instagramHandle        String?      @map("instagram_handle")
+  primaryRentalCategory  RentalCategory? @map("primary_rental_category")
+  coverImageUrl          String?      @map("cover_image_url")
   status               VendorStatus @default(DRAFT)
   avgRating            Float        @default(0) @map("avg_rating")
   reviewCount          Int          @default(0) @map("review_count")

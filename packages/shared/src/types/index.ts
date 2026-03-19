@@ -70,6 +70,7 @@ export interface CreateVendorPayload {
   priceTo?: number;
   whatsappNumber?: string;
   instagramHandle?: string;
+  primaryRentalCategory?: RentalCategory;
 }
 
 export interface UpdateVendorPayload extends Partial<CreateVendorPayload> {}
@@ -86,6 +87,7 @@ export interface VendorResponse {
   priceTo?: number;
   whatsappNumber?: string;
   instagramHandle?: string;
+  primaryRentalCategory?: RentalCategory;
   status: VendorStatus;
   avgRating: number;
   reviewCount: number;
