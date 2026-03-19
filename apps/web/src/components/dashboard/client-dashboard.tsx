@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { LayoutDashboard, MessageSquare, Wrench, UserCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,7 +9,7 @@ import Link from 'next/link';
 import { BudgetManager } from './budget-manager';
 import { GuestManager } from './guest-manager';
 import { ActivityManager } from './activity-manager';
-import { cn } from '@/lib/utils';
+import { cn, getGreeting } from '@/lib/utils';
 import type { AuthUser } from '@eventtrust/shared';
 import { ClientProfileSetupSheet } from '@/components/client/client-profile-setup-sheet';
 
@@ -32,12 +31,7 @@ function HomeOverview({
   return (
     <div className="space-y-4 py-4">
       <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-surface-500">Welcome back</p>
-          <Badge variant="secondary" className="mt-1">
-            ****{user.phone.slice(-4)}
-          </Badge>
-        </div>
+        <p className="text-md">{getGreeting()}</p>
       </div>
 
       {!user.clientProfileId && (

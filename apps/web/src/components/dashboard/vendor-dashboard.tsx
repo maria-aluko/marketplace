@@ -14,7 +14,7 @@ import { EnquiriesManager } from '@/components/dashboard/enquiries-manager';
 import { BudgetManager } from '@/components/dashboard/budget-manager';
 import { GuestManager } from '@/components/dashboard/guest-manager';
 import ListingsPage from '@/app/dashboard/listings/page';
-import { cn } from '@/lib/utils';
+import { cn, getGreeting } from '@/lib/utils';
 import { SubscriptionTier } from '@eventtrust/shared';
 import type { AuthUser, VendorResponse } from '@eventtrust/shared';
 
@@ -38,7 +38,7 @@ function VendorHomeOverview({
     <div className="space-y-4 py-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-surface-500">Your business</p>
+          <p className="text-sm text-surface-500">{getGreeting()}</p>
           <p className="text-lg font-semibold">{vendor?.businessName ?? '—'}</p>
           <div className="mt-1">
             <SubscriptionBadge tier={subscriptionTier} />
