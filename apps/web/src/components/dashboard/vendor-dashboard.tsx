@@ -40,9 +40,10 @@ function VendorHomeOverview({
         <div>
           <p className="text-sm text-surface-500">{getGreeting()}</p>
           <p className="text-lg font-semibold">{vendor?.businessName ?? '—'}</p>
-          <div className="mt-1">
-            <SubscriptionBadge tier={subscriptionTier} />
-          </div>
+        </div>
+        <div>
+          <p className="text-sm text-surface-500">Your plan</p>
+          <SubscriptionBadge tier={subscriptionTier} />
         </div>
       </div>
 
