@@ -562,6 +562,7 @@ export interface InquiryResponse {
   clientPhone?: string;        // populated on vendor-facing queries only
   clientName?: string;         // populated on vendor-facing queries only
   listingTitle?: string;       // populated when listingId is set
+  vendorName?: string;          // populated on client-facing queries only
   clientTrustScore?: number;   // populated on vendor-facing queries when client has reviews
   clientReviewCount?: number;  // populated on vendor-facing queries
   createdAt: string;

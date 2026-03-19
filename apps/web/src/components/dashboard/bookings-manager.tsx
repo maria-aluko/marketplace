@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { InvoiceGenerator } from './invoice-generator';
 import type {
@@ -19,6 +18,27 @@ interface BookingsManagerProps {
   vendorId: string;
 }
 
+type VendorDealStage = 'new' | 'invoiced' | 'confirmed' | 'done' | 'cancelled';
+type FilterOption = 'all' | VendorDealStage;
+
+interface VendorDeal {
+  inquiry: InquiryResponse;
+  invoice?: InvoiceSummaryResponse;
+  stage: VendorDealStage;
+}
+
+function getDealStage(
+  inquiry: InquiryResponse,
+  invoice?: InvoiceSummaryResponse,
+): VendorDealStage {
+  if (inquiry.status === 'CANCELLED' || invoice?.status === InvoiceStatus.CANCELLED)
+    return 'cancelled';
+  if (!inquiry.invoiceId) return 'new';
+  if (invoice?.status === InvoiceStatus.COMPLETED || inquiry.status === 'COMPLETED') return 'done';
+  if (invoice?.status === InvoiceStatus.CONFIRMED || inquiry.status === 'BOOKED') return 'confirmed';
+  return 'invoiced';
+}
+
 function formatNaira(kobo: number) {
   return `₦${(kobo / 100).toLocaleString('en-NG')}`;
 }
@@ -31,18 +51,33 @@ function formatDate(dateStr: string) {
   });
 }
 
-function invoiceStatusVariant(status: InvoiceStatus) {
+function invoiceStatusChipClass(status: InvoiceStatus): string {
+  switch (status) {
+    case InvoiceStatus.DRAFT:
+      return 'bg-surface-100 text-surface-500';
+    case InvoiceStatus.SENT:
+      return 'bg-celebration-100 text-celebration-700';
+    case InvoiceStatus.VIEWED:
+      return 'bg-celebration-200 text-celebration-800';
+    case InvoiceStatus.CONFIRMED:
+      return 'bg-primary-100 text-primary-700 font-semibold';
+    case InvoiceStatus.COMPLETED:
+      return 'bg-primary-50 text-primary-600';
+    case InvoiceStatus.CANCELLED:
+      return 'bg-surface-100 text-surface-400 line-through';
+    default:
+      return 'bg-surface-100 text-surface-500';
+  }
+}
+
+function invoiceStatusLabel(status: InvoiceStatus): string {
   switch (status) {
     case InvoiceStatus.CONFIRMED:
+      return '✓ Confirmed';
     case InvoiceStatus.COMPLETED:
-      return 'verified' as const;
-    case InvoiceStatus.SENT:
-    case InvoiceStatus.VIEWED:
-      return 'secondary' as const;
-    case InvoiceStatus.CANCELLED:
-      return 'outline' as const;
+      return '✓ Completed';
     default:
-      return 'default' as const;
+      return status.charAt(0) + status.slice(1).toLowerCase();
   }
 }
 
@@ -51,7 +86,7 @@ function FunnelStats({ funnel }: { funnel: VendorFunnelResponse }) {
     { label: 'Leads', value: funnel.inquiriesThisMonth },
     { label: 'Invoiced', value: funnel.invoicesSentThisMonth },
     { label: 'Confirmed', value: funnel.confirmedBookingsThisMonth },
-    { label: 'Completed', value: funnel.completedThisMonth },
+    { label: 'Done', value: funnel.completedThisMonth },
   ];
 
   return (
@@ -112,8 +147,149 @@ function CopyPhone({ text }: { text: string }) {
   );
 }
 
+function VendorDealCard({
+  deal,
+  onCreateInvoice,
+  webUrl,
+}: {
+  deal: VendorDeal;
+  onCreateInvoice: (inquiry: InquiryResponse) => void;
+  webUrl: string;
+}) {
+  const { inquiry, invoice, stage } = deal;
+  const isConfirmed = stage === 'confirmed' || stage === 'done';
+  const isCancelled = stage === 'cancelled';
+  const waPhone = inquiry.clientPhone?.replace('+', '');
+
+  const STAGE_CHIP: Record<VendorDealStage, string> = {
+    new: 'bg-surface-100 text-surface-600',
+    invoiced: 'bg-celebration-100 text-celebration-700',
+    confirmed: 'bg-primary-100 text-primary-700',
+    done: 'bg-primary-50 text-primary-600',
+    cancelled: 'bg-surface-100 text-surface-400',
+  };
+
+  const stageLabel: Record<VendorDealStage, string> = {
+    new: 'New Lead',
+    invoiced: 'Invoiced',
+    confirmed: '✓ Confirmed',
+    done: '✓ Done',
+    cancelled: 'Cancelled',
+  };
+
+  return (
+    <div
+      className={[
+        'rounded-lg p-4 space-y-2',
+        isConfirmed
+          ? 'border border-primary-200 bg-primary-50'
+          : 'border border-surface-200 bg-white',
+        isCancelled ? 'opacity-60' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span
+          className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${STAGE_CHIP[stage]}`}
+        >
+          {stageLabel[stage]}
+        </span>
+        <span className="text-xs text-surface-400">{formatDate(inquiry.createdAt)}</span>
+      </div>
+
+      <div className="flex items-center justify-between gap-2">
+        {inquiry.clientName && (
+          <p className="text-sm font-semibold text-surface-900">{inquiry.clientName}</p>
+        )}
+        {waPhone && (
+          <a
+            href={`https://wa.me/${waPhone}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 hover:bg-green-100 shrink-0"
+          >
+            <MessageCircle className="h-3 w-3" />
+            WhatsApp
+          </a>
+        )}
+      </div>
+
+      {inquiry.clientPhone && (
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-surface-700">{inquiry.clientPhone}</span>
+          <CopyPhone text={inquiry.clientPhone} />
+        </div>
+      )}
+
+      {inquiry.listingTitle && (
+        <p className="text-xs text-surface-500">re: {inquiry.listingTitle}</p>
+      )}
+
+      {inquiry.message && (
+        <p className="text-sm text-surface-600 line-clamp-2">{inquiry.message}</p>
+      )}
+
+      {invoice && (
+        <div className="border-t border-surface-100 pt-2 space-y-1">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <span className="text-xs text-surface-500">{invoice.invoiceNumber}</span>
+              <span className="mx-2 text-surface-300">·</span>
+              <span className="text-sm font-semibold text-surface-800">
+                {formatNaira(invoice.totalKobo)}
+              </span>
+            </div>
+            <span
+              className={`inline-block rounded-full px-2 py-0.5 text-xs ${invoiceStatusChipClass(invoice.status as InvoiceStatus)}`}
+            >
+              {invoiceStatusLabel(invoice.status as InvoiceStatus)}
+            </span>
+          </div>
+          {invoice.eventDate && (
+            <p className="text-xs text-surface-500">Event: {formatDate(invoice.eventDate)}</p>
+          )}
+        </div>
+      )}
+
+      {!isCancelled && (
+        <div className="flex items-center gap-3 pt-1">
+          {invoice ? (
+            <>
+              <Link
+                href={`/invoices/${invoice.id}`}
+                className="text-xs text-primary-600 hover:text-primary-800"
+              >
+                View Invoice
+              </Link>
+              <CopyButton text={`${webUrl}/invoices/${invoice.id}`} />
+            </>
+          ) : (
+            <button
+              onClick={() => onCreateInvoice(inquiry)}
+              className="text-xs font-medium text-primary-600 hover:text-primary-800"
+            >
+              Create Invoice
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const FILTER_LABELS: Record<FilterOption, string> = {
+  all: 'All',
+  new: 'New Leads',
+  invoiced: 'Invoiced',
+  confirmed: 'Confirmed',
+  done: 'Done',
+  cancelled: 'Cancelled',
+};
+const ALL_FILTERS: FilterOption[] = ['all', 'new', 'invoiced', 'confirmed', 'done', 'cancelled'];
+
 export function BookingsManager({ vendorId }: BookingsManagerProps) {
-  const [activeTab, setActiveTab] = useState<'leads' | 'invoices'>('invoices');
+  const [activeFilter, setActiveFilter] = useState<FilterOption>('all');
   const [funnel, setFunnel] = useState<VendorFunnelResponse | null>(null);
   const [inquiries, setInquiries] = useState<InquiryResponse[]>([]);
   const [invoices, setInvoices] = useState<InvoiceSummaryResponse[]>([]);
@@ -137,9 +313,9 @@ export function BookingsManager({ vendorId }: BookingsManagerProps) {
   }, [vendorId]);
 
   const handleInvoiceCreated = (invoice: InvoiceResponse) => {
+    void invoice;
     setShowGenerator(false);
     setSelectedInquiry(null);
-    // Refresh both lists
     Promise.all([
       apiClient.get<{ data: InvoiceSummaryResponse[] }>(`/vendors/${vendorId}/invoices`),
       apiClient.get<{ data: InquiryResponse[] }>(`/vendors/${vendorId}/inquiries`),
@@ -182,187 +358,97 @@ export function BookingsManager({ vendorId }: BookingsManagerProps) {
     );
   }
 
+  const invoiceMap = new Map(invoices.map((inv) => [inv.id, inv]));
+  const deals: VendorDeal[] = inquiries.map((inq) => ({
+    inquiry: inq,
+    invoice: inq.invoiceId ? invoiceMap.get(inq.invoiceId) : undefined,
+    stage: getDealStage(inq, inq.invoiceId ? invoiceMap.get(inq.invoiceId) : undefined),
+  }));
+
+  // Sort: confirmed first, then by recency, cancelled at bottom
+  deals.sort((a, b) => {
+    if (a.stage === 'cancelled' && b.stage !== 'cancelled') return 1;
+    if (b.stage === 'cancelled' && a.stage !== 'cancelled') return -1;
+    if (a.stage === 'confirmed' && b.stage !== 'confirmed') return -1;
+    if (b.stage === 'confirmed' && a.stage !== 'confirmed') return 1;
+    return new Date(b.inquiry.createdAt).getTime() - new Date(a.inquiry.createdAt).getTime();
+  });
+
+  const stageCounts: Record<VendorDealStage, number> = {
+    new: 0,
+    invoiced: 0,
+    confirmed: 0,
+    done: 0,
+    cancelled: 0,
+  };
+  for (const d of deals) stageCounts[d.stage]++;
+
+  const filteredDeals =
+    activeFilter === 'all' ? deals : deals.filter((d) => d.stage === activeFilter);
+
+  const emptyMessages: Record<FilterOption, string> = {
+    all: 'No leads yet',
+    new: 'No new leads',
+    invoiced: 'No invoiced leads',
+    confirmed: 'No confirmed bookings yet',
+    done: 'No completed bookings',
+    cancelled: 'No cancelled deals',
+  };
+
   return (
     <div className="space-y-4 py-4">
       {funnel && <FunnelStats funnel={funnel} />}
 
       <div className="flex items-center justify-between">
-        <div className="flex gap-1 rounded-lg border border-surface-200 bg-surface-50 p-0.5">
-          <button
-            onClick={() => setActiveTab('invoices')}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-              activeTab === 'invoices'
-                ? 'bg-white text-surface-900 shadow-sm'
-                : 'text-surface-500'
-            }`}
-          >
-            Invoices
-          </button>
-          <button
-            onClick={() => setActiveTab('leads')}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-              activeTab === 'leads'
-                ? 'bg-white text-surface-900 shadow-sm'
-                : 'text-surface-500'
-            }`}
-          >
-            Leads ({inquiries.length})
-          </button>
-        </div>
-
-        {activeTab === 'invoices' && (
-          <Button size="sm" onClick={() => setShowGenerator(true)}>
-            New Invoice
-          </Button>
-        )}
+        <h2 className="font-semibold text-surface-900">Bookings</h2>
+        <Button size="sm" onClick={() => setShowGenerator(true)}>
+          New Invoice
+        </Button>
       </div>
 
-      {activeTab === 'invoices' && (
-        <div className="space-y-3">
-          {invoices.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-surface-300 p-6 text-center">
-              <p className="text-sm text-surface-500">No invoices yet</p>
-              <p className="mt-1 text-xs text-surface-400">
-                Create an invoice and share the link with your client via WhatsApp
-              </p>
-            </div>
-          ) : (
-            invoices.map((invoice) => (
-              <div
-                key={invoice.id}
-                className="rounded-lg border border-surface-200 bg-white p-4 space-y-2"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div>
-                    <p className="font-medium text-sm text-surface-900">{invoice.clientName}</p>
-                    <p className="text-xs text-surface-500">{invoice.invoiceNumber}</p>
-                  </div>
-                  <Badge variant={invoiceStatusVariant(invoice.status)} className="text-xs">
-                    {invoice.status}
-                  </Badge>
-                </div>
+      {/* Filter pills */}
+      <div className="overflow-x-auto -mx-4 px-4 pb-1 flex gap-2 flex-nowrap">
+        {ALL_FILTERS.map((filter) => {
+          const count = filter === 'all' ? deals.length : stageCounts[filter as VendorDealStage];
+          return (
+            <button
+              key={filter}
+              onClick={() => setActiveFilter(filter)}
+              className={[
+                'shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors',
+                activeFilter === filter
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-surface-100 text-surface-700',
+              ].join(' ')}
+            >
+              {FILTER_LABELS[filter]}
+              {count > 0 && (
+                <span className="ml-1 opacity-75">{count}</span>
+              )}
+            </button>
+          );
+        })}
+      </div>
 
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-semibold text-surface-800">{formatNaira(invoice.totalKobo)}</span>
-                  {invoice.eventDate && (
-                    <span className="text-xs text-surface-500">{formatDate(invoice.eventDate)}</span>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-3 pt-1">
-                  <Link
-                    href={`/invoices/${invoice.id}`}
-                    className="text-xs text-primary-600 hover:text-primary-800"
-                  >
-                    View
-                  </Link>
-                  <CopyButton text={`${webUrl}/invoices/${invoice.id}`} />
-                  {invoice.status === 'DRAFT' && (
-                    <button
-                      onClick={async () => {
-                        await apiClient.post(`/invoices/${invoice.id}/send`);
-                        const res = await apiClient.get<{ data: InvoiceSummaryResponse[] }>(
-                          `/vendors/${vendorId}/invoices`,
-                        );
-                        if (res.success && res.data) setInvoices(res.data.data);
-                      }}
-                      className="text-xs text-green-600 hover:text-green-800"
-                    >
-                      Mark as Sent
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-
-      {activeTab === 'leads' && (
-        <div className="space-y-3">
-          {inquiries.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-surface-300 p-6 text-center">
-              <p className="text-sm text-surface-500">No leads yet</p>
-              <p className="mt-1 text-xs text-surface-400">
-                Clients who contact you via WhatsApp will appear here
-              </p>
-            </div>
-          ) : (
-            inquiries.map((inquiry) => {
-              const waPhone = inquiry.clientPhone?.replace('+', '');
-              return (
-                <div
-                  key={inquiry.id}
-                  className="rounded-lg border border-surface-200 bg-white p-4 space-y-2"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <Badge variant="secondary" className="text-xs">
-                      {inquiry.status}
-                    </Badge>
-                    <span className="text-xs text-surface-400">{formatDate(inquiry.createdAt)}</span>
-                  </div>
-
-                  {inquiry.clientName && (
-                    <p className="text-sm font-semibold text-surface-900">{inquiry.clientName}</p>
-                  )}
-
-                  {inquiry.clientPhone && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-surface-800">{inquiry.clientPhone}</span>
-                      <CopyPhone text={inquiry.clientPhone} />
-                      {waPhone && (
-                        <a
-                          href={`https://wa.me/${waPhone}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 hover:bg-green-100"
-                        >
-                          <MessageCircle className="h-3 w-3" />
-                          Open chat
-                        </a>
-                      )}
-                    </div>
-                  )}
-
-                  {inquiry.listingTitle && (
-                    <p className="text-xs text-surface-500">re: {inquiry.listingTitle}</p>
-                  )}
-
-                  {inquiry.message && (
-                    <p className="text-sm text-surface-600 line-clamp-2">{inquiry.message}</p>
-                  )}
-
-                  <div className="flex items-center justify-between pt-1">
-                    <div className="flex items-center gap-1 text-xs text-surface-400">
-                      <MessageCircle className="h-3 w-3" />
-                      <span>{inquiry.source.replace(/_/g, ' ').toLowerCase()}</span>
-                    </div>
-
-                    {inquiry.invoiceId ? (
-                      <Link
-                        href={`/invoices/${inquiry.invoiceId}`}
-                        className="text-xs text-primary-600 hover:text-primary-800"
-                      >
-                        View Invoice
-                      </Link>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setSelectedInquiry(inquiry);
-                          setShowGenerator(true);
-                        }}
-                        className="text-xs font-medium text-primary-600 hover:text-primary-800"
-                      >
-                        Create Invoice
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      )}
+      <div className="space-y-3">
+        {filteredDeals.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-surface-300 p-6 text-center">
+            <p className="text-sm text-surface-500">{emptyMessages[activeFilter]}</p>
+          </div>
+        ) : (
+          filteredDeals.map((deal) => (
+            <VendorDealCard
+              key={deal.inquiry.id}
+              deal={deal}
+              onCreateInvoice={(inquiry) => {
+                setSelectedInquiry(inquiry);
+                setShowGenerator(true);
+              }}
+              webUrl={webUrl}
+            />
+          ))
+        )}
+      </div>
     </div>
   );
 }

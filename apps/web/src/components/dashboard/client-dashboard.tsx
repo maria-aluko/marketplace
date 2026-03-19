@@ -1,32 +1,23 @@
 'use client';
 
 import { useState } from 'react';
-import { LayoutDashboard, MessageSquare, Users, Wallet, FileText, UserCircle } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, Wrench, UserCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import { BudgetManager } from './budget-manager';
 import { GuestManager } from './guest-manager';
-import { EnquiriesManager } from './enquiries-manager';
-import { ReceivedInvoicesManager } from './received-invoices-manager';
+import { ActivityManager } from './activity-manager';
 import { cn } from '@/lib/utils';
 import type { AuthUser } from '@eventtrust/shared';
 import { ClientProfileSetupSheet } from '@/components/client/client-profile-setup-sheet';
 
-type Tab = 'home' | 'enquiries' | 'invoices' | 'guests' | 'budget';
+type Tab = 'home' | 'activity' | 'tools';
 
 interface ClientDashboardProps {
   user: AuthUser;
-}
-
-function ComingSoon({ label }: { label: string }) {
-  return (
-    <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-center">
-      <p className="font-medium">{label}</p>
-      <p className="text-sm text-surface-500">Coming soon</p>
-    </div>
-  );
 }
 
 function HomeOverview({
@@ -68,10 +59,8 @@ function HomeOverview({
       <div className="grid grid-cols-2 gap-3">
         {(
           [
-            { tab: 'enquiries' as Tab, label: 'Enquiries', icon: MessageSquare },
-            { tab: 'invoices' as Tab, label: 'Invoices', icon: FileText },
-            { tab: 'guests' as Tab, label: 'Guests', icon: Users },
-            { tab: 'budget' as Tab, label: 'Budget', icon: Wallet },
+            { tab: 'activity' as Tab, label: 'Activity', icon: MessageSquare },
+            { tab: 'tools' as Tab, label: 'Tools', icon: Wrench },
           ] as const
         ).map(({ tab, label, icon: Icon }) => (
           <button
@@ -117,10 +106,8 @@ function HomeOverview({
 
 const NAV_ITEMS: { tab: Tab; label: string; icon: React.ElementType }[] = [
   { tab: 'home', label: 'Home', icon: LayoutDashboard },
-  { tab: 'enquiries', label: 'Enquiries', icon: MessageSquare },
-  { tab: 'invoices', label: 'Invoices', icon: FileText },
-  { tab: 'guests', label: 'Guests', icon: Users },
-  { tab: 'budget', label: 'Budget', icon: Wallet },
+  { tab: 'activity', label: 'Activity', icon: MessageSquare },
+  { tab: 'tools', label: 'Tools', icon: Wrench },
 ];
 
 export function ClientDashboard({ user }: ClientDashboardProps) {
@@ -137,10 +124,27 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
             onOpenProfileSheet={() => setProfileSheetOpen(true)}
           />
         )}
-        {activeTab === 'enquiries' && <EnquiriesManager />}
-        {activeTab === 'invoices' && <ReceivedInvoicesManager />}
-        {activeTab === 'guests' && <GuestManager />}
-        {activeTab === 'budget' && <BudgetManager />}
+        {activeTab === 'activity' && <ActivityManager />}
+        {activeTab === 'tools' && (
+          <div className="py-4">
+            <Tabs defaultValue="budget">
+              <TabsList className="w-full">
+                <TabsTrigger value="budget" className="flex-1">
+                  Budget
+                </TabsTrigger>
+                <TabsTrigger value="guests" className="flex-1">
+                  Guests
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="budget">
+                <BudgetManager />
+              </TabsContent>
+              <TabsContent value="guests">
+                <GuestManager />
+              </TabsContent>
+            </Tabs>
+          </div>
+        )}
       </div>
 
       <nav className="fixed bottom-0 left-0 right-0 z-40 h-16 border-t border-surface-200 bg-white">

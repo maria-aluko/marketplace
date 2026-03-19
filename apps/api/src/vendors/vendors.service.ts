@@ -23,10 +23,10 @@ export class VendorsService {
   ) {}
 
   async create(userId: string, data: CreateVendorPayload): Promise<VendorResponse> {
-    // Check if user already has a vendor
-    const existing = await this.prisma.vendor.findFirst({
-      where: { userId, deletedAt: null },
-    });
+    const [existing, user] = await Promise.all([
+      this.prisma.vendor.findFirst({ where: { userId, deletedAt: null } }),
+      this.prisma.user.findUnique({ where: { id: userId }, select: { phone: true } }),
+    ]);
     if (existing) {
       throw new BadRequestException('You already have a vendor profile');
     }
@@ -44,7 +44,7 @@ export class VendorsService {
         address: data.address,
         priceFrom: data.priceFrom,
         priceTo: data.priceTo,
-        whatsappNumber: data.whatsappNumber,
+        whatsappNumber: data.whatsappNumber ?? user?.phone,
         instagramHandle: data.instagramHandle,
         profileCompleteScore: this.calculateProfileCompleteness(data),
       },
