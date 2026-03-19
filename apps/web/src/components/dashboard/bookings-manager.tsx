@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { InvoiceGenerator } from './invoice-generator';
 import type {
   InquiryResponse,
@@ -27,15 +28,13 @@ interface VendorDeal {
   stage: VendorDealStage;
 }
 
-function getDealStage(
-  inquiry: InquiryResponse,
-  invoice?: InvoiceSummaryResponse,
-): VendorDealStage {
+function getDealStage(inquiry: InquiryResponse, invoice?: InvoiceSummaryResponse): VendorDealStage {
   if (inquiry.status === 'CANCELLED' || invoice?.status === InvoiceStatus.CANCELLED)
     return 'cancelled';
   if (!inquiry.invoiceId) return 'new';
   if (invoice?.status === InvoiceStatus.COMPLETED || inquiry.status === 'COMPLETED') return 'done';
-  if (invoice?.status === InvoiceStatus.CONFIRMED || inquiry.status === 'BOOKED') return 'confirmed';
+  if (invoice?.status === InvoiceStatus.CONFIRMED || inquiry.status === 'BOOKED')
+    return 'confirmed';
   return 'invoiced';
 }
 
@@ -222,13 +221,7 @@ function VendorDealCard({
         </div>
       )}
 
-      {inquiry.listingTitle && (
-        <p className="text-xs text-surface-500">re: {inquiry.listingTitle}</p>
-      )}
-
-      {inquiry.message && (
-        <p className="text-sm text-surface-600 line-clamp-2">{inquiry.message}</p>
-      )}
+      {inquiry.listingTitle && <p className="text-sm">{inquiry.listingTitle}</p>}
 
       {invoice && (
         <div className="border-t border-surface-100 pt-2 space-y-1">
@@ -294,6 +287,7 @@ export function BookingsManager({ vendorId }: BookingsManagerProps) {
   const [inquiries, setInquiries] = useState<InquiryResponse[]>([]);
   const [invoices, setInvoices] = useState<InvoiceSummaryResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showGenerator, setShowGenerator] = useState(false);
   const [selectedInquiry, setSelectedInquiry] = useState<InquiryResponse | null>(null);
 
@@ -309,11 +303,13 @@ export function BookingsManager({ vendorId }: BookingsManagerProps) {
       if (inquiriesRes.success && inquiriesRes.data) setInquiries(inquiriesRes.data.data);
       if (invoicesRes.success && invoicesRes.data) setInvoices(invoicesRes.data.data);
       setLoading(false);
+    }).catch(() => {
+      setError('Failed to load bookings. Please try again.');
+      setLoading(false);
     });
   }, [vendorId]);
 
-  const handleInvoiceCreated = (invoice: InvoiceResponse) => {
-    void invoice;
+  const handleInvoiceCreated = (_invoice: InvoiceResponse) => {
     setShowGenerator(false);
     setSelectedInquiry(null);
     Promise.all([
@@ -322,13 +318,25 @@ export function BookingsManager({ vendorId }: BookingsManagerProps) {
     ]).then(([invoicesRes, inquiriesRes]) => {
       if (invoicesRes.success && invoicesRes.data) setInvoices(invoicesRes.data.data);
       if (inquiriesRes.success && inquiriesRes.data) setInquiries(inquiriesRes.data.data);
-    });
+    }).catch(() => {});
   };
 
   if (loading) {
     return (
-      <div className="flex min-h-[20vh] items-center justify-center">
-        <p className="text-sm text-surface-500">Loading...</p>
+      <div className="space-y-4 py-4">
+        <Skeleton className="h-16 w-full rounded-lg" />
+        <Skeleton className="h-6 w-32" />
+        <Skeleton className="h-28 w-full rounded-lg" />
+        <Skeleton className="h-28 w-full rounded-lg" />
+        <Skeleton className="h-28 w-full rounded-lg" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="py-6 text-center">
+        <p className="text-sm text-red-500">{error}</p>
       </div>
     );
   }
@@ -422,9 +430,7 @@ export function BookingsManager({ vendorId }: BookingsManagerProps) {
               ].join(' ')}
             >
               {FILTER_LABELS[filter]}
-              {count > 0 && (
-                <span className="ml-1 opacity-75">{count}</span>
-              )}
+              {count > 0 && <span className="ml-1 opacity-75">{count}</span>}
             </button>
           );
         })}

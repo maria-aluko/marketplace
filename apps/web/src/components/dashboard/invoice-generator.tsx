@@ -3,9 +3,12 @@
 import { useState } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2 } from 'lucide-react';
-import type { InvoiceResponse, CreateInvoicePayload, CreateInvoiceItemPayload } from '@eventtrust/shared';
+import type {
+  InvoiceResponse,
+  CreateInvoicePayload,
+  CreateInvoiceItemPayload,
+} from '@eventtrust/shared';
 
 interface InvoiceGeneratorProps {
   vendorId: string;
@@ -27,7 +30,7 @@ function formatNaira(kobo: number) {
   return `₦${(kobo / 100).toLocaleString('en-NG')}`;
 }
 
-export function InvoiceGenerator({ vendorId, prefill, onCreated, onCancel }: InvoiceGeneratorProps) {
+export function InvoiceGenerator({ prefill, onCreated, onCancel }: InvoiceGeneratorProps) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +46,13 @@ export function InvoiceGenerator({ vendorId, prefill, onCreated, onCancel }: Inv
 
   // Step 2: line items
   const [items, setItems] = useState<ItemForm[]>([
-    { _key: 1, description: prefill?.listingTitle ?? '', quantity: 1, unitPriceKobo: 0, sortOrder: 0 },
+    {
+      _key: 1,
+      description: prefill?.listingTitle ?? '',
+      quantity: 1,
+      unitPriceKobo: 0,
+      sortOrder: 0,
+    },
   ]);
   const [discountKobo, setDiscountKobo] = useState(0);
 
@@ -62,9 +71,7 @@ export function InvoiceGenerator({ vendorId, prefill, onCreated, onCancel }: Inv
   };
 
   const updateItem = (key: number, field: keyof Omit<ItemForm, '_key'>, value: string | number) => {
-    setItems((prev) =>
-      prev.map((i) => (i._key === key ? { ...i, [field]: value } : i)),
-    );
+    setItems((prev) => prev.map((i) => (i._key === key ? { ...i, [field]: value } : i)));
   };
 
   const handleCreate = async () => {
@@ -183,11 +190,7 @@ export function InvoiceGenerator({ vendorId, prefill, onCreated, onCancel }: Inv
               Cancel
             </Button>
           )}
-          <Button
-            className="flex-1"
-            disabled={!clientName.trim()}
-            onClick={() => setStep(2)}
-          >
+          <Button className="flex-1" disabled={!clientName.trim()} onClick={() => setStep(2)}>
             Next: Add Items
           </Button>
         </div>
@@ -228,7 +231,11 @@ export function InvoiceGenerator({ vendorId, prefill, onCreated, onCancel }: Inv
                     min={0}
                     value={item.unitPriceKobo / 100}
                     onChange={(e) =>
-                      updateItem(item._key, 'unitPriceKobo', Math.round(Number(e.target.value) * 100))
+                      updateItem(
+                        item._key,
+                        'unitPriceKobo',
+                        Math.round(Number(e.target.value) * 100),
+                      )
                     }
                     className="mt-0.5 w-full rounded-md border border-surface-300 px-2 py-1.5 text-sm focus:border-primary-500 focus:outline-none"
                   />
@@ -336,13 +343,20 @@ export function InvoiceGenerator({ vendorId, prefill, onCreated, onCancel }: Inv
           </div>
         </div>
 
-        {notes && <p className="text-surface-500 text-xs border-t border-surface-100 pt-2">{notes}</p>}
+        {notes && (
+          <p className="text-surface-500 text-xs border-t border-surface-100 pt-2">{notes}</p>
+        )}
       </div>
 
       {error && <p className="text-sm text-red-500">{error}</p>}
 
       <div className="flex gap-2">
-        <Button variant="outline" className="flex-1" onClick={() => setStep(2)} disabled={submitting}>
+        <Button
+          variant="outline"
+          className="flex-1"
+          onClick={() => setStep(2)}
+          disabled={submitting}
+        >
           Back
         </Button>
         <Button
