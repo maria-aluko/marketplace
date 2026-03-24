@@ -41,7 +41,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: `${vendor.businessName} | ${CATEGORY_LABELS[vendor.category] ?? vendor.category} in ${vendor.area}`,
       description: vendor.description.slice(0, 160),
-      ...(vendor.coverImageUrl && { images: [{ url: vendor.coverImageUrl }] }),
     },
   };
 }

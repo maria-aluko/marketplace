@@ -4,6 +4,7 @@ import { CATEGORY_LABELS, RENTAL_CATEGORY_LABELS } from '@eventtrust/shared';
 import { BadgeCheck, Truck, MapPin, MessageCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/ui/star-rating';
+import { ShareButton } from '@/components/vendor/share-button';
 import { cloudinaryTransform } from '@/lib/cloudinary';
 import { CATEGORY_ICONS, RENTAL_CATEGORY_ICONS } from '@/lib/category-meta';
 
@@ -164,20 +165,27 @@ export function ListingSearchCard({ listing, compact = false }: ListingSearchCar
         </div>
       </Link>
 
-      {/* WhatsApp contact button — outside the Link */}
-      {whatsappPhone && whatsappText && (
-        <div className="border-t border-surface-100 px-4 pb-4">
-          <a
-            href={`https://wa.me/${whatsappPhone}?text=${whatsappText}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-primary-600 px-4 py-2.5 text-base font-semibold text-white hover:bg-primary-700 transition-colors"
-          >
-            <MessageCircle className="h-4 w-4" />
-            Contact on WhatsApp
-          </a>
-        </div>
-      )}
+      {/* Actions — outside the Link */}
+      <div className="border-t border-surface-100 px-4 pb-4">
+        {whatsappPhone && whatsappText ? (
+          <div className="mt-3 flex items-center gap-2">
+            <a
+              href={`https://wa.me/${whatsappPhone}?text=${whatsappText}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-md bg-primary-600 px-4 py-2.5 text-base font-semibold text-white hover:bg-primary-700 transition-colors"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Contact on WhatsApp
+            </a>
+            <ShareButton vendorName={listing.title} shareUrl={`/listings/${listing.id}`} />
+          </div>
+        ) : (
+          <div className="mt-3 flex justify-end">
+            <ShareButton vendorName={listing.title} shareUrl={`/listings/${listing.id}`} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

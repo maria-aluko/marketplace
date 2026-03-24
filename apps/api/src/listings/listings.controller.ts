@@ -5,6 +5,7 @@ import {
   Get,
   Delete,
   Param,
+  Query,
   Body,
   UseGuards,
   NotFoundException,
@@ -79,6 +80,13 @@ export class ListingsController {
   @Get()
   async findAll() {
     const listings = await this.listingsService.findAll();
+    return { data: listings };
+  }
+
+  @Public()
+  @Get(':id/similar')
+  async findSimilar(@Param('id') id: string, @Query('limit') limit?: string) {
+    const listings = await this.listingsService.findSimilar(id, limit ? parseInt(limit, 10) : 4);
     return { data: listings };
   }
 

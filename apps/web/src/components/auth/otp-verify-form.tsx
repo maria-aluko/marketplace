@@ -100,8 +100,13 @@ export function OtpVerifyForm({ phone, onBack, onSuccess }: OtpVerifyFormProps) 
       if (onSuccess) {
         onSuccess(user);
       } else {
-        const redirect = searchParams.get('redirect') ||
-          (user.role?.toLowerCase() === UserRole.ADMIN ? '/admin' : '/dashboard');
+        const raw = searchParams.get('redirect');
+        const redirect =
+          raw && raw.startsWith('/') && !raw.startsWith('//')
+            ? raw
+            : user.role?.toLowerCase() === UserRole.ADMIN
+              ? '/admin'
+              : '/dashboard';
         router.push(redirect);
       }
     }

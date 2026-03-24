@@ -65,8 +65,8 @@ apps/api/src/
 │   ├── vendors.service.ts     # create, update, submitForReview, findById, findBySlug
 │   └── services/vendor-status.service.ts  # transition() with audit logging
 ├── listings/         # (Phase 2) Service + rental listing CRUD
-│   ├── listings.controller.ts   # POST /listings, PATCH /listings/:id, DELETE /listings/:id, GET /listings/:id
-│   ├── listings.service.ts      # create, update, delete, findById
+│   ├── listings.controller.ts   # POST /listings, PATCH /listings/:id, DELETE /listings/:id, GET /listings/:id, GET /listings/:id/similar
+│   ├── listings.service.ts      # create, update, delete, findById, findSimilar
 │   └── dto/                     # CreateServiceListingDto, CreateRentalListingDto
 ├── portfolio/        # (Phase 2) Cloudinary signed URL, upload confirmation
 ├── reviews/          # (Phase 2) Submission, scoring, replies
@@ -150,7 +150,9 @@ Key tables: `users`, `auth_identities`, `vendors`, `listings`, `listing_rental_d
 - JWT in httpOnly cookies only, CSRF token in requests
 - Mobile-first CSS (375px base, scale up)
 - All forms must show loading and error states — no silent failures Nigerian network latency means users need constant feedback
-- Dynamic `og:image`, `og:title`, `og:description` on vendor profile pages (WhatsApp sharing is a primary discovery channel)
+- Vendor dashboard overview is **status-aware** — each `VendorStatus` value (`DRAFT`, `PENDING`, `ACTIVE`, `CHANGES_REQUESTED`, `SUSPENDED`) renders distinct content. See `components/dashboard/vendor-dashboard.tsx` `StatusContent` component for the established pattern.
+- Dynamic `og:image`, `og:title`, `og:description` on vendor profile and listing detail pages — use the Next.js App Router **file convention** (`opengraph-image.tsx` in the route folder) with `ImageResponse` from `next/og`. Do NOT add `images` to `generateMetadata()` manually — the file-based image takes precedence.
+- WhatsApp sharing is the primary discovery channel — every listing card and page must have a `ShareButton`
 
 ### Portfolio Upload Flow
 

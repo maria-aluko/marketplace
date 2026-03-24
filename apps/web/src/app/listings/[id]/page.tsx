@@ -52,23 +52,14 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const listing = await serverFetch<ListingResponse>(`/listings/${id}`);
   if (!listing) notFound();
 
-  // Fetch vendor, all listings, and listing reviews in parallel
-  const [vendor, allListings, listingReviewsData] = await Promise.all([
+  // Fetch vendor, similar listings, and listing reviews in parallel
+  const [vendor, similarData, listingReviewsData] = await Promise.all([
     serverFetch<VendorResponse>(`/vendors/${listing.vendorId}`),
-    serverFetch<{ data: ListingResponse[] }>('/listings', { revalidate: 120 }),
+    serverFetch<ListingResponse[]>(`/listings/${listing.id}/similar?limit=4`, { revalidate: 120 }),
     serverFetch<{ data: ReviewResponse[] }>(`/listings/${listing.id}/reviews`),
   ]);
   const listingReviews = listingReviewsData?.data ?? [];
-
-  // Similar listings: same type+category, excluding current listing
-  const similar = (allListings?.data ?? [])
-    .filter(
-      (l) =>
-        l.id !== listing.id &&
-        l.listingType === listing.listingType &&
-        (listing.category ? l.category === listing.category : true),
-    )
-    .slice(0, 4);
+  const similar = similarData ?? [];
 
   const categoryLabel = listing.category
     ? (CATEGORY_LABELS[listing.category] ?? listing.category)

@@ -232,6 +232,37 @@ export class ListingsService {
     return listings.map((l: any) => this.toResponse(l));
   }
 
+  async findSimilar(listingId: string, limit = 4): Promise<ListingResponse[]> {
+    const listing = await this.prisma.listing.findFirst({
+      where: { id: listingId, deletedAt: null },
+      include: { rentalDetails: { select: { rentalCategory: true } } },
+    });
+
+    if (!listing) return [];
+
+    const where: any = {
+      id: { not: listingId },
+      deletedAt: null,
+      listingType: listing.listingType,
+      vendor: { status: 'ACTIVE', deletedAt: null },
+    };
+
+    if (listing.listingType === 'SERVICE' && listing.category) {
+      where.category = listing.category;
+    } else if (listing.listingType === 'RENTAL' && (listing as any).rentalDetails?.rentalCategory) {
+      where.rentalDetails = { rentalCategory: (listing as any).rentalDetails.rentalCategory };
+    }
+
+    const listings = await this.prisma.listing.findMany({
+      where,
+      include: { rentalDetails: true },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+
+    return listings.map((l: any) => this.toResponse(l));
+  }
+
   toResponse(listing: any): ListingResponse {
     const response: ListingResponse = {
       id: listing.id,
