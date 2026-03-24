@@ -28,6 +28,11 @@ export function PortfolioGallery({ items }: PortfolioGalleryProps) {
             key={item.id}
             type="button"
             onClick={() => setSelectedIndex(index)}
+            aria-label={
+              item.mediaType === MediaType.VIDEO
+                ? (item.caption ? `Play video: ${item.caption}` : 'Play video')
+                : (item.caption || 'View portfolio image')
+            }
             className="group relative aspect-square overflow-hidden rounded-lg bg-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             {item.mediaType === MediaType.VIDEO ? (

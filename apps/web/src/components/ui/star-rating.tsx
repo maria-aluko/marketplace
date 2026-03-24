@@ -30,7 +30,7 @@ export function StarRating({ value, onChange, readonly = false, size = 'md' }: S
           onClick={() => interactive && onChange(star)}
           className={cn(
             'focus:outline-none disabled:cursor-default',
-            interactive && 'cursor-pointer hover:scale-110 transition-transform',
+            interactive && 'cursor-pointer hover:scale-110 transition-transform min-h-[44px] min-w-[44px] inline-flex items-center justify-center',
           )}
           aria-label={`${star} star${star !== 1 ? 's' : ''}`}
         >

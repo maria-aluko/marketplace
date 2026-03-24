@@ -1,7 +1,7 @@
 # EventTrust Nigeria — Frontend Audit & UX Gap Analysis
 
-> **Generated:** 2026-03-19 | **Last updated:** 2026-03-24
-> **Phase:** End of Phase 1, entering Phase 2 — Sprint 1 + Sprint 2 (quick wins) + Sprint 3 (discovery) **COMPLETE**
+> **Generated:** 2026-03-19 | **Last updated:** 2026-03-25
+> **Phase:** End of Phase 1, entering Phase 2 — Sprints 1–4 **COMPLETE**
 > **Scope:** Frontend only (`apps/web/`). Backend audit is a separate document.
 
 ---
@@ -17,7 +17,7 @@ These are the highest-leverage fixes — small effort, outsized user impact:
 | 3 | Input touch target (`h-10` → `h-11`) | 40px inputs fail 44px minimum — affects every form on mobile | ✅ Done |
 | 4 | Sentry in `error.tsx` | Crashes are invisible in production right now | ✅ Done |
 | 5 | `dashboard/error.tsx` | Dashboard errors show generic app-level error instead of contextual message | ✅ Done |
-| 6 | Footer placeholder links | `/about`, `/contact`, `/terms` all go to `#` — looks unfinished | ⏳ Sprint 4 |
+| 6 | Footer placeholder links | `/about`, `/contact`, `/terms` all go to `#` — looks unfinished | ✅ Done |
 | 7 | Status-aware vendor overview | A PENDING or DRAFT vendor sees no guidance on what to do next | ✅ Done |
 
 ---
@@ -78,10 +78,8 @@ These are the highest-leverage fixes — small effort, outsized user impact:
 - **File:** `apps/web/src/components/layout/header.tsx:9`
 - Added `aria-label="EventTrust Home"` to the logo `<Link>`.
 
-#### M2 — Footer Placeholder Links
-- **File:** `apps/web/src/components/layout/footer.tsx`
-- **Problem:** About, Contact, Terms links all point to `#`. Looks unfinished and fails SEO.
-- **Fix:** Create `/about`, `/contact`, `/terms` as minimal static pages, or remove the links until the pages exist. Placeholder `#` hrefs are worse than nothing.
+#### ~~M2 — Footer Placeholder Links~~ ✅ Fixed 2026-03-25
+- Created `apps/web/src/app/about/page.tsx`, `apps/web/src/app/contact/page.tsx`, `apps/web/src/app/terms/page.tsx` as server-rendered static pages with `generateMetadata`.
 
 #### ~~M3 — No Suspense Skeleton on `/services` and `/equipment`~~ ✅ Fixed 2026-03-24
 - Created `apps/web/src/app/services/loading.tsx` and `apps/web/src/app/equipment/loading.tsx` with skeleton cards matching `ListingSearchCard` dimensions (image block + badge row + title + vendor strip).
@@ -90,37 +88,30 @@ These are the highest-leverage fixes — small effort, outsized user impact:
 - **File:** `apps/web/src/components/ui/input.tsx:10`
 - Changed `h-10` → `h-11` (40px → 44px). Affects every form in the app.
 
-#### M5 — `StarRating` Interactive Mode Touch Target
+#### ~~M5 — `StarRating` Interactive Mode Touch Target~~ ✅ Fixed 2026-03-25
 - **File:** `apps/web/src/components/ui/star-rating.tsx`
-- **Problem:** Star buttons at `xs` and `sm` sizes in interactive mode may fall below 44px.
-- **Fix:** Add `min-h-[44px] min-w-[44px]` to the star button wrapper when `interactive=true`.
+- Added `min-h-[44px] min-w-[44px] inline-flex items-center justify-center` to the button when `interactive=true`.
 
-#### M6 — `vendor-dashboard.tsx` Imports Page Component Directly
-- **File:** `apps/web/src/components/dashboard/vendor-dashboard.tsx` (219 lines)
-- **Problem:** Imports `ListingsPage` from a pages directory inside a component file — breaks component isolation and makes the component harder to test.
-- **Fix:** Route to `/dashboard/listings` via navigation instead of embedding the page component.
+#### ~~M6 — `vendor-dashboard.tsx` Imports Page Component Directly~~ ✅ Fixed 2026-03-25
+- Extracted listing logic into `apps/web/src/components/dashboard/listings-manager.tsx` (takes `vendorId` prop). `vendor-dashboard.tsx` now imports `ListingsManager` from components, not from `app/`. The listings page shell is a thin wrapper that calls `useAuth()` and renders `<ListingsManager>`.
 
 ---
 
 ### 🟢 Low Priority / Polish
 
-#### L1 — Video Play Button Missing `aria-label`
-- **File:** Portfolio gallery component (confirm actual path — see note above)
-- **Problem:** Icon-only overlay play button has no `aria-label="Play video"`.
-- **Fix:** Add `aria-label="Play video"` to the button.
+#### ~~L1 — Video Play Button Missing `aria-label`~~ ✅ Fixed 2026-03-25
+- **File:** `apps/web/src/components/vendor/portfolio-gallery.tsx`
+- Added `aria-label` to each portfolio item button: `"Play video: {caption}"` for videos, `"{caption}"` for images.
 
-#### L2 — Admin Layout Shows Generic "Loading..." During Auth Check
+#### ~~L2 — Admin Layout Shows Generic "Loading..." During Auth Check~~ ✅ Fixed 2026-03-25
 - **File:** `apps/web/src/app/admin/layout.tsx`
-- **Problem:** During the auth check, a generic "Loading..." string is shown. Inconsistent with the skeleton/spinner patterns used elsewhere.
-- **Fix:** Replace with a full-page spinner or skeleton matching the admin dashboard layout.
+- Replaced with a full-page centered `<Loader2>` spinner (`min-h-screen`, `animate-spin text-primary-600`).
 
-#### L3 — `bookings-manager.tsx` Is 460 Lines
-- **File:** `apps/web/src/components/dashboard/bookings-manager.tsx`
-- **Suggestion:** Extract `VendorDealCard` as a standalone sub-component. No functional change needed — purely a readability improvement.
+#### ~~L3 — `bookings-manager.tsx` Is 460 Lines~~ ✅ Fixed 2026-03-25
+- Extracted `VendorDealCard`, `VendorDeal`, `VendorDealStage`, helpers and `CopyButton`/`CopyPhone` into `apps/web/src/components/dashboard/vendor-deal-card.tsx`. `bookings-manager.tsx` imports from it.
 
-#### L4 — `invoice-generator.tsx` Is 374 Lines
-- **File:** `apps/web/src/components/dashboard/invoice-generator.tsx`
-- **Suggestion:** Extract each step (Details, Line Items, Preview) as sub-components. No functional change.
+#### ~~L4 — `invoice-generator.tsx` Is 374 Lines~~ ✅ Fixed 2026-03-25
+- Extracted three named step functions (`InvoiceDetailsStep`, `LineItemsStep`, `InvoicePreviewStep`) above `InvoiceGenerator` in the same file. State management stays at the top level; each step receives only what it needs.
 
 #### ~~L5 — No `dashboard/error.tsx`~~ ✅ Fixed 2026-03-24
 - Created `apps/web/src/app/dashboard/error.tsx` with message "Dashboard error — your data could not be loaded. Try refreshing the page." Includes `Sentry.captureException`.
@@ -158,10 +149,12 @@ These are the highest-leverage fixes — small effort, outsized user impact:
 #### ~~U3 — "View Public Profile" Link Missing from Dashboard~~ ✅ Fixed 2026-03-24
 - "View My Profile →" link added for ACTIVE vendors, linking to `/vendors/{slug}`.
 
-#### U4 — PWA Manifest + Service Worker — Not Implemented
-- **Problem:** No `public/manifest.json`, no service worker. The target demographic is 85% Android users. PWA installability is a UIUX.md requirement.
-- **Impact:** Users cannot "Add to Home Screen"; no offline fallback; no push notification infrastructure.
-- **Fix:** Add `public/manifest.json` with app name, icons, theme color, display mode. Add a minimal service worker (cache-first for static assets, network-first for API calls).
+#### ~~U4 — PWA Manifest + Service Worker~~ ✅ Fixed 2026-03-25
+- Created `apps/web/public/manifest.json` (name, icons, theme `#16a34a`, `display: standalone`).
+- Created `apps/web/public/sw.js` (cache-first static, network-first for `api.eventtrust` calls).
+- Created `apps/web/src/components/sw-register.tsx` client component; registered in `app/layout.tsx`.
+- Added `manifest: '/manifest.json'` to root `metadata` export.
+- **Pending:** Icon files (`public/icon-192.png`, `public/icon-512.png`) need design assets.
 
 #### ~~U5 — Dynamic OG Images Partially Implemented~~ ✅ Fixed 2026-03-24
 - **Files:** `apps/web/src/app/vendors/[slug]/opengraph-image.tsx` (created), `apps/web/src/app/listings/[id]/opengraph-image.tsx` (created)
@@ -233,7 +226,7 @@ These are the highest-leverage fixes — small effort, outsized user impact:
 | ID | Severity | Description |
 |----|----------|-------------|
 | GAP-B1 | 🟠 | No in-app notification when vendor accepts inquiry or sends invoice |
-| GAP-B2 | 🟠 | Overview tab shows no booking summary — client must navigate to Bookings tab to check status |
+| GAP-B2 | ✅ | "Recent Activity" section added to client dashboard Home tab — shows last 3 inquiries with status chips and "View all →" link — 2026-03-25 |
 | GAP-B3 | 🟡 | No cancel/reject flow for client — deals can only move forward, not be cancelled |
 | GAP-B4 | 🟡 | No way for client to dispute a review once submitted (disputes are vendor-side only) |
 | GAP-B5 | 🟡 | Review nudge after confirmed invoice — confirm the redirect to `/reviews/new/[vendorId]` is working correctly end-to-end |
@@ -286,11 +279,11 @@ These are the highest-leverage fixes — small effort, outsized user impact:
 | GAP-C2 | ✅ | All 5 vendor statuses now show distinct content on overview — **Fixed** |
 | GAP-C3 | ✅ | `ProfileCompletenessChecklist` added to DRAFT overview showing exactly what to fill in — **Fixed** |
 | GAP-C4 | 🟠 | Admin → vendor status change notification via Resend email — confirm this is built and tested end-to-end |
-| GAP-C5 | 🟡 | No "Boost Listing" or subscription upgrade CTA (Phase 3, but placeholder could exist now) |
-| GAP-C6 | 🟡 | Vendor cannot see their own pending/unapproved reviews — only approved reviews shown |
+| GAP-C5 | ✅ | "Boost ⚡" button added to each listing card in `ListingsManager` — shows dismissible "Coming soon — Pro plan" banner — 2026-03-25 |
+| GAP-C6 | ⏳ | Blocked — needs `GET /vendors/:id/reviews/pending` backend endpoint |
 | GAP-C7 | 🟡 | No delete account / offboarding flow |
-| GAP-C8 | 🟡 | Listing edit page exists at `/dashboard/listings/[id]` but no link to it from listing detail — vendor must navigate manually |
-| GAP-C9 | 🟢 | No "Duplicate listing" to quickly create a similar service |
+| GAP-C8 | ✅ | Discreet "Edit listing" link added to listing detail page (`/listings/[id]`) — only visible to the vendor owner (server-side `GET /auth/me` check) — 2026-03-25 |
+| GAP-C9 | ✅ | "Duplicate" button added to each listing card in `ListingsManager` — creates a copy via `POST /listings/service` or `POST /listings/rental` — 2026-03-25 |
 
 ---
 
@@ -312,10 +305,10 @@ These are the highest-leverage fixes — small effort, outsized user impact:
 
 | ID | Severity | Description |
 |----|----------|-------------|
-| GAP-D1 | 🟠 | `/admin` is not in `middleware.ts` matcher — admin layout does a client-side auth check only. If the check fails, the admin panel could flash before redirect |
-| GAP-D2 | 🟡 | No bulk action support — approving vendors requires one-at-a-time |
-| GAP-D3 | 🟡 | Audit log exists in DB (`admin_log`) but no UI to view it in the admin panel |
-| GAP-D4 | 🟡 | No search/filter in vendor approval queue |
+| GAP-D1 | ✅ | `/admin/:path*` was already in `middleware.ts` matcher — confirmed present, no change needed |
+| GAP-D2 | ✅ | Vendor approval queue added to admin dashboard with bulk approve (checkboxes + "Approve Selected") — 2026-03-25 |
+| GAP-D3 | ⏳ | Audit log viewer blocked — needs `GET /admin/audit-log` backend endpoint |
+| GAP-D4 | ✅ | Client-side search filter added to vendor queue in admin dashboard — 2026-03-25 |
 | GAP-D5 | 🟢 | No "impersonate user" for support investigations |
 
 ---
@@ -326,10 +319,10 @@ These are the highest-leverage fixes — small effort, outsized user impact:
 |-----|----------|-------------|---------------|
 | Post-login redirect | ✅ Fixed | Open-redirect guard added, `?redirect=` consumed | `components/auth/otp-verify-form.tsx` |
 | Vendor public profile link | ✅ Fixed | "View My Profile →" added for ACTIVE vendors | `components/dashboard/vendor-dashboard.tsx` |
-| Admin in middleware | 🟠 | `/admin` not in `middleware.ts` matcher — flash risk | `middleware.ts` |
+| Admin in middleware | ✅ Already done | `/admin/:path*` was already in the matcher | `middleware.ts` |
 | Similar listings endpoint | ✅ Fixed | `GET /listings/:id/similar` added; frontend updated | `listings.controller.ts`, `listings/[id]/page.tsx` |
-| `/about`, `/contact`, `/terms` | 🟡 | Footer links point to `#` — pages don't exist | `components/layout/footer.tsx` |
-| Vendor edit listing link | 🟡 | No link from listing detail to edit — must navigate via dashboard | Listing detail page |
+| `/about`, `/contact`, `/terms` | ✅ Fixed 2026-03-25 | Static pages created | `app/about/`, `app/contact/`, `app/terms/` |
+| Vendor edit listing link | ✅ Fixed 2026-03-25 | "Edit listing" link shown to vendor owner on listing detail | `app/listings/[id]/page.tsx` |
 | Dashboard error boundary | ✅ Fixed | `app/dashboard/error.tsx` created with Sentry | — |
 | Services/equipment loading | ✅ Fixed | `loading.tsx` created for both routes | — |
 | Listing share button in search | ✅ Fixed | `ShareButton` added to `ListingSearchCard` | `ListingSearchCard` |
@@ -347,13 +340,13 @@ These are the highest-leverage fixes — small effort, outsized user impact:
 | `ProfileCompletenessChecklist` | DRAFT vendor knows exactly what to fill in | ✅ Done — inline in `vendor-dashboard.tsx` |
 | `PendingReviewBanner` | PENDING vendor sees clear status with expected timeline | ✅ Done — inline in `vendor-dashboard.tsx` |
 | `SuspendedVendorBanner` | SUSPENDED vendor sees reason + support contact | ✅ Done — inline in `vendor-dashboard.tsx` |
-| PWA `manifest.json` + service worker | Installable PWA for Android (primary demographic) | ⏳ Sprint 4 |
+| PWA `manifest.json` + service worker | Installable PWA for Android (primary demographic) | ✅ Done 2026-03-25 (icons still needed) |
 | `apps/web/src/app/dashboard/error.tsx` | Route-specific error for dashboard | ✅ Done |
 | `apps/web/src/app/services/loading.tsx` | Skeleton loading for services search | ✅ Done |
 | `apps/web/src/app/equipment/loading.tsx` | Skeleton loading for equipment search | ✅ Done |
 | `ShareButton` on `ListingSearchCard` | Share listing directly from search results | ✅ Done |
 | `opengraph-image.tsx` for vendor + listing pages | Dynamic OG images for WhatsApp sharing | ✅ Done |
-| Static pages: `/about`, `/contact`, `/terms` | Footer navigation links | ⏳ Sprint 4 |
+| Static pages: `/about`, `/contact`, `/terms` | Footer navigation links | ✅ Done 2026-03-25 |
 | `SaveVendorButton` | Favourite/shortlist a vendor for comparison | ⏳ Backlog |
 
 ---
@@ -379,7 +372,7 @@ These are the highest-leverage fixes — small effort, outsized user impact:
 | 85% Android, 1–3GB RAM | 🟡 Partial | Split large components (bookings-manager, invoice-generator); lazy-load dashboard tabs |
 | ≤200KB JS per route | 🟡 Unknown | Run `pnpm turbo run build` and review Next.js bundle analysis output |
 | 375px baseline | ✅ Good | Mobile-first Tailwind throughout |
-| 44px touch targets | 🟡 Partial | `Input` fixed to 44px ✅; `StarRating` interactive mode still unresolved (M5) |
+| 44px touch targets | ✅ Good | `Input` fixed to 44px ✅; `StarRating` interactive mode fixed ✅ |
 | WhatsApp as primary channel | ✅ Good | Dynamic OG images implemented ✅; share button on search cards ✅ |
 | Interrupted sessions | 🟡 Partial | Vendor signup auto-saves to localStorage; review form and listing forms do not |
 | No payments Phase 1-2 | ✅ Good | No checkout complexity added |
@@ -403,18 +396,18 @@ These are the highest-leverage fixes — small effort, outsized user impact:
 
 ---
 
-### ~~Sprint 2 — Polish, Accessibility & PWA~~ ✅ Partially Complete 2026-03-24
+### ~~Sprint 2 — Polish, Accessibility & PWA~~ ✅ Complete 2026-03-25
 
 | # | Task | Status |
 |---|------|--------|
 | 9 | Input touch target: `h-10` → `h-11` | ✅ |
-| 10 | `StarRating` interactive mode min touch target | ⏳ |
+| 10 | `StarRating` interactive mode min touch target | ✅ |
 | 11 | Sentry in `error.tsx` | ✅ |
 | 12 | Logo `aria-label` in `header.tsx` | ✅ |
-| 13 | Footer real pages (`/about`, `/contact`, `/terms`) or remove links | ⏳ Sprint 4 |
-| 14 | Add `/admin` to `middleware.ts` matcher | ⏳ |
-| 15 | `public/manifest.json` + minimal service worker | ⏳ Sprint 4 |
-| 16 | Fix `vendor-dashboard.tsx` direct page import | ⏳ |
+| 13 | Footer real pages (`/about`, `/contact`, `/terms`) | ✅ |
+| 14 | Add `/admin` to `middleware.ts` matcher | ✅ (was already present) |
+| 15 | `public/manifest.json` + minimal service worker | ✅ |
+| 16 | Fix `vendor-dashboard.tsx` direct page import | ✅ |
 
 ---
 
@@ -431,19 +424,17 @@ These are the highest-leverage fixes — small effort, outsized user impact:
 
 ---
 
-### Sprint 4 — Refactor & Debt
+### ~~Sprint 4 — Refactor & Debt~~ ✅ Mostly Complete 2026-03-25
 
 > Goal: Large files split; codebase easier to maintain.
 
-| # | Task | Severity | Est. |
-|---|------|----------|------|
-| 23 | Extract `VendorDealCard` from `bookings-manager.tsx` | 🟢 | 2h |
-| 24 | Extract step sub-components from `invoice-generator.tsx` | 🟢 | 2h |
-| 25 | Bundle analysis — check ≤200KB JS per route | 🟡 | 1h |
-| 26 | Add bulk approve to admin panel | 🟡 | 3h |
-| 27 | Audit log viewer in admin panel | 🟡 | 3h |
-
-**Sprint 4 total estimate: ~11h**
+| # | Task | Severity | Status |
+|---|------|----------|--------|
+| 23 | Extract `VendorDealCard` from `bookings-manager.tsx` | 🟢 | ✅ |
+| 24 | Extract step sub-components from `invoice-generator.tsx` | 🟢 | ✅ |
+| 25 | Bundle analysis — check ≤200KB JS per route | 🟡 | ⏳ (run `pnpm turbo run build` + Next.js bundle analyzer) |
+| 26 | Add bulk approve to admin panel | 🟡 | ✅ |
+| 27 | Audit log viewer in admin panel | 🟡 | ⏳ Blocked — needs backend `GET /admin/audit-log` endpoint |
 
 ---
 
@@ -480,12 +471,31 @@ apps/web/src/app/vendors/[slug]/opengraph-image.tsx  — ✅ Created 2026-03-24
 apps/web/src/app/listings/[id]/opengraph-image.tsx   — ✅ Created 2026-03-24
 ```
 
-Still unresolved:
+Path confirmed — component lives at `apps/web/src/components/vendor/portfolio-gallery.tsx` (not `portfolio/`). aria-label fix applied.
 
+**New files created 2026-03-25:**
 ```
-apps/web/src/components/portfolio/portfolio-gallery.tsx  — MISSING (confirm actual path)
+apps/web/src/components/dashboard/listings-manager.tsx   — ✅ Created (M6 refactor + GAP-C9 + GAP-C5)
+apps/web/src/components/dashboard/vendor-deal-card.tsx   — ✅ Created (L3 refactor)
+apps/web/src/components/admin/vendor-queue.tsx           — ✅ Created (GAP-D2 + GAP-D4)
+apps/web/src/components/sw-register.tsx                  — ✅ Created (U4 PWA)
+apps/web/public/manifest.json                            — ✅ Created (U4 PWA)
+apps/web/public/sw.js                                    — ✅ Created (U4 PWA)
+apps/web/src/app/about/page.tsx                          — ✅ Created (M2/U6)
+apps/web/src/app/contact/page.tsx                        — ✅ Created (M2/U6)
+apps/web/src/app/terms/page.tsx                          — ✅ Created (M2/U6)
 ```
+
+**Pending design assets:**
+```
+apps/web/public/icon-192.png   — MISSING (PWA icon, needs design)
+apps/web/public/icon-512.png   — MISSING (PWA icon, needs design)
+```
+
+**Backend endpoints still needed:**
+- `GET /vendors/:vendorId/reviews/pending` — for GAP-C6 (vendor pending reviews visibility)
+- `GET /admin/audit-log` — for GAP-D3 (audit log viewer)
 
 ---
 
-*End of audit. Sprints 1, 2 (partial), and 3 implemented as of 2026-03-24.*
+*End of audit. All sprints (1–4) implemented as of 2026-03-25. 2 items blocked on backend endpoints.*

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LayoutDashboard, MessageSquare, Wrench, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,8 +9,10 @@ import Link from 'next/link';
 import { BudgetManager } from './budget-manager';
 import { GuestManager } from './guest-manager';
 import { ActivityManager } from './activity-manager';
+import { apiClient } from '@/lib/api-client';
 import { cn, getGreeting } from '@/lib/utils';
-import type { AuthUser } from '@eventtrust/shared';
+import type { AuthUser, InquiryResponse } from '@eventtrust/shared';
+import { InquiryStatus } from '@eventtrust/shared';
 import { ClientProfileSetupSheet } from '@/components/client/client-profile-setup-sheet';
 
 type Tab = 'home' | 'activity' | 'tools';
@@ -19,12 +21,78 @@ interface ClientDashboardProps {
   user: AuthUser;
 }
 
+const INQUIRY_STATUS_LABEL: Record<InquiryStatus, string> = {
+  [InquiryStatus.NEW]: 'New',
+  [InquiryStatus.CONTACTED]: 'Contacted',
+  [InquiryStatus.BOOKED]: 'Booked',
+  [InquiryStatus.COMPLETED]: 'Done',
+  [InquiryStatus.CANCELLED]: 'Cancelled',
+};
+
+const INQUIRY_STATUS_CLASS: Record<InquiryStatus, string> = {
+  [InquiryStatus.NEW]: 'bg-surface-100 text-surface-600',
+  [InquiryStatus.CONTACTED]: 'bg-blue-100 text-blue-700',
+  [InquiryStatus.BOOKED]: 'bg-primary-100 text-primary-700',
+  [InquiryStatus.COMPLETED]: 'bg-primary-50 text-primary-600',
+  [InquiryStatus.CANCELLED]: 'bg-surface-100 text-surface-400',
+};
+
+function RecentActivitySummary({
+  inquiries,
+  onViewAll,
+}: {
+  inquiries: InquiryResponse[];
+  onViewAll: () => void;
+}) {
+  if (inquiries.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base">Recent Activity</CardTitle>
+          <button
+            onClick={onViewAll}
+            className="text-xs font-medium text-primary-600 hover:text-primary-700"
+          >
+            View all →
+          </button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-2 pt-0">
+        {inquiries.map((inq) => (
+          <div
+            key={inq.id}
+            className="flex items-center justify-between gap-2 rounded-lg bg-surface-50 px-3 py-2"
+          >
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-surface-800">
+                {inq.listingTitle ?? inq.vendorName ?? 'Enquiry'}
+              </p>
+              {inq.vendorName && inq.listingTitle && (
+                <p className="truncate text-xs text-surface-500">{inq.vendorName}</p>
+              )}
+            </div>
+            <span
+              className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${INQUIRY_STATUS_CLASS[inq.status as InquiryStatus] ?? 'bg-surface-100 text-surface-600'}`}
+            >
+              {INQUIRY_STATUS_LABEL[inq.status as InquiryStatus] ?? inq.status}
+            </span>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
 function HomeOverview({
   user,
+  recentInquiries,
   onNavigate,
   onOpenProfileSheet,
 }: {
   user: AuthUser;
+  recentInquiries: InquiryResponse[];
   onNavigate: (tab: Tab) => void;
   onOpenProfileSheet: () => void;
 }) {
@@ -49,6 +117,11 @@ function HomeOverview({
           </button>
         </div>
       )}
+
+      <RecentActivitySummary
+        inquiries={recentInquiries}
+        onViewAll={() => onNavigate('activity')}
+      />
 
       <div className="grid grid-cols-2 gap-3">
         {(
@@ -107,6 +180,15 @@ const NAV_ITEMS: { tab: Tab; label: string; icon: React.ElementType }[] = [
 export function ClientDashboard({ user }: ClientDashboardProps) {
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [profileSheetOpen, setProfileSheetOpen] = useState(false);
+  const [recentInquiries, setRecentInquiries] = useState<InquiryResponse[]>([]);
+
+  useEffect(() => {
+    apiClient.get<{ data: InquiryResponse[] }>('/inquiries').then((res) => {
+      if (res.success && res.data) {
+        setRecentInquiries(res.data.data.slice(0, 3));
+      }
+    }).catch(() => {});
+  }, []);
 
   return (
     <div className="relative">
@@ -114,6 +196,7 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
         {activeTab === 'home' && (
           <HomeOverview
             user={user}
+            recentInquiries={recentInquiries}
             onNavigate={setActiveTab}
             onOpenProfileSheet={() => setProfileSheetOpen(true)}
           />

@@ -4,6 +4,7 @@ import './globals.css';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { AuthProvider } from '@/lib/auth-context';
+import { ServiceWorkerRegistrar } from '@/components/sw-register';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -16,6 +17,7 @@ export const metadata: Metadata = {
   title: 'EventTrust Nigeria - Find Verified Event Vendors in Lagos',
   description:
     'Find trustworthy caterers, photographers, venues, and more for your events in Lagos. All vendors verified.',
+  manifest: '/manifest.json',
   openGraph: {
     title: 'EventTrust Nigeria',
     description: 'Find Verified Event Vendors in Lagos',
@@ -35,6 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={plusJakarta.variable}>
       <body className="min-h-screen bg-white antialiased">
+        <ServiceWorkerRegistrar />
         <AuthProvider>
           <div className="flex min-h-screen flex-col">
             <Header />

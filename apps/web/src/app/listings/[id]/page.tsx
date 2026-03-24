@@ -1,9 +1,9 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import type { ListingResponse, VendorResponse, ReviewResponse } from '@eventtrust/shared';
+import type { ListingResponse, VendorResponse, ReviewResponse, AuthUser } from '@eventtrust/shared';
 import { CATEGORY_LABELS, RentalCondition } from '@eventtrust/shared';
-import { ChevronRight, Truck, MapPin, Package, Shield, CheckCircle2, Star, ImageOff } from 'lucide-react';
+import { ChevronRight, Truck, MapPin, Package, Shield, CheckCircle2, Star, ImageOff, Pencil } from 'lucide-react';
 
 const CONDITION_LABELS: Record<string, string> = {
   [RentalCondition.NEW]: 'New',
@@ -52,11 +52,12 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const listing = await serverFetch<ListingResponse>(`/listings/${id}`);
   if (!listing) notFound();
 
-  // Fetch vendor, similar listings, and listing reviews in parallel
-  const [vendor, similarData, listingReviewsData] = await Promise.all([
+  // Fetch vendor, similar listings, listing reviews, and current user in parallel
+  const [vendor, similarData, listingReviewsData, authUser] = await Promise.all([
     serverFetch<VendorResponse>(`/vendors/${listing.vendorId}`),
     serverFetch<ListingResponse[]>(`/listings/${listing.id}/similar?limit=4`, { revalidate: 120 }),
     serverFetch<{ data: ReviewResponse[] }>(`/listings/${listing.id}/reviews`),
+    serverFetch<AuthUser>('/auth/me', { revalidate: 0 }),
   ]);
   const listingReviews = listingReviewsData?.data ?? [];
   const similar = similarData ?? [];
@@ -118,7 +119,18 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         )}
       </div>
 
-      <h1 className="mb-4 text-2xl font-bold">{listing.title}</h1>
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <h1 className="text-2xl font-bold">{listing.title}</h1>
+        {authUser?.vendorId === listing.vendorId && (
+          <Link
+            href={`/dashboard/listings/${listing.id}`}
+            className="inline-flex shrink-0 items-center gap-1 rounded-md border border-surface-200 px-3 py-1.5 text-xs font-medium text-surface-500 hover:text-primary-600 hover:border-primary-200 transition-colors"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            Edit listing
+          </Link>
+        )}
+      </div>
 
       {vendor && (
         <div className="mb-6 rounded-lg border border-surface-200 bg-surface-50 p-4">

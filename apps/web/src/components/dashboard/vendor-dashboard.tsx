@@ -26,7 +26,7 @@ import { InvoiceBrandingSettings } from '@/components/dashboard/invoice-branding
 import { EnquiriesManager } from '@/components/dashboard/enquiries-manager';
 import { BudgetManager } from '@/components/dashboard/budget-manager';
 import { GuestManager } from '@/components/dashboard/guest-manager';
-import ListingsPage from '@/app/dashboard/listings/page';
+import { ListingsManager } from '@/components/dashboard/listings-manager';
 import { cn, getGreeting } from '@/lib/utils';
 import { SubscriptionTier, VendorStatus } from '@eventtrust/shared';
 import type { AuthUser, VendorResponse } from '@eventtrust/shared';
@@ -298,7 +298,7 @@ export function VendorDashboard({ user, vendor }: VendorDashboardProps) {
 
         {activeTab === 'listings' && (
           <div className="py-4">
-            <ListingsPage />
+            <ListingsManager vendorId={vendorId} />
           </div>
         )}
 
