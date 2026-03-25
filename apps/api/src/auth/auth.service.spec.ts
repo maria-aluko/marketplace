@@ -19,6 +19,7 @@ describe('AuthService', () => {
     },
     user: {
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
     },
@@ -150,7 +151,7 @@ describe('AuthService', () => {
         verified: false,
       });
       mockPrisma.otpRequest.update.mockResolvedValue({});
-      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+      mockPrisma.user.findFirst.mockResolvedValue(mockUser);
       mockPrisma.vendor.findFirst.mockResolvedValue(null);
       mockPrisma.clientProfile.findUnique.mockResolvedValue(null);
       mockPrisma.refreshToken.create.mockResolvedValue({ id: 'rt-1' });

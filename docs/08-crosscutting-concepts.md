@@ -87,7 +87,19 @@ export class ZodValidationPipe implements PipeTransform {
 }
 
 // 3. Environment variables (at startup — fail fast)
-const env = EnvSchema.parse(process.env); // in config/env.validation.ts
+// apps/api/src/app.module.ts — ConfigModule.forRoot({ validate })
+ConfigModule.forRoot({
+  isGlobal: true,
+  validate: (config) => {
+    const schema = z.object({
+      DATABASE_URL: z.string().url(),
+      JWT_SECRET: z.string().min(32),
+      TERMII_API_KEY: z.string().min(1),
+      // ... all required vars — app refuses to start if any are missing
+    });
+    return schema.parse(config); // throws ZodError on boot if invalid
+  },
+});
 
 // ❌ DON'T — trust and use raw input
 const { phone, amount } = req.body;
@@ -102,6 +114,21 @@ await prisma.payment.create({ data: { phone, amount } }); // unvalidated, type-u
 
 ### Layer 1: API errors (server → client)
 All API error responses follow the standard shape (see section 6.6). Use the `GlobalExceptionFilter` in NestJS, or a helper function in Next.js API routes.
+
+**Sentry integration:** `GlobalExceptionFilter` calls `Sentry.captureException()` for genuine 5xx errors (unexpected Prisma errors, unhandled exceptions). `HttpException` (4xx) is intentionally not captured — these are expected user errors. Sentry is initialized in `main.ts` before `NestFactory.create()`.
+
+```typescript
+// Pattern: only capture non-HttpException paths
+if (exception instanceof HttpException) {
+  // 4xx — expected, don't send to Sentry
+} else if (exception instanceof PrismaClientKnownRequestError) {
+  if (!['P2002', 'P2025'].includes(exception.code)) {
+    Sentry.captureException(exception); // unexpected Prisma error → alert
+  }
+} else if (exception instanceof Error) {
+  Sentry.captureException(exception); // unhandled → alert
+}
+```
 
 ### Layer 2: Client-side fetch errors
 Handled by the typed API client (`lib/api-client.ts`). TanStack Query surfaces errors as `query.error`.

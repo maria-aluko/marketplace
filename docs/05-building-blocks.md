@@ -59,18 +59,28 @@ apps/api/src/
 │   └── dto/                    CreateServiceListingDto, CreateRentalListingDto
 │
 ├── portfolio/          (Phase 2) Cloudinary signed URL + upload confirmation
-├── reviews/            (Phase 2) Review submission, scoring, vendor replies
+├── reviews/            (Phase 2) Review submission, scoring, vendor replies, moderation
+│   │                   GET /vendors/:vendorId/reviews/pending — vendor pending review queue
 ├── search/             (Phase 2) Ranked SQL search across listings table
 ├── notifications/      (Phase 2) Resend email + Termii SMS (internal only)
 ├── disputes/           (Phase 3) Dispute workflow, evidence, decisions
 ├── admin/              (Phase 3) Moderation queues, analytics
+│   │                   GET /admin/audit-log — paginated audit log for admin UI
+│
+├── budgets/            (Phase 2+) Client budget planner — CRUD, items, totals
+├── guest-lists/        (Phase 2+) Guest list management — RSVP tracking, bulk import
+├── inquiries/          (Phase 2+) Vendor inquiry CRM — status machine, invoice linking
+├── invoices/           (Phase 2+) Invoice lifecycle — create, send, confirm (token-gated), complete
+├── invoice-branding/   (Phase 2+) Vendor invoice branding — logo, color, tagline (Pro tier)
+├── clients/            (Phase 2+) Client profile CRUD
 │
 └── common/
     ├── decorators/     @Public(), @CurrentUser(), @Roles()
     ├── guards/         JwtAuthGuard (global APP_GUARD), RolesGuard, VendorOwnerGuard,
-    │                   PhoneThrottlerGuard
+    │                   PhoneThrottlerGuard (throws 400 on missing phone — no IP fallback)
     ├── middleware/     CsrfMiddleware (double-submit cookie)
-    ├── filters/        GlobalExceptionFilter (Prisma error mapping: P2002→409, P2025→404)
+    ├── filters/        GlobalExceptionFilter (Prisma error mapping: P2002→409, P2025→404;
+    │                   Sentry.captureException() for 5xx paths)
     └── pipes/          ZodValidationPipe (wraps Zod schemas from @eventtrust/shared)
 ```
 
@@ -80,6 +90,9 @@ apps/api/src/
 - Every state-changing endpoint calls `AuditService.log()` before returning
 - Admin endpoints require `JwtAuthGuard` AND `RolesGuard('ADMIN')`
 - `VendorOwnerGuard` checks `req.user.vendorId === params.id` on vendor/listing mutations
+- All `findUnique` calls on soft-delete models (`User`, `Vendor`, `Review`, `Listing`) must use `findFirst({ where: { ..., deletedAt: null } })` instead
+- Free-text inputs (`businessName`, `description`, `listing title`, `review reply`) are stripped with `sanitize-html` before DB writes
+- Public endpoints excluded from CSRF (like `POST /invoices/:id/confirm`) must use their own authorization mechanism (e.g., `confirmToken`)
 
 ---
 

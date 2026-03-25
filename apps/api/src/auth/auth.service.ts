@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   HttpException,
   HttpStatus,
+  InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -14,6 +15,7 @@ import { TermiiService } from './services/termii.service';
 import { AuditService } from '../audit/audit.service';
 import type { AuthUser } from '@eventtrust/shared';
 import {
+  UserRole,
   OTP_MAX_REQUESTS_PER_10_MIN,
   OTP_MAX_VERIFY_ATTEMPTS,
   OTP_EXPIRY_MINUTES,
@@ -100,7 +102,7 @@ export class AuthService {
     });
 
     // Find or create user
-    let user = await this.prisma.user.findUnique({ where: { phone } });
+    let user = await this.prisma.user.findFirst({ where: { phone, deletedAt: null } });
 
     if (!user) {
       user = await this.prisma.user.create({
@@ -124,7 +126,7 @@ export class AuthService {
     const authUser: AuthUser = {
       id: user.id,
       phone: user.phone,
-      role: user.role as any,
+      role: this.resolveRole(user.role),
       vendorId: vendor?.id,
       clientProfileId: clientProfile?.id,
     };
@@ -185,7 +187,7 @@ export class AuthService {
     const authUser: AuthUser = {
       id: storedToken.user.id,
       phone: storedToken.user.phone,
-      role: storedToken.user.role as any,
+      role: this.resolveRole(storedToken.user.role),
       vendorId: vendor?.id,
       clientProfileId: clientProfile?.id,
     };
@@ -232,7 +234,7 @@ export class AuthService {
   }
 
   async getUser(userId: string): Promise<AuthUser | null> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const user = await this.prisma.user.findFirst({ where: { id: userId, deletedAt: null } });
     if (!user) return null;
 
     const [vendor, clientProfile] = await Promise.all([
@@ -243,10 +245,18 @@ export class AuthService {
     return {
       id: user.id,
       phone: user.phone,
-      role: user.role as any,
+      role: this.resolveRole(user.role),
       vendorId: vendor?.id,
       clientProfileId: clientProfile?.id,
     };
+  }
+
+  private resolveRole(role: string): UserRole {
+    const normalized = role.toLowerCase() as UserRole;
+    if (!Object.values(UserRole).includes(normalized)) {
+      throw new InternalServerErrorException(`Unknown user role: ${role}`);
+    }
+    return normalized;
   }
 
   private generateOtpCode(): string {

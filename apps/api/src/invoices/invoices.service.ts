@@ -3,7 +3,9 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  UnauthorizedException,
 } from '@nestjs/common';
+import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { InquiriesService } from '../inquiries/inquiries.service';
@@ -56,6 +58,7 @@ export class InvoicesService {
     }
 
     const invoiceNumber = await this.generateInvoiceNumber();
+    const confirmToken = crypto.randomBytes(32).toString('hex');
     const subtotalKobo = data.items.reduce(
       (sum, item) => sum + item.quantity * item.unitPriceKobo,
       0,
@@ -68,6 +71,7 @@ export class InvoicesService {
         vendorId,
         clientId: linkedClientId,
         invoiceNumber,
+        confirmToken,
         clientName: data.clientName,
         clientPhone: data.clientPhone ?? null,
         clientEmail: data.clientEmail ?? null,
@@ -248,13 +252,17 @@ export class InvoicesService {
     return this.toResponse(updated);
   }
 
-  async confirm(invoiceId: string): Promise<InvoiceResponse> {
+  async confirm(invoiceId: string, token: string): Promise<InvoiceResponse> {
     const invoice = await this.prisma.invoice.findFirst({
       where: { id: invoiceId },
       include: { inquiry: { select: { id: true } } },
     });
 
     if (!invoice) throw new NotFoundException('Invoice not found');
+
+    if (invoice.confirmToken !== token) {
+      throw new UnauthorizedException('Invalid confirmation token');
+    }
 
     if (!['SENT', 'VIEWED'].includes(invoice.status)) {
       throw new BadRequestException('Invoice must be sent or viewed before it can be confirmed');
@@ -413,6 +421,7 @@ export class InvoicesService {
       subtotalKobo: invoice.subtotalKobo,
       discountKobo: invoice.discountKobo,
       totalKobo: invoice.totalKobo,
+      confirmToken: invoice.confirmToken ?? undefined,
       sentAt: invoice.sentAt?.toISOString() ?? undefined,
       viewedAt: invoice.viewedAt?.toISOString() ?? undefined,
       confirmedAt: invoice.confirmedAt?.toISOString() ?? undefined,

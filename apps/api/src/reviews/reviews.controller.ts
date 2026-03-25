@@ -19,6 +19,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { ReviewOwnerGuard } from '../common/guards/review-owner.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { VendorOwnerGuard } from '../common/guards/vendor-owner.guard';
 import { createReviewSchema, createVendorReplySchema, createClientReviewSchema } from '@eventtrust/shared';
 import type {
   CreateReviewPayload,
@@ -65,6 +66,13 @@ export class ListingReviewsController {
 @Controller('vendors/:vendorId/reviews')
 export class VendorReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
+
+  @Get('pending')
+  @UseGuards(VendorOwnerGuard)
+  async findPendingByVendorId(@Param('vendorId') vendorId: string) {
+    const reviews = await this.reviewsService.findPendingByVendorId(vendorId);
+    return { data: reviews };
+  }
 
   @Public()
   @Get()

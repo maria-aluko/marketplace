@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -51,5 +51,6 @@ export class TermiiService {
     }
 
     this.logger.error(`Failed to send OTP to ${phone} after ${maxRetries} attempts`);
+    throw new ServiceUnavailableException('SMS delivery failed. Please try again.');
   }
 }

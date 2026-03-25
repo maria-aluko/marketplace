@@ -23,6 +23,7 @@ describe('ReviewsService', () => {
     },
     user: {
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
     },
     invoice: {
       findFirst: vi.fn(),
@@ -101,7 +102,7 @@ describe('ReviewsService', () => {
         .mockResolvedValueOnce(null) // no existing vendor review this month
         .mockResolvedValueOnce(null); // no duplicate invoice review
       mockPrisma.invoice.findFirst.mockResolvedValue(makeInvoice());
-      mockPrisma.user.findUnique.mockResolvedValue({ phone: '+2348012345678' });
+      mockPrisma.user.findFirst.mockResolvedValue({ phone: '+2348012345678' });
       mockPrisma.vendor.findFirst.mockResolvedValue({ id: 'vendor-1', userId: 'vendor-user-1' });
       mockPrisma.review.create.mockResolvedValue(makeReview());
 
@@ -168,7 +169,7 @@ describe('ReviewsService', () => {
     it('should reject review when invoice status is DRAFT', async () => {
       mockPrisma.review.findFirst.mockResolvedValue(null);
       mockPrisma.invoice.findFirst.mockResolvedValue(makeInvoice({ status: 'DRAFT' }));
-      mockPrisma.user.findUnique.mockResolvedValue({ phone: '+2348012345678' });
+      mockPrisma.user.findFirst.mockResolvedValue({ phone: '+2348012345678' });
 
       await expect(
         service.create('client-1', {
@@ -185,7 +186,7 @@ describe('ReviewsService', () => {
         .mockResolvedValueOnce(null) // no existing vendor review this month
         .mockResolvedValueOnce(makeReview()); // duplicate invoice review
       mockPrisma.invoice.findFirst.mockResolvedValue(makeInvoice());
-      mockPrisma.user.findUnique.mockResolvedValue({ phone: '+2348012345678' });
+      mockPrisma.user.findFirst.mockResolvedValue({ phone: '+2348012345678' });
 
       await expect(
         service.create('client-1', {
@@ -200,7 +201,7 @@ describe('ReviewsService', () => {
     it('should throw NotFoundException if vendor not found', async () => {
       mockPrisma.review.findFirst.mockResolvedValue(null);
       mockPrisma.invoice.findFirst.mockResolvedValue(makeInvoice());
-      mockPrisma.user.findUnique.mockResolvedValue({ phone: '+2348012345678' });
+      mockPrisma.user.findFirst.mockResolvedValue({ phone: '+2348012345678' });
       mockPrisma.vendor.findFirst.mockResolvedValue(null);
 
       await expect(
@@ -273,8 +274,8 @@ describe('ReviewsService', () => {
     it('should update status to APPROVED and recalculate score', async () => {
       mockPrisma.review.findFirst.mockResolvedValue(makeReview());
       mockPrisma.review.update.mockResolvedValue(makeReview({ status: 'APPROVED' }));
-      mockPrisma.user.findUnique.mockResolvedValue({ phone: '+2348099999999' });
-      mockPrisma.vendor.findUnique.mockResolvedValue({ businessName: 'Best Caterers' });
+      mockPrisma.user.findFirst.mockResolvedValue({ phone: '+2348099999999' });
+      mockPrisma.vendor.findFirst.mockResolvedValue({ businessName: 'Best Caterers' });
 
       const result = await service.approve('review-1', 'admin-1');
 

@@ -164,15 +164,12 @@ const signature = cloudinary.utils.api_sign_request({
 
 ---
 
-### DEBT-05: ListingsModule Not Yet Built (Post Phase 1)
+### ~~DEBT-05: ListingsModule Not Yet Built (Post Phase 1)~~ ✅ Resolved Phase 2
 
 | Attribute | Value |
 |-----------|-------|
 | **Debt** | `ListingsModule`, `Listing` Prisma model, and `ListingRentalDetails` model are planned but not implemented at end of Phase 1 |
-| **Accepted Because** | Phase 1 focuses on auth + vendor foundation; listings are Phase 2 scope |
-| **Impact** | Vendors cannot create service or rental listings until Phase 2 completes |
-| **Payoff Plan** | Implement in Phase 2 Track A (see IMPLEMENTATION_PLAN.md) |
-| **Deadline** | Phase 2 |
+| **Resolution** | Fully implemented in Phase 2 — service listings, rental listings with `ListingRentalDetails`, `GET /listings/:id/similar`, XSS sanitization on title/description. 14 unit tests pass. |
 
 ---
 
@@ -196,7 +193,7 @@ These are explicitly out of scope for EventTrust Phase 1–2. Each requires a ne
 | Payment processing (Paystack/Flutterwave) | Phase 3 — WhatsApp is the Phase 1–2 contact channel |
 | Equipment delivery logistics | Separate product domain — future logistics partner integration |
 | Social auth (Google/Facebook OAuth) | Phone-first covers Nigerian users; OAuth is Phase 3+ |
-| CRM, invoicing, booking calendar | Phase 3 vendor business tools |
+| ~~CRM, invoicing, booking calendar~~ | ✅ Implemented in Phase 2 — inquiries CRM, invoice lifecycle, booking confirmation |
 | Subscription billing / Stripe | Phase 3 — tier schema ready from Phase 2 |
 | Self-hosted database | Increases ops burden unacceptably |
 | Multi-currency support | NGN only; kobo stored as integer |
@@ -211,10 +208,11 @@ These are explicitly out of scope for EventTrust Phase 1–2. Each requires a ne
 Before launch, configure:
 
 ```
-[ ] Sentry: error tracking for apps/web + apps/api
+[x] Sentry: error tracking for apps/api — initialized in main.ts; GlobalExceptionFilter captures 5xx
+[ ] Sentry: error tracking for apps/web — client-side not yet configured
 [ ] Vercel Analytics: Core Web Vitals monitoring
 [ ] Supabase: DB usage alerts (connections, storage)
-[ ] Termii: Delivery rate monitoring (via webhook receipts)
+[ ] Termii: Delivery rate monitoring (via webhook receipts) — ServiceUnavailableException now thrown on failure
 [ ] Uptime: UptimeRobot or BetterStack — ping /health every 5 minutes
 ```
 

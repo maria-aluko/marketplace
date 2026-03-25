@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nestjs';
 import {
   ExceptionFilter,
   Catch,
@@ -41,9 +42,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         error = 'NotFound';
       } else {
         this.logger.error(`Prisma error ${exception.code}`, exception.stack);
+        Sentry.captureException(exception);
       }
     } else if (exception instanceof Error) {
       this.logger.error(exception.message, exception.stack);
+      Sentry.captureException(exception);
     }
 
     response.status(statusCode).json({

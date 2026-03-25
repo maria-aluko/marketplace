@@ -517,6 +517,7 @@ model Invoice {
   subtotalKobo      Int           @default(0) @map("subtotal_kobo")
   discountKobo      Int           @default(0) @map("discount_kobo")
   totalKobo         Int           @default(0) @map("total_kobo")
+  confirmToken      String?       @unique @map("confirm_token")
   sentAt            DateTime?     @map("sent_at")
   viewedAt          DateTime?     @map("viewed_at")
   confirmedAt       DateTime?     @map("confirmed_at")

@@ -10,6 +10,7 @@ import {
   HttpStatus,
   UseGuards,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InvoicesService } from './invoices.service';
 import { InvoiceOwnerGuard } from './guards/invoice-owner.guard';
@@ -67,8 +68,9 @@ export class InvoicesController {
   @Post(':id/confirm')
   @Public()
   @HttpCode(HttpStatus.OK)
-  async confirm(@Param('id') id: string) {
-    const invoice = await this.invoicesService.confirm(id);
+  async confirm(@Param('id') id: string, @Query('token') token: string) {
+    if (!token) throw new BadRequestException('Confirmation token is required');
+    const invoice = await this.invoicesService.confirm(id, token);
     return { data: invoice };
   }
 

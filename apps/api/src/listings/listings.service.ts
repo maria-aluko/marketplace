@@ -1,5 +1,6 @@
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import sanitizeHtml from 'sanitize-html';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import type {
@@ -24,12 +25,13 @@ export class ListingsService {
   ): Promise<ListingResponse> {
     await this.ensureVendorActive(vendorId);
 
+    const stripHtml = (s: string) => sanitizeHtml(s, { allowedTags: [], allowedAttributes: {} });
     const listing = await this.prisma.listing.create({
       data: {
         vendorId,
         listingType: 'SERVICE',
-        title: data.title,
-        description: data.description,
+        title: stripHtml(data.title),
+        description: data.description ? stripHtml(data.description) : data.description,
         category: data.category.toUpperCase() as any,
         priceFrom: data.priceFrom,
         priceTo: data.priceTo,
@@ -55,13 +57,14 @@ export class ListingsService {
   ): Promise<ListingResponse> {
     await this.ensureVendorActive(vendorId);
 
+    const stripHtml = (s: string) => sanitizeHtml(s, { allowedTags: [], allowedAttributes: {} });
     const result = await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const listing = await tx.listing.create({
         data: {
           vendorId,
           listingType: 'RENTAL',
-          title: data.title,
-          description: data.description,
+          title: stripHtml(data.title),
+          description: data.description ? stripHtml(data.description) : data.description,
           photos: data.photos ?? [],
         },
       });
@@ -106,10 +109,11 @@ export class ListingsService {
       throw new NotFoundException('Listing not found');
     }
 
+    const stripHtml = (s: string) => sanitizeHtml(s, { allowedTags: [], allowedAttributes: {} });
     const listingData: Record<string, any> = {};
-    if ('title' in data && data.title !== undefined) listingData.title = data.title;
+    if ('title' in data && data.title !== undefined) listingData.title = stripHtml(data.title);
     if ('description' in data && data.description !== undefined)
-      listingData.description = data.description;
+      listingData.description = stripHtml(data.description);
     if ('photos' in data && data.photos !== undefined) listingData.photos = data.photos;
 
     if (listing.listingType === 'SERVICE') {

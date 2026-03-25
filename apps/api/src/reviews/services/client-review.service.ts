@@ -39,8 +39,8 @@ export class ClientReviewService {
     }
 
     // Self-review guard
-    const vendorRecord = await this.prisma.vendor.findUnique({
-      where: { id: vendorId },
+    const vendorRecord = await this.prisma.vendor.findFirst({
+      where: { id: vendorId, deletedAt: null },
       select: { userId: true },
     });
     if (vendorRecord?.userId === data.clientId) {

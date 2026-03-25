@@ -80,4 +80,10 @@ export class AdminController {
   ) {
     await this.adminService.removeReview(id, user.sub, reason);
   }
+
+  @Get('audit-log')
+  async getAuditLog(@Query('page') page = 1, @Query('limit') limit = 50) {
+    const result = await this.adminService.getAuditLog(+page, Math.min(+limit, 100));
+    return { data: result };
+  }
 }

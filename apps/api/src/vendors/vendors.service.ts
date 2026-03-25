@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import sanitizeHtml from 'sanitize-html';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { VendorStatusService } from './services/vendor-status.service';
@@ -25,7 +26,7 @@ export class VendorsService {
   async create(userId: string, data: CreateVendorPayload): Promise<VendorResponse> {
     const [existing, user] = await Promise.all([
       this.prisma.vendor.findFirst({ where: { userId, deletedAt: null } }),
-      this.prisma.user.findUnique({ where: { id: userId }, select: { phone: true } }),
+      this.prisma.user.findFirst({ where: { id: userId, deletedAt: null }, select: { phone: true } }),
     ]);
     if (existing) {
       throw new BadRequestException('You already have a vendor profile');
@@ -33,13 +34,14 @@ export class VendorsService {
 
     const slug = await this.generateSlug(data.businessName);
 
+    const stripHtml = (s: string) => sanitizeHtml(s, { allowedTags: [], allowedAttributes: {} });
     const vendor = await this.prisma.vendor.create({
       data: {
         userId,
         slug,
-        businessName: data.businessName,
+        businessName: stripHtml(data.businessName),
         category: data.category.toUpperCase() as any,
-        description: data.description,
+        description: data.description ? stripHtml(data.description) : data.description,
         area: data.area,
         address: data.address,
         priceFrom: data.priceFrom,
@@ -77,10 +79,11 @@ export class VendorsService {
       throw new NotFoundException('Vendor not found');
     }
 
+    const stripHtml = (s: string) => sanitizeHtml(s, { allowedTags: [], allowedAttributes: {} });
     const updateData: Record<string, any> = {};
-    if (data.businessName !== undefined) updateData.businessName = data.businessName;
+    if (data.businessName !== undefined) updateData.businessName = stripHtml(data.businessName);
     if (data.category !== undefined) updateData.category = data.category.toUpperCase();
-    if (data.description !== undefined) updateData.description = data.description;
+    if (data.description !== undefined) updateData.description = stripHtml(data.description);
     if (data.area !== undefined) updateData.area = data.area;
     if (data.address !== undefined) updateData.address = data.address;
     if (data.priceFrom !== undefined) updateData.priceFrom = data.priceFrom;

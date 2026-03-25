@@ -122,4 +122,17 @@ export class AdminService {
       updatedAt: vendor.updatedAt.toISOString(),
     };
   }
+
+  async getAuditLog(page: number, limit: number) {
+    const skip = (page - 1) * limit;
+    const [items, total] = await Promise.all([
+      this.prisma.adminLog.findMany({
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.adminLog.count(),
+    ]);
+    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
 }

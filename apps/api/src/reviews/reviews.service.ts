@@ -4,6 +4,7 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
+import sanitizeHtml from 'sanitize-html';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { ReviewScoreService } from './services/review-score.service';
@@ -104,7 +105,7 @@ export class ReviewsService {
       invoice.clientId === clientId ||
       (invoice.clientPhone != null &&
         invoice.clientPhone ===
-          (await this.prisma.user.findUnique({ where: { id: clientId }, select: { phone: true } }))
+          (await this.prisma.user.findFirst({ where: { id: clientId, deletedAt: null }, select: { phone: true } }))
             ?.phone);
 
     if (!clientMatch) {
@@ -146,8 +147,8 @@ export class ReviewsService {
     });
 
     // Fire-and-forget notification
-    const vendorUser = await this.prisma.user.findUnique({
-      where: { id: vendor.userId },
+    const vendorUser = await this.prisma.user.findFirst({
+      where: { id: vendor.userId, deletedAt: null },
       select: { phone: true },
     });
     if (vendorUser) {
@@ -155,6 +156,15 @@ export class ReviewsService {
     }
 
     return this.toResponse(review);
+  }
+
+  async findPendingByVendorId(vendorId: string): Promise<ReviewResponse[]> {
+    const reviews = await this.prisma.review.findMany({
+      where: { vendorId, status: 'PENDING', deletedAt: null },
+      include: { reply: true, dispute: { select: { id: true, status: true, updatedAt: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+    return reviews.map((r: any) => this.toResponse(r));
   }
 
   async findByVendorId(
@@ -227,12 +237,12 @@ export class ReviewsService {
     });
 
     // Fire-and-forget notification to client
-    const client = await this.prisma.user.findUnique({
-      where: { id: review.clientId },
+    const client = await this.prisma.user.findFirst({
+      where: { id: review.clientId, deletedAt: null },
       select: { phone: true },
     });
-    const vendor = await this.prisma.vendor.findUnique({
-      where: { id: review.vendorId },
+    const vendor = await this.prisma.vendor.findFirst({
+      where: { id: review.vendorId, deletedAt: null },
       select: { businessName: true },
     });
     if (client && vendor) {
@@ -322,10 +332,11 @@ export class ReviewsService {
       throw new BadRequestException('A reply already exists for this review');
     }
 
+    const stripHtml = (s: string) => sanitizeHtml(s, { allowedTags: [], allowedAttributes: {} });
     const reply = await this.prisma.vendorReply.create({
       data: {
         reviewId,
-        body: data.body,
+        body: stripHtml(data.body),
       },
     });
 
@@ -373,9 +384,10 @@ export class ReviewsService {
       );
     }
 
+    const stripHtml = (s: string) => sanitizeHtml(s, { allowedTags: [], allowedAttributes: {} });
     const updated = await this.prisma.vendorReply.update({
       where: { id: review.reply.id },
-      data: { body: data.body },
+      data: { body: stripHtml(data.body) },
     });
 
     await this.auditService.log({

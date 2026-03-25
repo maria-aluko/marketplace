@@ -1,5 +1,6 @@
 import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { z } from 'zod';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD, APP_FILTER } from '@nestjs/core';
@@ -28,7 +29,28 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validate: (config) => {
+        const schema = z.object({
+          DATABASE_URL: z.string().url(),
+          DIRECT_DATABASE_URL: z.string().url(),
+          JWT_SECRET: z.string().min(32),
+          JWT_REFRESH_SECRET: z.string().min(32),
+          TERMII_API_KEY: z.string().min(1),
+          TERMII_SENDER_ID: z.string().min(1),
+          CLOUDINARY_CLOUD_NAME: z.string().min(1),
+          CLOUDINARY_API_KEY: z.string().min(1),
+          CLOUDINARY_API_SECRET: z.string().min(1),
+          RESEND_API_KEY: z.string().min(1),
+          FRONTEND_URL: z.string().url(),
+          SENTRY_DSN: z.string().optional(),
+          NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+          PORT: z.coerce.number().default(4000),
+        });
+        return schema.parse(config);
+      },
+    }),
     ThrottlerModule.forRoot([
       {
         ttl: 60000,

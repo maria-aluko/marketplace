@@ -11,12 +11,10 @@ describe('PhoneThrottlerGuard', () => {
     expect(tracker).toBe('+2348012345678');
   });
 
-  it('should fall back to IP when no phone in body', async () => {
+  it('should throw BadRequestException when phone is missing from body', async () => {
     const guard = new (PhoneThrottlerGuard as any)();
-    const tracker = await (guard as any).getTracker({
-      body: {},
-      ip: '192.168.1.1',
-    });
-    expect(tracker).toBe('192.168.1.1');
+    await expect(
+      (guard as any).getTracker({ body: {}, ip: '192.168.1.1' }),
+    ).rejects.toThrow('Phone is required');
   });
 });

@@ -633,6 +633,7 @@ export interface InvoiceResponse {
   totalKobo: number;
   sentAt?: string;
   viewedAt?: string;
+  confirmToken?: string;
   confirmedAt?: string;
   completedAt?: string;
   items: InvoiceItemResponse[];
