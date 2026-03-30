@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { serverFetch } from '@/lib/server-api';
@@ -38,5 +39,9 @@ export default async function InvoicePage({ params }: Props) {
     revalidate: 300,
   });
 
-  return <InvoiceView invoice={invoice} vendorName={vendor?.businessName} />;
+  return (
+    <Suspense fallback={null}>
+      <InvoiceView invoice={invoice} vendorName={vendor?.businessName} />
+    </Suspense>
+  );
 }

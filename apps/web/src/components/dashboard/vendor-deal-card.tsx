@@ -206,7 +206,7 @@ export function VendorDealCard({
           {invoice ? (
             <>
               <Link
-                href={`/invoices/${invoice.id}`}
+                href={`/invoices/${invoice.id}?from=vendor`}
                 className="text-xs text-primary-600 hover:text-primary-800"
               >
                 View Invoice

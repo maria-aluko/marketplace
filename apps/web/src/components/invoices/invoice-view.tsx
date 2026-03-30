@@ -2,11 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
+import { useAuth } from '@/hooks/use-auth';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle2, Calendar, Clock, MapPin } from 'lucide-react';
+import {
+  ArrowLeft, CheckCircle2, Calendar, Clock, MapPin,
+  MessageCircle, Copy, CheckCheck, Download,
+} from 'lucide-react';
 import type { InvoiceResponse } from '@eventtrust/shared';
 import { InvoiceStatus } from '@eventtrust/shared';
 
@@ -113,6 +117,8 @@ function statusVariant(status: InvoiceStatus) {
 
 export function InvoiceView({ invoice: initialInvoice, vendorName }: InvoiceViewProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { user } = useAuth();
   const [invoice, setInvoice] = useState(initialInvoice);
   const [confirming, setConfirming] = useState(false);
   const [confirmed, setConfirmed] = useState(
@@ -120,6 +126,13 @@ export function InvoiceView({ invoice: initialInvoice, vendorName }: InvoiceView
       initialInvoice.status === InvoiceStatus.COMPLETED,
   );
   const [error, setError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+  const [completing, setCompleting] = useState(false);
+  const [showWhatsApp, setShowWhatsApp] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  const isVendorOwner = !!user?.vendorId && user.vendorId === invoice.vendorId;
+  const fromVendor = searchParams.get('from') === 'vendor';
 
   const canConfirm =
     invoice.status === InvoiceStatus.SENT || invoice.status === InvoiceStatus.VIEWED;
@@ -140,17 +153,74 @@ export function InvoiceView({ invoice: initialInvoice, vendorName }: InvoiceView
     setConfirmed(true);
   };
 
+  const handleSend = async () => {
+    setSending(true);
+    setError(null);
+    const res = await apiClient.post<{ data: InvoiceResponse }>(`/invoices/${invoice.id}/send`);
+    setSending(false);
+    if (!res.success || !res.data) {
+      setError(res.error ?? 'Failed to send invoice');
+      return;
+    }
+    setInvoice(res.data.data);
+    setShowWhatsApp(true);
+  };
+
+  const handleComplete = async () => {
+    setCompleting(true);
+    setError(null);
+    const res = await apiClient.post<{ data: InvoiceResponse }>(`/invoices/${invoice.id}/complete`);
+    setCompleting(false);
+    if (!res.success || !res.data) {
+      setError(res.error ?? 'Failed to mark as complete');
+      return;
+    }
+    setInvoice(res.data.data);
+  };
+
   const accentColor = invoice.branding?.accentColor ?? '#16a34a';
+
+  const invoiceUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/invoices/${invoice.id}`
+    : `/invoices/${invoice.id}`;
+
+  const whatsAppMessage = `Hi ${invoice.clientName}! Your invoice from ${vendorName ?? 'your vendor'} is ready. Total: ${formatNaira(invoice.totalKobo)}. View and confirm your booking: ${invoiceUrl}`;
+
+  const whatsAppHref = invoice.clientPhone
+    ? `https://wa.me/${invoice.clientPhone.replace('+', '')}?text=${encodeURIComponent(whatsAppMessage)}`
+    : `https://wa.me/?text=${encodeURIComponent(whatsAppMessage)}`;
+
+  const showWhatsAppSection =
+    showWhatsApp ||
+    invoice.status === InvoiceStatus.SENT ||
+    invoice.status === InvoiceStatus.VIEWED ||
+    invoice.status === InvoiceStatus.CONFIRMED;
+
+  const handleCopyLink = async () => {
+    await navigator.clipboard.writeText(invoiceUrl);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+  };
 
   return (
     <div className="mx-auto max-w-lg px-4 py-8">
       <button
-        onClick={() => router.back()}
-        className="mb-4 flex items-center gap-1 text-sm text-surface-500 hover:text-surface-700"
+        onClick={() => fromVendor ? router.push('/dashboard?tab=bookings') : router.back()}
+        className="mb-4 flex items-center gap-1 text-sm text-surface-500 hover:text-surface-700 print:hidden"
       >
         <ArrowLeft className="h-4 w-4" />
         Back
       </button>
+
+      <div className="mb-4 flex justify-end print:hidden">
+        <button
+          onClick={() => window.print()}
+          className="inline-flex items-center gap-1.5 text-sm text-surface-500 hover:text-surface-700"
+        >
+          <Download className="h-4 w-4" />
+          Download PDF
+        </button>
+      </div>
 
       {/* Header */}
       <div className="mb-6 text-center">
@@ -279,7 +349,7 @@ export function InvoiceView({ invoice: initialInvoice, vendorName }: InvoiceView
       )}
 
       {/* CTA */}
-      <div className="mt-6">
+      <div className="mt-6 print:hidden">
         {confirmed ? (
           <div className="space-y-3">
             <div className="flex items-center justify-center gap-2 rounded-lg bg-green-50 border border-green-200 p-4 text-green-700">
@@ -312,6 +382,61 @@ export function InvoiceView({ invoice: initialInvoice, vendorName }: InvoiceView
           </p>
         )}
       </div>
+
+      {/* Vendor Actions */}
+      {isVendorOwner && (
+        <div className="mt-6 space-y-3 print:hidden">
+          <p className="text-xs text-surface-400 uppercase tracking-wide font-medium">Vendor Actions</p>
+
+          {invoice.status === InvoiceStatus.DRAFT && (
+            <div className="space-y-2">
+              {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+              <Button className="w-full" onClick={handleSend} disabled={sending}>
+                {sending ? 'Sending...' : 'Send Invoice'}
+              </Button>
+              <p className="text-xs text-center text-surface-400">
+                Sends this invoice to the client and marks it as Sent
+              </p>
+            </div>
+          )}
+
+          {invoice.status === InvoiceStatus.CONFIRMED && (
+            <div className="space-y-2">
+              {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+              <Button className="w-full" variant="outline" onClick={handleComplete} disabled={completing}>
+                {completing ? 'Completing...' : 'Mark as Complete'}
+              </Button>
+              <p className="text-xs text-center text-surface-400">
+                Mark this booking as delivered and done
+              </p>
+            </div>
+          )}
+
+          {showWhatsAppSection && (
+            <div className="flex items-center gap-3">
+              <a
+                href={whatsAppHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-md bg-green-50 border border-green-200 px-3 py-2 text-sm font-medium text-green-700 hover:bg-green-100"
+              >
+                <MessageCircle className="h-4 w-4" />
+                Share on WhatsApp
+              </a>
+              <button
+                onClick={handleCopyLink}
+                className="inline-flex items-center gap-1.5 text-sm text-surface-500 hover:text-surface-700"
+              >
+                {linkCopied ? (
+                  <><CheckCheck className="h-4 w-4" /> Copied</>
+                ) : (
+                  <><Copy className="h-4 w-4" /> Copy Link</>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Footer */}
       {invoice.branding?.footerText && (
