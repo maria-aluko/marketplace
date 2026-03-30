@@ -2,12 +2,6 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  serverExternalPackages: [
-    '@sentry/node',
-    '@opentelemetry/instrumentation',
-    'require-in-the-middle',
-    '@fastify/otel',
-  ],
   images: {
     remotePatterns: [
       {
@@ -15,6 +9,14 @@ const nextConfig: NextConfig = {
         hostname: 'res.cloudinary.com',
       },
     ],
+  },
+  webpack(config) {
+    config.ignoreWarnings = [
+      { module: /@opentelemetry\/instrumentation/ },
+      { module: /require-in-the-middle/ },
+      { module: /@fastify\/otel/ },
+    ];
+    return config;
   },
 };
 
