@@ -151,6 +151,14 @@ Key tables: `users`, `auth_identities`, `vendors`, `listings`, `listing_rental_d
 - Mobile-first CSS (375px base, scale up)
 - All forms must show loading and error states — no silent failures Nigerian network latency means users need constant feedback
 - Vendor dashboard overview is **status-aware** — each `VendorStatus` value (`DRAFT`, `PENDING`, `ACTIVE`, `CHANGES_REQUESTED`, `SUSPENDED`) renders distinct content. See `components/dashboard/vendor-dashboard.tsx` `StatusContent` component for the established pattern.
+- **Vendor PENDING status** shows submission date (from `vendor.updatedAt`) and a 3-step mini timeline (Submitted → Under Review → Decision) via `PendingTimeline` in `vendor-dashboard.tsx`.
+- **Vendor new lead badge** — `VendorDashboard` fetches `GET /vendors/:id/inquiries` on mount, counts `status === NEW && !invoiceId`, and passes `newLeadCount` down. The Bookings nav tab shows a red badge; the home tab shows an amber "X new leads waiting" card when the vendor is ACTIVE.
+- **Client dashboard tab is "My Bookings"** (not "Activity") — `Tab` type is `'bookings'`, nav icon is `CalendarCheck`. The `ActivityManager` is rendered under this tab. Do not revert to "Activity".
+- **Client onboarding guide** — when `recentInquiries.length === 0` on the client home tab, `OnboardingGuide` renders a 3-step how-it-works card instead of empty space. `RecentActivitySummary` only shows when there are inquiries.
+- **Post-WhatsApp confirmation** — `EnquiryButton` (`components/vendor/enquiry-button.tsx`) sets `postContact = true` after `fireInquiry()` resolves and renders a green "Enquiry tracked! View in My Bookings →" strip. This is the user's only in-app signal that the enquiry was recorded — do not remove it.
+- **Invoice stage timeline** — `InvoiceView` renders `InvoiceStageTimeline` above the vendor/client block for any invoice that is not DRAFT or CANCELLED. It uses `sentAt`, `viewedAt`, `confirmedAt`, `completedAt` timestamps from `InvoiceResponse` and shows a vertical left-rail timeline with a "What happens next" line that changes per status.
+- **In-app review prompt** — `ActivityManager` renders an amber "How was your event?" card above each `done`-stage deal that has an `invoiceId`. Links to `/reviews/new/${vendorId}?invoiceId=${invoiceId}`. The review form handles "already reviewed" server-side.
+- **Pipeline stage labels** — `ClientDealCard` in `ActivityManager` shows "Enquired / Invoiced / Confirmed / Done" text labels below the 4-dot `PipelineProgress` bar (hidden for cancelled deals).
 - Dynamic `og:image`, `og:title`, `og:description` on vendor profile and listing detail pages — use the Next.js App Router **file convention** (`opengraph-image.tsx` in the route folder) with `ImageResponse` from `next/og`. Do NOT add `images` to `generateMetadata()` manually — the file-based image takes precedence.
 - WhatsApp sharing is the primary discovery channel — every listing card and page must have a `ShareButton`
 

@@ -1,7 +1,8 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { MessageCircle } from 'lucide-react';
+import { CheckCircle2, MessageCircle } from 'lucide-react';
+import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 import { useAuth } from '@/hooks/use-auth';
 import { InquirySource } from '@eventtrust/shared';
@@ -26,6 +27,7 @@ export function EnquiryButton({
 }: EnquiryButtonProps) {
   const { user, isLoading } = useAuth();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [postContact, setPostContact] = useState(false);
   const pendingUrlRef = useRef<string | null>(null);
 
   if (!whatsappNumber) return null;
@@ -47,6 +49,9 @@ export function EnquiryButton({
         source: InquirySource.WHATSAPP_BUTTON,
         message: listingName ? `Interested in ${listingName}` : 'Interested in services',
       })
+      .then(() => {
+        setPostContact(true);
+      })
       .catch(() => {});
   };
 
@@ -64,16 +69,29 @@ export function EnquiryButton({
 
   return (
     <>
-      <a
-        href={whatsappUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={handleClick}
-        className="inline-flex items-center gap-2 rounded-md bg-green-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-700 transition-colors"
-      >
-        <MessageCircle className="h-4 w-4" />
-        Contact on WhatsApp
-      </a>
+      <div className="space-y-2">
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={handleClick}
+          className="inline-flex items-center gap-2 rounded-md bg-green-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-700 transition-colors"
+        >
+          <MessageCircle className="h-4 w-4" />
+          Contact on WhatsApp
+        </a>
+        {postContact && (
+          <div className="flex items-start gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2">
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600 mt-0.5" />
+            <div className="text-xs text-green-800">
+              <span>Enquiry tracked! </span>
+              <Link href="/dashboard" className="font-medium underline">
+                View in My Bookings →
+              </Link>
+            </div>
+          </div>
+        )}
+      </div>
       <ClientProfileSetupSheet
         open={sheetOpen}
         onOpenChange={setSheetOpen}

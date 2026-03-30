@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { LayoutDashboard, MessageSquare, Wrench, UserCircle } from 'lucide-react';
+import { CalendarCheck, LayoutDashboard, Search, Wrench, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,7 +15,7 @@ import type { AuthUser, InquiryResponse } from '@eventtrust/shared';
 import { InquiryStatus } from '@eventtrust/shared';
 import { ClientProfileSetupSheet } from '@/components/client/client-profile-setup-sheet';
 
-type Tab = 'home' | 'activity' | 'tools';
+type Tab = 'home' | 'bookings' | 'tools';
 
 interface ClientDashboardProps {
   user: AuthUser;
@@ -37,6 +37,45 @@ const INQUIRY_STATUS_CLASS: Record<InquiryStatus, string> = {
   [InquiryStatus.CANCELLED]: 'bg-surface-100 text-surface-400',
 };
 
+function OnboardingGuide({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
+  const steps = [
+    { num: '1', text: 'Browse vendors or equipment that match your event needs' },
+    { num: '2', text: 'Tap "Contact on WhatsApp" on any listing to enquire' },
+    { num: '3', text: 'Vendor sends you a quote — come back here to confirm your booking' },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-surface-200 bg-white p-4">
+        <p className="text-sm font-semibold text-surface-800 mb-3">How EventTrust works</p>
+        <div className="space-y-3">
+          {steps.map(({ num, text }) => (
+            <div key={num} className="flex items-start gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700">
+                {num}
+              </span>
+              <p className="text-sm text-surface-600">{text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Link href="/services">
+          <Button className="w-full" size="sm">
+            <Search className="h-4 w-4 mr-1.5" />
+            Find Vendors
+          </Button>
+        </Link>
+        <Link href="/equipment">
+          <Button variant="outline" className="w-full" size="sm">
+            Rent Equipment
+          </Button>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 function RecentActivitySummary({
   inquiries,
   onViewAll,
@@ -50,7 +89,7 @@ function RecentActivitySummary({
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">Recent Activity</CardTitle>
+          <CardTitle className="text-base">Recent Bookings</CardTitle>
           <button
             onClick={onViewAll}
             className="text-xs font-medium text-primary-600 hover:text-primary-700"
@@ -118,15 +157,19 @@ function HomeOverview({
         </div>
       )}
 
-      <RecentActivitySummary
-        inquiries={recentInquiries}
-        onViewAll={() => onNavigate('activity')}
-      />
+      {recentInquiries.length > 0 ? (
+        <RecentActivitySummary
+          inquiries={recentInquiries}
+          onViewAll={() => onNavigate('bookings')}
+        />
+      ) : (
+        <OnboardingGuide onNavigate={onNavigate} />
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         {(
           [
-            { tab: 'activity' as Tab, label: 'Activity', icon: MessageSquare },
+            { tab: 'bookings' as Tab, label: 'My Bookings', icon: CalendarCheck },
             { tab: 'tools' as Tab, label: 'Tools', icon: Wrench },
           ] as const
         ).map(({ tab, label, icon: Icon }) => (
@@ -141,18 +184,20 @@ function HomeOverview({
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Link href="/services">
-          <Button variant="outline" className="w-full">
-            Discover Vendors
-          </Button>
-        </Link>
-        <Link href="/equipment">
-          <Button variant="outline" className="w-full">
-            Rent Equipment
-          </Button>
-        </Link>
-      </div>
+      {recentInquiries.length > 0 && (
+        <div className="grid grid-cols-2 gap-3">
+          <Link href="/services">
+            <Button variant="outline" className="w-full">
+              Discover Vendors
+            </Button>
+          </Link>
+          <Link href="/equipment">
+            <Button variant="outline" className="w-full">
+              Rent Equipment
+            </Button>
+          </Link>
+        </div>
+      )}
 
       <Card>
         <CardHeader>
@@ -173,7 +218,7 @@ function HomeOverview({
 
 const NAV_ITEMS: { tab: Tab; label: string; icon: React.ElementType }[] = [
   { tab: 'home', label: 'Home', icon: LayoutDashboard },
-  { tab: 'activity', label: 'Activity', icon: MessageSquare },
+  { tab: 'bookings', label: 'My Bookings', icon: CalendarCheck },
   { tab: 'tools', label: 'Tools', icon: Wrench },
 ];
 
@@ -201,7 +246,7 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
             onOpenProfileSheet={() => setProfileSheetOpen(true)}
           />
         )}
-        {activeTab === 'activity' && <ActivityManager />}
+        {activeTab === 'bookings' && <ActivityManager />}
         {activeTab === 'tools' && (
           <div className="py-4">
             <Tabs defaultValue="budget">

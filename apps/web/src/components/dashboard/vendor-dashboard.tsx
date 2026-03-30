@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   LayoutDashboard,
@@ -27,9 +27,10 @@ import { EnquiriesManager } from '@/components/dashboard/enquiries-manager';
 import { BudgetManager } from '@/components/dashboard/budget-manager';
 import { GuestManager } from '@/components/dashboard/guest-manager';
 import { ListingsManager } from '@/components/dashboard/listings-manager';
+import { apiClient } from '@/lib/api-client';
 import { cn, getGreeting } from '@/lib/utils';
-import { SubscriptionTier, VendorStatus } from '@eventtrust/shared';
-import type { AuthUser, VendorResponse } from '@eventtrust/shared';
+import { InquiryStatus, SubscriptionTier, VendorStatus } from '@eventtrust/shared';
+import type { AuthUser, InquiryResponse, VendorResponse } from '@eventtrust/shared';
 
 type VendorTab = 'home' | 'bookings' | 'listings' | 'profile' | 'plan';
 
@@ -105,6 +106,46 @@ function VendorQuickStats({ vendor }: { vendor: VendorResponse }) {
   );
 }
 
+function PendingTimeline({ submittedAt }: { submittedAt: string }) {
+  const date = new Date(submittedAt).toLocaleDateString('en-NG', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+  const steps = [
+    { label: 'Submitted', done: true },
+    { label: 'Under Review', done: true, active: true },
+    { label: 'Decision', done: false },
+  ];
+  return (
+    <div className="mt-3">
+      <p className="text-xs text-blue-600 mb-2">Submitted on {date}</p>
+      <div className="flex items-center">
+        {steps.map((step, i) => (
+          <div key={step.label} className="flex items-center flex-1">
+            <div className="flex flex-col items-center">
+              <div
+                className={[
+                  'w-2.5 h-2.5 rounded-full',
+                  step.active
+                    ? 'bg-blue-500 ring-2 ring-blue-200'
+                    : step.done
+                      ? 'bg-blue-500'
+                      : 'bg-surface-200',
+                ].join(' ')}
+              />
+              <span className="text-[9px] text-blue-700 mt-1 whitespace-nowrap">{step.label}</span>
+            </div>
+            {i < steps.length - 1 && (
+              <div className={`h-px flex-1 mb-3 ${step.done ? 'bg-blue-300' : 'bg-surface-200'}`} />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function StatusContent({
   vendor,
   onNavigate,
@@ -157,6 +198,7 @@ function StatusContent({
             Our team reviews profiles within 1–3 business days. We'll send you an SMS when the
             review is complete.
           </p>
+          <PendingTimeline submittedAt={vendor.updatedAt} />
         </CardContent>
       </Card>
     );
@@ -222,10 +264,12 @@ function StatusContent({
 function VendorHomeOverview({
   vendor,
   subscriptionTier,
+  newLeadCount,
   onNavigate,
 }: {
   vendor: VendorResponse | null;
   subscriptionTier: SubscriptionTier;
+  newLeadCount: number;
   onNavigate: (tab: VendorTab) => void;
 }) {
   return (
@@ -240,6 +284,25 @@ function VendorHomeOverview({
           <SubscriptionBadge tier={subscriptionTier} />
         </div>
       </div>
+
+      {vendor?.status === VendorStatus.ACTIVE && newLeadCount > 0 && (
+        <Card className="border-celebration-200 bg-celebration-50">
+          <CardContent className="flex items-center justify-between py-3 px-4">
+            <div>
+              <p className="text-sm font-semibold text-celebration-800">
+                {newLeadCount} new {newLeadCount === 1 ? 'lead' : 'leads'} waiting
+              </p>
+              <p className="text-xs text-celebration-700">Respond quickly to win the booking</p>
+            </div>
+            <button
+              onClick={() => onNavigate('bookings')}
+              className="text-xs font-medium text-celebration-800 underline shrink-0"
+            >
+              View →
+            </button>
+          </CardContent>
+        </Card>
+      )}
 
       {vendor && <StatusContent vendor={vendor} onNavigate={onNavigate} />}
 
@@ -276,8 +339,23 @@ const NAV_ITEMS: { tab: VendorTab; label: string; icon: React.ElementType }[] = 
 
 export function VendorDashboard({ user, vendor }: VendorDashboardProps) {
   const [activeTab, setActiveTab] = useState<VendorTab>('home');
+  const [newLeadCount, setNewLeadCount] = useState(0);
   const vendorId = user.vendorId!;
   const subscriptionTier = (vendor?.subscriptionTier as SubscriptionTier) ?? SubscriptionTier.FREE;
+
+  useEffect(() => {
+    apiClient
+      .get<{ data: InquiryResponse[] }>(`/vendors/${vendorId}/inquiries`)
+      .then((res) => {
+        if (res.success && res.data) {
+          const count = res.data.data.filter(
+            (i) => i.status === InquiryStatus.NEW && !i.invoiceId,
+          ).length;
+          setNewLeadCount(count);
+        }
+      })
+      .catch(() => {});
+  }, [vendorId]);
 
   return (
     <div className="relative">
@@ -286,6 +364,7 @@ export function VendorDashboard({ user, vendor }: VendorDashboardProps) {
           <VendorHomeOverview
             vendor={vendor}
             subscriptionTier={subscriptionTier}
+            newLeadCount={newLeadCount}
             onNavigate={setActiveTab}
           />
         )}
@@ -384,7 +463,14 @@ export function VendorDashboard({ user, vendor }: VendorDashboardProps) {
                 activeTab === tab ? 'text-primary-700' : 'text-surface-400',
               )}
             >
-              <Icon className="h-5 w-5" />
+              <div className="relative">
+                <Icon className="h-5 w-5" />
+                {tab === 'bookings' && newLeadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white">
+                    {newLeadCount > 9 ? '9+' : newLeadCount}
+                  </span>
+                )}
+              </div>
               <span className="text-[10px]">{label}</span>
             </button>
           ))}

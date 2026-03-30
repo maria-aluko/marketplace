@@ -6,7 +6,7 @@ import type { InquiryResponse, InvoiceSummaryResponse } from '@eventtrust/shared
 import { InquiryStatus, InvoiceStatus } from '@eventtrust/shared';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { MessageSquare } from 'lucide-react';
+import { FileText, MessageSquare, Star } from 'lucide-react';
 
 type DealStage = 'enquired' | 'invoiced' | 'confirmed' | 'done' | 'cancelled';
 
@@ -141,6 +141,14 @@ function ClientDealCard({ thread }: { thread: DealThread & { stage: DealStage } 
       )}
 
       <PipelineProgress stage={stage} />
+      {!isCancelled && (
+        <div className="flex justify-between text-[9px] text-surface-400 -mt-0.5">
+          <span>Enquired</span>
+          <span>Invoiced</span>
+          <span>Confirmed</span>
+          <span>Done</span>
+        </div>
+      )}
 
       <div className="flex items-center justify-between">
         {thread.invoiceTotalKobo != null ? (
@@ -294,12 +302,37 @@ export function ActivityManager() {
   return (
     <div className="space-y-3 py-4">
       {threads.map((thread) => (
-        <ClientDealCard key={thread.id} thread={thread} />
+        <div key={thread.id} className="space-y-2">
+          {thread.stage === 'done' && thread.invoiceId && (
+            <Link
+              href={`/reviews/new/${thread.vendorId}?invoiceId=${thread.invoiceId}`}
+              className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3"
+            >
+              <Star className="h-4 w-4 shrink-0 text-amber-500" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-amber-900">
+                  How was your event with {thread.vendorName ?? 'this vendor'}?
+                </p>
+                <p className="text-[10px] text-amber-700">Tap to write a review</p>
+              </div>
+              <span className="text-xs text-amber-700 shrink-0">→</span>
+            </Link>
+          )}
+          <ClientDealCard thread={thread} />
+        </div>
       ))}
 
       {unlinkedInvoices.length > 0 && (
         <div className="pt-2">
-          <p className="text-xs text-surface-500 mb-2">Other Invoices</p>
+          <div className="flex items-start gap-2 rounded-lg bg-surface-50 p-3 mb-3">
+            <FileText className="h-4 w-4 text-surface-400 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-xs font-medium text-surface-700">Invoices from vendors</p>
+              <p className="text-xs text-surface-500">
+                These were sent directly and aren't linked to an enquiry you made on this app.
+              </p>
+            </div>
+          </div>
           {unlinkedInvoices.map((invoice) => (
             <div
               key={invoice.id}

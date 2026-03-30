@@ -10,6 +10,76 @@ import { ArrowLeft, CheckCircle2, Calendar, Clock, MapPin } from 'lucide-react';
 import type { InvoiceResponse } from '@eventtrust/shared';
 import { InvoiceStatus } from '@eventtrust/shared';
 
+function formatShortDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' });
+}
+
+function nextStepText(status: InvoiceStatus): string {
+  switch (status) {
+    case InvoiceStatus.SENT:
+      return 'Confirm to secure your booking slot.';
+    case InvoiceStatus.VIEWED:
+      return "You're looking at it now. Confirm to lock it in.";
+    case InvoiceStatus.CONFIRMED:
+      return 'Booking secured. Prepare for your event.';
+    case InvoiceStatus.COMPLETED:
+      return 'All done! Share your experience with a review.';
+    default:
+      return '';
+  }
+}
+
+function InvoiceStageTimeline({ invoice }: { invoice: InvoiceResponse }) {
+  const stages: { label: string; timestamp?: string | null }[] = [
+    { label: 'Sent', timestamp: invoice.sentAt },
+    { label: 'Viewed', timestamp: invoice.viewedAt },
+    { label: 'Confirmed', timestamp: invoice.confirmedAt },
+    { label: 'Completed', timestamp: invoice.completedAt },
+  ];
+
+  const nextStep = nextStepText(invoice.status as InvoiceStatus);
+
+  return (
+    <div className="rounded-lg border border-surface-200 bg-surface-50 p-4 space-y-3">
+      {/* Vertical timeline (mobile-first) */}
+      <div className="space-y-0">
+        {stages.map((stage, i) => {
+          const reached = !!stage.timestamp;
+          const isLast = i === stages.length - 1;
+          return (
+            <div key={stage.label} className="flex items-start gap-3">
+              <div className="flex flex-col items-center">
+                <div
+                  className={[
+                    'w-3 h-3 rounded-full shrink-0 mt-0.5',
+                    reached ? 'bg-primary-600' : 'bg-surface-200',
+                  ].join(' ')}
+                />
+                {!isLast && (
+                  <div className={`w-px flex-1 min-h-[20px] ${reached ? 'bg-primary-200' : 'bg-surface-200'}`} />
+                )}
+              </div>
+              <div className="pb-3">
+                <p className={`text-xs font-medium ${reached ? 'text-surface-800' : 'text-surface-400'}`}>
+                  {stage.label}
+                </p>
+                {stage.timestamp && (
+                  <p className="text-[10px] text-surface-400">{formatShortDate(stage.timestamp)}</p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {nextStep && (
+        <p className="text-xs text-primary-700 font-medium border-t border-surface-200 pt-2">
+          {nextStep}
+        </p>
+      )}
+    </div>
+  );
+}
+
 interface InvoiceViewProps {
   invoice: InvoiceResponse;
   vendorName?: string;
@@ -105,6 +175,13 @@ export function InvoiceView({ invoice: initialInvoice, vendorName }: InvoiceView
           </Badge>
         </div>
       </div>
+
+      {/* Stage Timeline */}
+      {invoice.status !== InvoiceStatus.DRAFT && invoice.status !== InvoiceStatus.CANCELLED && (
+        <div className="mb-4">
+          <InvoiceStageTimeline invoice={invoice} />
+        </div>
+      )}
 
       {/* Vendor + Client */}
       <div className="rounded-lg border border-surface-200 bg-white p-4 space-y-3 text-sm">
