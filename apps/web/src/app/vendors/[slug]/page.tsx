@@ -12,6 +12,7 @@ import { VendorCategory } from '@eventtrust/shared';
 import { ChevronRight, CalendarDays, MessageCircle } from 'lucide-react';
 import { serverFetch } from '@/lib/server-api';
 import { cloudinaryTransform } from '@/lib/cloudinary';
+import { formatPrice } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/ui/star-rating';
 import { ShareButton } from '@/components/vendor/share-button';
@@ -43,11 +44,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: vendor.description.slice(0, 160),
     },
   };
-}
-
-function formatPrice(kobo?: number): string {
-  if (!kobo) return '';
-  return `\u20A6${(kobo / 100).toLocaleString('en-NG')}`;
 }
 
 function formatMemberSince(dateStr: string): string {

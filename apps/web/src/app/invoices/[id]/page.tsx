@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { serverFetch } from '@/lib/server-api';
+import { formatNaira } from '@/lib/utils';
 import { InvoiceView } from '@/components/invoices/invoice-view';
 import type { InvoiceResponse, VendorResponse } from '@eventtrust/shared';
 
@@ -17,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: 'Invoice Not Found — EventTrust' };
   }
 
-  const total = `₦${(invoice.totalKobo / 100).toLocaleString('en-NG')}`;
+  const total = formatNaira(invoice.totalKobo);
 
   return {
     title: `Invoice ${invoice.invoiceNumber} — EventTrust Nigeria`,

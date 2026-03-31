@@ -1,6 +1,7 @@
 import { ImageResponse } from 'next/og';
 import type { ListingResponse, VendorResponse } from '@eventtrust/shared';
 import { CATEGORY_LABELS, RENTAL_CATEGORY_LABELS } from '@eventtrust/shared';
+import { formatPrice } from '@/lib/utils';
 
 export const alt = 'EventTrust Nigeria listing';
 export const size = { width: 1200, height: 630 };
@@ -28,11 +29,6 @@ async function getVendor(vendorId: string): Promise<VendorResponse | null> {
   } catch {
     return null;
   }
-}
-
-function formatPrice(kobo?: number): string {
-  if (!kobo) return '';
-  return `₦${(kobo / 100).toLocaleString('en-NG')}`;
 }
 
 export default async function ListingOgImage({ params }: { params: Promise<{ id: string }> }) {
