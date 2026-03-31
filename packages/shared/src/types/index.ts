@@ -95,6 +95,8 @@ export interface VendorResponse {
   coverImageUrl?: string;
   userId: string;
   subscriptionTier: SubscriptionTier;
+  adminNote?: string | null;
+  _count?: { listings: number };
   createdAt: string;
   updatedAt: string;
 }
@@ -145,6 +147,8 @@ export interface UpdateRentalListingPayload extends Partial<CreateRentalListingP
 export interface ListingRentalDetailsResponse {
   rentalCategory: RentalCategory;
   quantityAvailable: number;
+  quantityBooked: number;
+  availableStock: number;
   pricePerDay: number;
   depositAmount?: number;
   deliveryOption: DeliveryOption;
@@ -272,8 +276,13 @@ export interface DisputeResponse {
   adminDecision?: string;
   policyClause?: string;
   appealReason?: string;
+  evidence: string[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ConfirmEvidencePayload {
+  url: string;
 }
 
 export interface DisputeDecisionPayload {
@@ -506,6 +515,21 @@ export interface ApiResponse<T> {
 export interface VendorStatusTransitionPayload {
   vendorId: string;
   newStatus: VendorStatus;
+  reason?: string;
+  adminNote?: string;
+}
+
+// Vendor Availability
+export interface VendorAvailabilityResponse {
+  id: string;
+  vendorId: string;
+  date: string; // YYYY-MM-DD
+  reason?: string;
+  createdAt: string;
+}
+
+export interface BlockDatePayload {
+  date: string; // YYYY-MM-DD
   reason?: string;
 }
 

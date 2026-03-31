@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import sanitizeHtml from 'sanitize-html';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import type {
   CreateServiceListingPayload,
   CreateRentalListingPayload,
@@ -16,6 +17,7 @@ export class ListingsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
+    private readonly subscriptionsService: SubscriptionsService,
   ) {}
 
   async createServiceListing(
@@ -24,6 +26,7 @@ export class ListingsService {
     data: CreateServiceListingPayload,
   ): Promise<ListingResponse> {
     await this.ensureVendorActive(vendorId);
+    await this.subscriptionsService.enforceListingLimit(vendorId);
 
     const stripHtml = (s: string) => sanitizeHtml(s, { allowedTags: [], allowedAttributes: {} });
     const listing = await this.prisma.listing.create({
@@ -56,6 +59,7 @@ export class ListingsService {
     data: CreateRentalListingPayload,
   ): Promise<ListingResponse> {
     await this.ensureVendorActive(vendorId);
+    await this.subscriptionsService.enforceListingLimit(vendorId);
 
     const stripHtml = (s: string) => sanitizeHtml(s, { allowedTags: [], allowedAttributes: {} });
     const result = await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -292,9 +296,13 @@ export class ListingsService {
     }
 
     if (listing.rentalDetails) {
+      const quantityAvailable = listing.rentalDetails.quantityAvailable;
+      const quantityBooked = listing.rentalDetails.quantityBooked ?? 0;
       response.rentalDetails = {
         rentalCategory: listing.rentalDetails.rentalCategory.toLowerCase() as any,
-        quantityAvailable: listing.rentalDetails.quantityAvailable,
+        quantityAvailable,
+        quantityBooked,
+        availableStock: Math.max(0, quantityAvailable - quantityBooked),
         pricePerDay: listing.rentalDetails.pricePerDay,
         depositAmount: listing.rentalDetails.depositAmount ?? undefined,
         deliveryOption: listing.rentalDetails.deliveryOption.toLowerCase() as any,

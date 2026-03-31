@@ -27,7 +27,8 @@
       "Bash(pnpm test:*)",
       "WebFetch(domain:unsplash.com)",
       "Bash(xargs grep:*)",
-      "Bash(grep -r invoice /c/Users/maria/Desktop/Projects/naijaDev/apps/web/src/app/dashboard --include=*.tsx)"
+      "Bash(grep -r invoice /c/Users/maria/Desktop/Projects/naijaDev/apps/web/src/app/dashboard --include=*.tsx)",
+      "Bash(pnpm:*)"
     ]
   }
 }

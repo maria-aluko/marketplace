@@ -17,8 +17,13 @@ async function bootstrap() {
   app.use(helmet());
   app.use(cookieParser());
 
+  const allowedOrigins =
+    process.env.NODE_ENV === 'production'
+      ? ['https://eventtrust.com.ng', 'https://www.eventtrust.com.ng']
+      : [process.env.FRONTEND_URL || 'http://localhost:3000'];
+
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: allowedOrigins,
     credentials: true,
   });
 

@@ -5,6 +5,7 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { AuthProvider } from '@/lib/auth-context';
 import { ServiceWorkerRegistrar } from '@/components/sw-register';
+import { InstallPrompt } from '@/components/pwa/install-prompt';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main className="flex-1">{children}</main>
             <Footer />
           </div>
+          <InstallPrompt />
         </AuthProvider>
       </body>
     </html>

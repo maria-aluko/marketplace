@@ -55,6 +55,7 @@ export const VENDOR_REPLY_EDIT_WINDOW_HOURS = 48;
 export const DISPUTE_RAISE_WINDOW_HOURS = 72;
 export const DISPUTE_APPEAL_WINDOW_HOURS = 48;
 export const DISPUTE_MAX_APPEALS = 1;
+export const DISPUTE_MAX_EVIDENCE = 5;
 
 export const PORTFOLIO_MAX_IMAGES = 10;
 export const PORTFOLIO_MAX_VIDEOS = 2;
@@ -109,6 +110,13 @@ export const LISTING_MAX_PHOTOS = 10;
 export const FREE_TIER_LISTING_LIMIT = 3;
 export const PRO_TIER_LISTING_LIMIT = 10;
 export const PRO_PLUS_TIER_LISTING_LIMIT = 25;
+
+// Subscription tier limits — enforced by SubscriptionsService
+export const SUBSCRIPTION_TIER_LIMITS = {
+  free:     { listings: 1,        photosPerListing: 3        },
+  pro:      { listings: 10,       photosPerListing: 20       },
+  pro_plus: { listings: Infinity, photosPerListing: Infinity },
+} as const;
 export const LISTING_TITLE_MIN_LENGTH = 5;
 export const LISTING_TITLE_MAX_LENGTH = 120;
 export const LISTING_DESCRIPTION_MIN_LENGTH = 20;

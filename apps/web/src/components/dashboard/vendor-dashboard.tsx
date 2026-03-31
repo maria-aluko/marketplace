@@ -27,6 +27,7 @@ import { EnquiriesManager } from '@/components/dashboard/enquiries-manager';
 import { BudgetManager } from '@/components/dashboard/budget-manager';
 import { GuestManager } from '@/components/dashboard/guest-manager';
 import { ListingsManager } from '@/components/dashboard/listings-manager';
+import { AvailabilityCalendar } from '@/components/dashboard/availability-calendar';
 import { apiClient } from '@/lib/api-client';
 import { cn, getGreeting } from '@/lib/utils';
 import { InquiryStatus, SubscriptionTier, VendorStatus } from '@eventtrust/shared';
@@ -47,6 +48,7 @@ function ProfileCompletenessChecklist({ vendor }: { vendor: VendorResponse }) {
     { label: 'WhatsApp number', done: !!vendor.whatsappNumber },
     { label: 'Cover image', done: !!vendor.coverImageUrl },
     { label: 'Price range set', done: vendor.priceFrom != null },
+    { label: 'Add at least one listing', done: (vendor._count?.listings ?? 0) > 0 },
   ];
 
   return (
@@ -228,6 +230,12 @@ function StatusContent({
             Our team has reviewed your profile and requested some changes. Go to your Profile tab to
             see the details and resubmit.
           </p>
+          {vendor.adminNote && (
+            <div className="mt-3 rounded-md border border-orange-300 bg-white px-3 py-2">
+              <p className="text-xs font-semibold text-orange-800">Note from EventTrust team:</p>
+              <p className="mt-1 text-xs text-orange-700">{vendor.adminNote}</p>
+            </div>
+          )}
           <button
             onClick={() => onNavigate('profile')}
             className="mt-3 text-xs font-medium text-orange-800 underline"
@@ -394,6 +402,9 @@ export function VendorDashboard({ user, vendor }: VendorDashboardProps) {
                 <TabsTrigger value="reviews" className="flex-1">
                   Reviews
                 </TabsTrigger>
+                <TabsTrigger value="calendar" className="flex-1">
+                  Calendar
+                </TabsTrigger>
                 <TabsTrigger value="branding" className="flex-1">
                   Branding
                 </TabsTrigger>
@@ -406,6 +417,19 @@ export function VendorDashboard({ user, vendor }: VendorDashboardProps) {
               </TabsContent>
               <TabsContent value="reviews">
                 <ReviewsManager vendorId={vendorId} />
+              </TabsContent>
+              <TabsContent value="calendar">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Availability Calendar</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="mb-4 text-xs text-surface-500">
+                      Block dates when you are unavailable. Clients will see this on your profile.
+                    </p>
+                    <AvailabilityCalendar vendorId={vendorId} />
+                  </CardContent>
+                </Card>
               </TabsContent>
               <TabsContent value="branding">
                 <Card>

@@ -101,6 +101,7 @@ export class VendorsController {
       body.newStatus,
       user.sub,
       body.reason,
+      body.adminNote,
     );
     return { data: this.vendorsService.toResponse(vendor) };
   }

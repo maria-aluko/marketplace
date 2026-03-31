@@ -134,6 +134,7 @@ export class VendorsService {
   async findById(vendorId: string): Promise<VendorResponse | null> {
     const vendor = await this.prisma.vendor.findFirst({
       where: { id: vendorId, deletedAt: null },
+      include: { _count: { select: { listings: { where: { deletedAt: null } } } } },
     });
     return vendor ? this.toResponse(vendor) : null;
   }
@@ -226,6 +227,8 @@ export class VendorsService {
       coverImageUrl: vendor.coverImageUrl ?? undefined,
       userId: vendor.userId,
       subscriptionTier: (vendor.subscriptionTier ?? 'FREE').toLowerCase() as any,
+      adminNote: vendor.adminNote ?? null,
+      _count: vendor._count ? { listings: vendor._count.listings ?? 0 } : undefined,
       createdAt: vendor.createdAt.toISOString(),
       updatedAt: vendor.updatedAt.toISOString(),
     };

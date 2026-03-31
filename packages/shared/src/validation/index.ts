@@ -223,6 +223,18 @@ export const vendorStatusTransitionSchema = z.object({
   vendorId: z.string().uuid(),
   newStatus: z.nativeEnum(VendorStatus),
   reason: z.string().max(500).optional(),
+  adminNote: z.string().max(2000).optional(),
+});
+
+// Vendor Availability
+export const blockDateSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format'),
+  reason: z.string().max(200).optional(),
+});
+
+// Dispute evidence
+export const confirmEvidenceSchema = z.object({
+  url: z.string().url(),
 });
 
 // Budget

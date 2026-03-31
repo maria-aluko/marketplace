@@ -20,11 +20,13 @@ import {
   createDisputeSchema,
   disputeDecisionSchema,
   disputeAppealSchema,
+  confirmEvidenceSchema,
 } from '@eventtrust/shared';
 import type {
   CreateDisputePayload,
   DisputeDecisionPayload,
   DisputeAppealPayload,
+  ConfirmEvidencePayload,
   AccessTokenPayload,
 } from '@eventtrust/shared';
 
@@ -51,6 +53,29 @@ export class DisputesController {
     @Body(new ZodValidationPipe(disputeAppealSchema)) body: DisputeAppealPayload,
   ) {
     const dispute = await this.disputesService.appeal(id, user.vendorId!, user.sub, body);
+    return { data: dispute };
+  }
+
+  @Post(':id/evidence/signed-url')
+  @UseGuards(DisputeOwnerGuard)
+  @HttpCode(HttpStatus.OK)
+  async getEvidenceSignedUrl(
+    @Param('id') id: string,
+    @CurrentUser() user: AccessTokenPayload,
+  ) {
+    const result = await this.disputesService.getEvidenceSignedUrl(id, user.vendorId!);
+    return { data: result };
+  }
+
+  @Post(':id/evidence')
+  @UseGuards(DisputeOwnerGuard)
+  @HttpCode(HttpStatus.OK)
+  async confirmEvidence(
+    @Param('id') id: string,
+    @CurrentUser() user: AccessTokenPayload,
+    @Body(new ZodValidationPipe(confirmEvidenceSchema)) body: ConfirmEvidencePayload,
+  ) {
+    const dispute = await this.disputesService.confirmEvidence(id, user.vendorId!, body.url);
     return { data: dispute };
   }
 }

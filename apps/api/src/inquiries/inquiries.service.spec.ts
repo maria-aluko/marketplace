@@ -14,6 +14,11 @@ describe('InquiriesService', () => {
       findFirst: vi.fn(),
       update: vi.fn(),
     },
+    listingRentalDetails: {
+      findUnique: vi.fn(),
+      update: vi.fn(),
+    },
+    $transaction: vi.fn(async (fn: any) => fn(mockPrisma)),
   };
 
   const mockAudit = {

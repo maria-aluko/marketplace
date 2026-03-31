@@ -2,6 +2,7 @@ import { Injectable, BadRequestException, NotFoundException, Logger } from '@nes
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { PORTFOLIO_MAX_IMAGES, PORTFOLIO_MAX_VIDEOS } from '@eventtrust/shared';
 import type { PortfolioItem, SignedUploadResponse, ConfirmUploadPayload } from '@eventtrust/shared';
 import { MediaType } from '@eventtrust/shared';
@@ -17,6 +18,7 @@ export class PortfolioService {
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
     private readonly configService: ConfigService,
+    private readonly subscriptionsService: SubscriptionsService,
   ) {
     this.cloudName = this.configService.get<string>('CLOUDINARY_CLOUD_NAME', '');
     this.apiKey = this.configService.get<string>('CLOUDINARY_API_KEY', '');
@@ -55,6 +57,11 @@ export class PortfolioService {
 
     if (data.mediaType === MediaType.VIDEO && counts.videos >= PORTFOLIO_MAX_VIDEOS) {
       throw new BadRequestException(`Maximum of ${PORTFOLIO_MAX_VIDEOS} videos allowed`);
+    }
+
+    // Enforce subscription tier photo limit
+    if (data.mediaType === MediaType.IMAGE) {
+      await this.subscriptionsService.enforcePhotoLimit(vendorId, counts.images);
     }
 
     // Get next sort order

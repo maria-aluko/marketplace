@@ -19,6 +19,7 @@ import { ShareButton } from '@/components/vendor/share-button';
 import { VendorProfileTabs } from '@/components/vendor/vendor-profile-tabs';
 import { ListingCard } from '@/components/vendor/listing-card';
 import { CATEGORY_ICONS } from '@/lib/category-meta';
+import { AvailabilityCalendar } from '@/components/dashboard/availability-calendar';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -183,6 +184,14 @@ export default async function VendorProfilePage({ params }: Props) {
         ) : (
           <p className="mt-2 text-sm text-surface-500">No listings yet.</p>
         )}
+      </section>
+
+      {/* Availability calendar */}
+      <section className="mt-8">
+        <h2 className="mb-4 text-lg font-semibold text-surface-900">Availability</h2>
+        <div className="rounded-lg border border-surface-200 bg-white p-4">
+          <AvailabilityCalendar vendorId={vendor.id} readOnly />
+        </div>
       </section>
 
       <div className="h-4" />

@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { DisputesService } from './disputes.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
@@ -40,6 +41,10 @@ describe('DisputesService', () => {
     ...overrides,
   });
 
+  const mockConfigService = {
+    get: vi.fn((key: string, defaultValue?: string) => defaultValue ?? ''),
+  };
+
   const makeDispute = (overrides?: any) => ({
     id: 'dispute-1',
     reviewId: 'review-1',
@@ -49,6 +54,7 @@ describe('DisputesService', () => {
     adminDecision: null,
     policyClause: null,
     appealReason: null,
+    evidence: [],
     createdAt: now,
     updatedAt: now,
     ...overrides,
@@ -61,6 +67,7 @@ describe('DisputesService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: AuditService, useValue: mockAudit },
         { provide: ReviewsService, useValue: mockReviewsService },
+        { provide: ConfigService, useValue: mockConfigService },
       ],
     }).compile();
 

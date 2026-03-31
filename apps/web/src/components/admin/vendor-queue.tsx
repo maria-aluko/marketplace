@@ -16,6 +16,8 @@ export function VendorQueue() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [changesNoteMap, setChangesNoteMap] = useState<Record<string, string>>({});
+  const [expandedChangesId, setExpandedChangesId] = useState<string | null>(null);
 
   const fetchVendors = async () => {
     setLoading(true);
@@ -41,12 +43,15 @@ export function VendorQueue() {
   };
 
   const handleRequestChanges = async (vendorId: string) => {
+    const adminNote = changesNoteMap[vendorId]?.trim() || undefined;
     setActionLoading(vendorId);
     await apiClient.patch(`/vendors/${vendorId}/status`, {
       newStatus: 'CHANGES_REQUESTED',
       reason: 'Please review the feedback from the EventTrust team.',
+      adminNote,
     });
     setActionLoading(null);
+    setExpandedChangesId(null);
     setVendors((prev) => prev.filter((v) => v.id !== vendorId));
   };
 
@@ -185,9 +190,13 @@ export function VendorQueue() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleRequestChanges(vendor.id)}
+                        onClick={() =>
+                          setExpandedChangesId((prev) =>
+                            prev === vendor.id ? null : vendor.id,
+                          )
+                        }
                         disabled={actionLoading === vendor.id}
-                        className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                        className="border-orange-200 text-orange-600 hover:bg-orange-50"
                       >
                         <AlertCircle className="mr-1 h-3.5 w-3.5" />
                         Request Changes
@@ -202,6 +211,41 @@ export function VendorQueue() {
                       </Button>
                     </div>
                   </div>
+
+                  {expandedChangesId === vendor.id && (
+                    <div className="mt-3 space-y-2 rounded-md border border-orange-200 bg-orange-50 p-3">
+                      <label className="block text-xs font-medium text-orange-800">
+                        Note for vendor (optional)
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={changesNoteMap[vendor.id] ?? ''}
+                        onChange={(e) =>
+                          setChangesNoteMap((prev) => ({ ...prev, [vendor.id]: e.target.value }))
+                        }
+                        placeholder="Describe what needs to be fixed or improved..."
+                        className="w-full rounded-md border border-orange-200 bg-white px-3 py-2 text-sm focus:border-orange-400 focus:outline-none"
+                      />
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setExpandedChangesId(null)}
+                          className="text-surface-600"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => handleRequestChanges(vendor.id)}
+                          disabled={actionLoading === vendor.id}
+                          className="border-orange-300 bg-orange-600 text-white hover:bg-orange-700"
+                        >
+                          {actionLoading === vendor.id ? 'Sending...' : 'Send Request'}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

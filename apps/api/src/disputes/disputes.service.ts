@@ -4,25 +4,40 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { ReviewsService } from '../reviews/reviews.service';
-import { DISPUTE_RAISE_WINDOW_HOURS, DISPUTE_APPEAL_WINDOW_HOURS } from '@eventtrust/shared';
+import {
+  DISPUTE_RAISE_WINDOW_HOURS,
+  DISPUTE_APPEAL_WINDOW_HOURS,
+  DISPUTE_MAX_EVIDENCE,
+} from '@eventtrust/shared';
 import type {
   CreateDisputePayload,
   DisputeDecisionPayload,
   DisputeAppealPayload,
   DisputeResponse,
+  SignedUploadResponse,
   PaginatedResponse,
 } from '@eventtrust/shared';
 
 @Injectable()
 export class DisputesService {
+  private readonly cloudName: string;
+  private readonly apiKey: string;
+  private readonly apiSecret: string;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
     private readonly reviewsService: ReviewsService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.cloudName = this.configService.get<string>('CLOUDINARY_CLOUD_NAME', '');
+    this.apiKey = this.configService.get<string>('CLOUDINARY_API_KEY', '');
+    this.apiSecret = this.configService.get<string>('CLOUDINARY_API_SECRET', '');
+  }
 
   async create(
     vendorId: string,
@@ -242,6 +257,83 @@ export class DisputesService {
     return this.toResponse(updated);
   }
 
+  async getEvidenceSignedUrl(
+    disputeId: string,
+    vendorId: string,
+  ): Promise<SignedUploadResponse> {
+    const dispute = await this.prisma.dispute.findUnique({ where: { id: disputeId } });
+
+    if (!dispute) {
+      throw new NotFoundException('Dispute not found');
+    }
+
+    if (dispute.vendorId !== vendorId) {
+      throw new ForbiddenException('You do not own this dispute');
+    }
+
+    if (dispute.status === 'DECIDED' || dispute.status === 'CLOSED') {
+      throw new BadRequestException('Cannot add evidence to a decided or closed dispute');
+    }
+
+    if (dispute.evidence.length >= DISPUTE_MAX_EVIDENCE) {
+      throw new BadRequestException(`Maximum of ${DISPUTE_MAX_EVIDENCE} evidence files allowed`);
+    }
+
+    const timestamp = Math.round(Date.now() / 1000);
+    const folder = `eventtrust/disputes/${disputeId}/evidence`;
+
+    const crypto = await import('crypto');
+    const paramsToSign = `folder=${folder}&timestamp=${timestamp}${this.apiSecret}`;
+    const signature = crypto.createHash('sha1').update(paramsToSign).digest('hex');
+
+    return {
+      signature,
+      timestamp,
+      cloudName: this.cloudName,
+      apiKey: this.apiKey,
+      folder,
+    };
+  }
+
+  async confirmEvidence(
+    disputeId: string,
+    vendorId: string,
+    url: string,
+  ): Promise<DisputeResponse> {
+    const dispute = await this.prisma.dispute.findUnique({ where: { id: disputeId } });
+
+    if (!dispute) {
+      throw new NotFoundException('Dispute not found');
+    }
+
+    if (dispute.vendorId !== vendorId) {
+      throw new ForbiddenException('You do not own this dispute');
+    }
+
+    if (dispute.status === 'DECIDED' || dispute.status === 'CLOSED') {
+      throw new BadRequestException('Cannot add evidence to a decided or closed dispute');
+    }
+
+    if (dispute.evidence.length >= DISPUTE_MAX_EVIDENCE) {
+      throw new BadRequestException(`Maximum of ${DISPUTE_MAX_EVIDENCE} evidence files allowed`);
+    }
+
+    const updated = await this.prisma.dispute.update({
+      where: { id: disputeId },
+      data: { evidence: { push: url } },
+    });
+
+    await this.auditService.log({
+      action: 'dispute.evidence_added',
+      actorId: vendorId,
+      targetType: 'Dispute',
+      targetId: disputeId,
+      metadata: { url },
+    });
+
+    return this.toResponse(updated);
+  }
+
   toResponse(dispute: any): DisputeResponse {
     return {
       id: dispute.id,
@@ -252,6 +344,7 @@ export class DisputesService {
       adminDecision: dispute.adminDecision ?? undefined,
       policyClause: dispute.policyClause ?? undefined,
       appealReason: dispute.appealReason ?? undefined,
+      evidence: dispute.evidence ?? [],
       createdAt: dispute.createdAt.toISOString(),
       updatedAt: dispute.updatedAt.toISOString(),
     };

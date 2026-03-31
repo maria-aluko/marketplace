@@ -392,9 +392,13 @@ export class SearchService {
     }
 
     if (row.rental_category) {
+      const quantityAvailable = row.quantity_available ?? 0;
+      const quantityBooked = row.quantity_booked ?? 0;
       const rentalDetails: ListingRentalDetailsResponse = {
         rentalCategory: row.rental_category.toLowerCase() as any,
-        quantityAvailable: row.quantity_available,
+        quantityAvailable,
+        quantityBooked,
+        availableStock: Math.max(0, quantityAvailable - quantityBooked),
         pricePerDay: row.price_per_day,
         depositAmount: row.deposit_amount ?? undefined,
         deliveryOption: row.delivery_option.toLowerCase() as any,

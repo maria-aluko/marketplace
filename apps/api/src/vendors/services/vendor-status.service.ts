@@ -15,6 +15,7 @@ export class VendorStatusService {
     newStatus: VendorStatus,
     actorId: string,
     reason?: string,
+    adminNote?: string,
   ) {
     const vendor = await this.prisma.vendor.findFirst({
       where: { id: vendorId, deletedAt: null },
@@ -33,9 +34,18 @@ export class VendorStatusService {
       );
     }
 
+    const updateData: any = { status: newStatus.toUpperCase() as any };
+
+    // Write adminNote when requesting changes, clear it when approving
+    if (newStatus === VendorStatus.CHANGES_REQUESTED) {
+      updateData.adminNote = adminNote ?? null;
+    } else if (newStatus === VendorStatus.ACTIVE) {
+      updateData.adminNote = null;
+    }
+
     const updated = await this.prisma.vendor.update({
       where: { id: vendorId },
-      data: { status: newStatus.toUpperCase() as any },
+      data: updateData,
     });
 
     await this.auditService.log({

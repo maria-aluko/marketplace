@@ -18,6 +18,12 @@ export function Footer() {
               <li>
                 <Link href="/terms" className="hover:text-surface-700">Terms</Link>
               </li>
+              <li>
+                <Link href="/privacy" className="hover:text-surface-700">Privacy</Link>
+              </li>
+              <li>
+                <Link href="/transparency" className="hover:text-surface-700">Transparency</Link>
+              </li>
             </ul>
           </div>
 

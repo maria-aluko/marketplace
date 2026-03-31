@@ -122,8 +122,9 @@ model Vendor {
   deletedAt            DateTime?    @map("deleted_at")
 
   subscriptionTier SubscriptionTier @default(FREE) @map("subscription_tier")
+  adminNote        String?          @map("admin_note") @db.Text
 
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   portfolio        VendorPortfolio[]
   reviews          Review[]
   disputes         Dispute[]
@@ -132,6 +133,7 @@ model Vendor {
   invoices         Invoice[]
   invoiceBranding  InvoiceBranding?
   clientReviews    ClientReview[]
+  availability     VendorAvailability[]
 
   @@index([status, avgRating])
   @@index([category, area])
@@ -161,6 +163,22 @@ enum VendorCategory {
   OTHER
 
   @@map("vendor_category")
+}
+
+// ─── Vendor Availability ─────────────────────────────────────────────────────
+
+model VendorAvailability {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vendorId  String   @map("vendor_id") @db.Uuid
+  date      DateTime @db.Date
+  reason    String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@unique([vendorId, date])
+  @@index([vendorId, date])
+  @@map("vendor_availability")
 }
 
 // ─── Vendor Portfolio ────────────────────────────────────────────────────────
@@ -239,16 +257,17 @@ model VendorReply {
 // ─── Disputes ────────────────────────────────────────────────────────────────
 
 model Dispute {
-  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  reviewId     String        @unique @map("review_id") @db.Uuid
-  vendorId     String        @map("vendor_id") @db.Uuid
-  reason       String
-  status       DisputeStatus @default(OPEN)
-  adminDecision String?      @map("admin_decision")
-  policyClause  String?      @map("policy_clause")
-  appealReason  String?      @map("appeal_reason")
-  createdAt    DateTime      @default(now()) @map("created_at")
-  updatedAt    DateTime      @updatedAt @map("updated_at")
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reviewId      String        @unique @map("review_id") @db.Uuid
+  vendorId      String        @map("vendor_id") @db.Uuid
+  reason        String
+  status        DisputeStatus @default(OPEN)
+  adminDecision String?       @map("admin_decision")
+  policyClause  String?       @map("policy_clause")
+  appealReason  String?       @map("appeal_reason")
+  evidence      String[]      @default([])
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
 
   review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
   vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
@@ -316,13 +335,14 @@ model Listing {
 }
 
 model ListingRentalDetails {
-  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  listingId         String         @unique @map("listing_id") @db.Uuid
-  rentalCategory    RentalCategory @map("rental_category")
-  quantityAvailable Int            @map("quantity_available")
-  pricePerDay       Int            @map("price_per_day")
-  depositAmount     Int?           @map("deposit_amount")
-  deliveryOption    DeliveryOption @map("delivery_option")
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listingId         String          @unique @map("listing_id") @db.Uuid
+  rentalCategory    RentalCategory  @map("rental_category")
+  quantityAvailable Int             @map("quantity_available")
+  quantityBooked    Int             @default(0) @map("quantity_booked")
+  pricePerDay       Int             @map("price_per_day")
+  depositAmount     Int?            @map("deposit_amount")
+  deliveryOption    DeliveryOption  @map("delivery_option")
   condition         RentalCondition?
 
   listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)

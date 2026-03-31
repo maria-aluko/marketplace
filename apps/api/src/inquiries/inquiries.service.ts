@@ -93,12 +93,41 @@ export class InquiriesService {
       );
     }
 
-    const updated = await this.prisma.inquiry.update({
-      where: { id: inquiryId },
-      data: {
-        status: data.status as any,
-        notes: data.notes ?? undefined,
-      },
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const result = await tx.inquiry.update({
+        where: { id: inquiryId },
+        data: {
+          status: data.status as any,
+          notes: data.notes ?? undefined,
+        },
+      });
+
+      // Track quantityBooked on rental listings
+      if (inquiry.listingId) {
+        const rentalDetails = await tx.listingRentalDetails.findUnique({
+          where: { listingId: inquiry.listingId },
+          select: { listingId: true },
+        });
+
+        if (rentalDetails) {
+          if (data.status === 'BOOKED') {
+            await tx.listingRentalDetails.update({
+              where: { listingId: inquiry.listingId },
+              data: { quantityBooked: { increment: 1 } },
+            });
+          } else if (
+            (data.status === 'CANCELLED' || data.status === 'COMPLETED') &&
+            currentStatus === 'BOOKED'
+          ) {
+            await tx.listingRentalDetails.update({
+              where: { listingId: inquiry.listingId },
+              data: { quantityBooked: { decrement: 1 } },
+            });
+          }
+        }
+      }
+
+      return result;
     });
 
     await this.auditService.log({

@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { PortfolioService } from './portfolio.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 
 describe('PortfolioService', () => {
   let service: PortfolioService;
@@ -47,6 +48,10 @@ describe('PortfolioService', () => {
     ...overrides,
   });
 
+  const mockSubscriptions = {
+    enforcePhotoLimit: vi.fn().mockResolvedValue(undefined),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -54,6 +59,7 @@ describe('PortfolioService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: AuditService, useValue: mockAudit },
         { provide: ConfigService, useValue: mockConfigService },
+        { provide: SubscriptionsService, useValue: mockSubscriptions },
       ],
     }).compile();
 

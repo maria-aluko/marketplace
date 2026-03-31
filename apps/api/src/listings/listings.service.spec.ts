@@ -3,6 +3,7 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ListingsService } from './listings.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 
 describe('ListingsService', () => {
   let service: ListingsService;
@@ -62,6 +63,7 @@ describe('ListingsService', () => {
       listingId: 'listing-2',
       rentalCategory: 'TENT',
       quantityAvailable: 10,
+      quantityBooked: 0,
       pricePerDay: 15000,
       depositAmount: 5000,
       deliveryOption: 'BOTH',
@@ -73,12 +75,17 @@ describe('ListingsService', () => {
     ...overrides,
   });
 
+  const mockSubscriptions = {
+    enforceListingLimit: vi.fn().mockResolvedValue(undefined),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ListingsService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: AuditService, useValue: mockAudit },
+        { provide: SubscriptionsService, useValue: mockSubscriptions },
       ],
     }).compile();
 
