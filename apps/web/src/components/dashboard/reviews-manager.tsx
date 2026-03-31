@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { ReviewResponse } from '@eventtrust/shared';
 import { createVendorReplySchema, VENDOR_REPLY_EDIT_WINDOW_HOURS, DISPUTE_RAISE_WINDOW_HOURS, DISPUTE_APPEAL_WINDOW_HOURS } from '@eventtrust/shared';
+import { formatDate } from '@/lib/utils';
 import { apiClient } from '@/lib/api-client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,14 +14,6 @@ import { DisputeForm } from './dispute-form';
 
 interface ReviewsManagerProps {
   vendorId: string;
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-NG', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
 }
 
 function isWithinEditWindow(createdAt: string): boolean {

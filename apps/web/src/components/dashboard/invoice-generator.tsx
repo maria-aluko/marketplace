@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Plus, Trash2 } from 'lucide-react';
+import { formatNaira } from '@/lib/utils';
 import type {
   InvoiceResponse,
   CreateInvoicePayload,
@@ -24,10 +25,6 @@ interface InvoiceGeneratorProps {
 
 interface ItemForm extends CreateInvoiceItemPayload {
   _key: number;
-}
-
-function formatNaira(kobo: number) {
-  return `₦${(kobo / 100).toLocaleString('en-NG')}`;
 }
 
 // --- Step sub-components ---

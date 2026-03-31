@@ -2,18 +2,11 @@ import type { ReviewResponse } from '@eventtrust/shared';
 import { StarRating } from '@/components/ui/star-rating';
 import { Badge } from '@/components/ui/badge';
 import { WriteReviewButton } from './write-review-button';
+import { formatDate } from '@/lib/utils';
 
 interface ReviewsListProps {
   reviews: ReviewResponse[];
   vendorId: string;
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-NG', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
 }
 
 export function ReviewsList({ reviews, vendorId }: ReviewsListProps) {

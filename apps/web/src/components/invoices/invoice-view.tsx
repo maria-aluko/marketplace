@@ -13,25 +13,13 @@ import {
 } from 'lucide-react';
 import type { InvoiceResponse } from '@eventtrust/shared';
 import { InvoiceStatus } from '@eventtrust/shared';
-
-function formatShortDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' });
-}
-
-function nextStepText(status: InvoiceStatus): string {
-  switch (status) {
-    case InvoiceStatus.SENT:
-      return 'Confirm to secure your booking slot.';
-    case InvoiceStatus.VIEWED:
-      return "You're looking at it now. Confirm to lock it in.";
-    case InvoiceStatus.CONFIRMED:
-      return 'Booking secured. Prepare for your event.';
-    case InvoiceStatus.COMPLETED:
-      return 'All done! Share your experience with a review.';
-    default:
-      return '';
-  }
-}
+import {
+  formatNaira,
+  formatDateLong,
+  formatDateShort,
+  invoiceStatusVariant,
+  invoiceNextStepText,
+} from '@/lib/utils';
 
 function InvoiceStageTimeline({ invoice }: { invoice: InvoiceResponse }) {
   const stages: { label: string; timestamp?: string | null }[] = [
@@ -41,7 +29,7 @@ function InvoiceStageTimeline({ invoice }: { invoice: InvoiceResponse }) {
     { label: 'Completed', timestamp: invoice.completedAt },
   ];
 
-  const nextStep = nextStepText(invoice.status as InvoiceStatus);
+  const nextStep = invoiceNextStepText(invoice.status as InvoiceStatus);
 
   return (
     <div className="rounded-lg border border-surface-200 bg-surface-50 p-4 space-y-3">
@@ -68,7 +56,7 @@ function InvoiceStageTimeline({ invoice }: { invoice: InvoiceResponse }) {
                   {stage.label}
                 </p>
                 {stage.timestamp && (
-                  <p className="text-[10px] text-surface-400">{formatShortDate(stage.timestamp)}</p>
+                  <p className="text-[10px] text-surface-400">{formatDateShort(stage.timestamp)}</p>
                 )}
               </div>
             </div>
@@ -89,31 +77,6 @@ interface InvoiceViewProps {
   vendorName?: string;
 }
 
-function formatNaira(kobo: number) {
-  return `₦${(kobo / 100).toLocaleString('en-NG')}`;
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-NG', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-}
-
-function statusVariant(status: InvoiceStatus) {
-  switch (status) {
-    case InvoiceStatus.CONFIRMED:
-    case InvoiceStatus.COMPLETED:
-      return 'verified' as const;
-    case InvoiceStatus.SENT:
-    case InvoiceStatus.VIEWED:
-      return 'secondary' as const;
-    default:
-      return 'default' as const;
-  }
-}
 
 export function InvoiceView({ invoice: initialInvoice, vendorName }: InvoiceViewProps) {
   const router = useRouter();
@@ -260,7 +223,7 @@ export function InvoiceView({ invoice: initialInvoice, vendorName }: InvoiceView
           <p className="mt-1 text-sm italic text-surface-500">{invoice.branding.tagline}</p>
         )}
         <div className="mt-2">
-          <Badge variant={statusVariant(invoice.status as InvoiceStatus)}>
+          <Badge variant={invoiceStatusVariant(invoice.status as InvoiceStatus)}>
             {invoice.status}
           </Badge>
         </div>
@@ -293,13 +256,13 @@ export function InvoiceView({ invoice: initialInvoice, vendorName }: InvoiceView
             {invoice.eventDate && (
               <div className="flex items-center gap-2 text-surface-600">
                 <Calendar className="h-4 w-4 flex-shrink-0 text-surface-400" />
-                <span>{formatDate(invoice.eventDate)}</span>
+                <span>{formatDateLong(invoice.eventDate)}</span>
               </div>
             )}
             {invoice.dueDate && (
               <div className="flex items-center gap-2 text-surface-600">
                 <Clock className="h-4 w-4 flex-shrink-0 text-surface-400" />
-                <span>Due: {formatDate(invoice.dueDate)}</span>
+                <span>Due: {formatDateLong(invoice.dueDate)}</span>
               </div>
             )}
             {invoice.eventLocation && (

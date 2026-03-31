@@ -2,25 +2,13 @@
 
 import { useEffect } from 'react';
 import type { InvoiceResponse } from '@eventtrust/shared';
+import { formatNaira, formatDateLong } from '@/lib/utils';
 
 function AutoPrint() {
   useEffect(() => {
     window.print();
   }, []);
   return null;
-}
-
-function formatNaira(kobo: number) {
-  return `₦${(kobo / 100).toLocaleString('en-NG')}`;
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-NG', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
 }
 
 interface InvoicePrintTemplateProps {
@@ -108,7 +96,7 @@ export function InvoicePrintTemplate({
                   <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 w-20 shrink-0">
                     Event Date
                   </span>
-                  <span className="text-gray-700">{formatDate(invoice.eventDate)}</span>
+                  <span className="text-gray-700">{formatDateLong(invoice.eventDate)}</span>
                 </div>
               )}
               {invoice.dueDate && (
@@ -116,7 +104,7 @@ export function InvoicePrintTemplate({
                   <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 w-20 shrink-0">
                     Due
                   </span>
-                  <span className="text-gray-700">{formatDate(invoice.dueDate)}</span>
+                  <span className="text-gray-700">{formatDateLong(invoice.dueDate)}</span>
                 </div>
               )}
               {invoice.eventLocation && (

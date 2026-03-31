@@ -4,21 +4,13 @@ import { useState } from 'react';
 import type { InvoiceSummaryResponse } from '@eventtrust/shared';
 import { ReviewForm } from './review-form';
 import { Button } from '@/components/ui/button';
+import { formatDate } from '@/lib/utils';
 
 interface ReviewInvoicePickerProps {
   invoices: InvoiceSummaryResponse[];
   vendorId: string;
   vendorName: string;
   vendorSlug: string;
-}
-
-function formatDate(dateStr?: string) {
-  if (!dateStr) return null;
-  return new Date(dateStr).toLocaleDateString('en-NG', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
 }
 
 export function ReviewInvoicePicker({

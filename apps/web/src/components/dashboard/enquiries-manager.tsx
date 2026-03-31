@@ -5,31 +5,8 @@ import { apiClient } from '@/lib/api-client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { InquiryResponse } from '@eventtrust/shared';
-import { InquiryStatus } from '@eventtrust/shared';
 import Link from 'next/link';
-
-function statusVariant(status: InquiryStatus): 'default' | 'secondary' | 'verified' | 'outline' {
-  switch (status) {
-    case InquiryStatus.BOOKED:
-    case InquiryStatus.COMPLETED:
-      return 'verified';
-    case InquiryStatus.NEW:
-    case InquiryStatus.CONTACTED:
-      return 'secondary';
-    case InquiryStatus.CANCELLED:
-      return 'outline';
-    default:
-      return 'default';
-  }
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-NG', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
+import { formatDate, inquiryStatusVariant } from '@/lib/utils';
 
 export function EnquiriesManager() {
   const [inquiries, setInquiries] = useState<InquiryResponse[]>([]);
@@ -88,7 +65,7 @@ export function EnquiriesManager() {
           className="rounded-lg border border-surface-200 bg-white p-4 space-y-2"
         >
           <div className="flex items-center justify-between gap-2">
-            <Badge variant={statusVariant(inquiry.status)} className="text-xs">
+            <Badge variant={inquiryStatusVariant(inquiry.status)} className="text-xs">
               {inquiry.status.replace('_', ' ')}
             </Badge>
             <span className="text-xs text-surface-400">{formatDate(inquiry.createdAt)}</span>

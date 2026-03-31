@@ -7,19 +7,11 @@ import { StarRating } from '@/components/ui/star-rating';
 import { ShareButton } from '@/components/vendor/share-button';
 import { cloudinaryTransform } from '@/lib/cloudinary';
 import { CATEGORY_ICONS, RENTAL_CATEGORY_ICONS } from '@/lib/category-meta';
+import { formatPrice, formatDeliveryOption } from '@/lib/utils';
 
 interface ListingSearchCardProps {
   listing: ListingSearchResult;
   compact?: boolean;
-}
-
-function formatPrice(kobo?: number): string {
-  if (!kobo) return '';
-  return `₦${(kobo / 100).toLocaleString('en-NG')}`;
-}
-
-function formatDeliveryOption(option: string): string {
-  return option.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 export function ListingSearchCard({ listing, compact = false }: ListingSearchCardProps) {

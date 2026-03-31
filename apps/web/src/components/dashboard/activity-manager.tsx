@@ -7,6 +7,7 @@ import { InquiryStatus, InvoiceStatus } from '@eventtrust/shared';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { FileText, MessageSquare, Star } from 'lucide-react';
+import { formatNaira, formatDateShort } from '@/lib/utils';
 
 type DealStage = 'enquired' | 'invoiced' | 'confirmed' | 'done' | 'cancelled';
 
@@ -68,9 +69,7 @@ function PipelineProgress({ stage }: { stage: DealStage }) {
             }`}
           />
           {i < PIPELINE_STAGES.length - 1 && (
-            <div
-              className={`h-px flex-1 ${i < activeIdx ? 'bg-primary-300' : 'bg-surface-200'}`}
-            />
+            <div className={`h-px flex-1 ${i < activeIdx ? 'bg-primary-300' : 'bg-surface-200'}`} />
           )}
         </div>
       ))}
@@ -86,25 +85,13 @@ const STAGE_CHIP: Record<DealStage, string> = {
   cancelled: 'bg-surface-100 text-surface-400',
 };
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-NG', {
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
-function formatNaira(kobo: number) {
-  return `₦${(kobo / 100).toLocaleString('en-NG')}`;
-}
-
 function ClientDealCard({ thread }: { thread: DealThread & { stage: DealStage } }) {
   const { stage } = thread;
   const isConfirmed = stage === 'confirmed';
   const isCancelled = stage === 'cancelled';
 
   const recencyDate =
-    thread.invoiceCreatedAt &&
-    new Date(thread.invoiceCreatedAt) > new Date(thread.inquiryCreatedAt)
+    thread.invoiceCreatedAt && new Date(thread.invoiceCreatedAt) > new Date(thread.inquiryCreatedAt)
       ? thread.invoiceCreatedAt
       : thread.inquiryCreatedAt;
 
@@ -127,18 +114,14 @@ function ClientDealCard({ thread }: { thread: DealThread & { stage: DealStage } 
           {(stage === 'confirmed' || stage === 'done') && '✓ '}
           {stage.charAt(0).toUpperCase() + stage.slice(1)}
         </span>
-        <span className="text-xs text-surface-400">{formatDate(recencyDate)}</span>
+        <span className="text-xs text-surface-400">{formatDateShort(recencyDate)}</span>
       </div>
 
       {thread.vendorName && (
         <p className="font-semibold text-sm text-surface-900">{thread.vendorName}</p>
       )}
-      {thread.listingTitle && (
-        <p className="text-xs text-surface-500">re: {thread.listingTitle}</p>
-      )}
-      {thread.message && (
-        <p className="text-sm text-surface-600 line-clamp-2">{thread.message}</p>
-      )}
+      {thread.listingTitle && <p className="text-xs text-surface-500">re: {thread.listingTitle}</p>}
+      {thread.message && <p className="text-sm text-surface-600 line-clamp-2">{thread.message}</p>}
 
       <PipelineProgress stage={stage} />
       {!isCancelled && (
@@ -188,10 +171,7 @@ function LoadingSkeleton() {
   return (
     <div className="space-y-3 py-4">
       {[1, 2, 3].map((i) => (
-        <div
-          key={i}
-          className="border border-surface-200 rounded-lg p-4 space-y-3 animate-pulse"
-        >
+        <div key={i} className="border border-surface-200 rounded-lg p-4 space-y-3 animate-pulse">
           <div className="flex justify-between">
             <div className="h-5 w-20 bg-surface-200 rounded-full" />
             <div className="h-4 w-16 bg-surface-200 rounded" />
@@ -349,7 +329,9 @@ export function ActivityManager() {
                   {formatNaira(invoice.totalKobo)}
                 </p>
                 {invoice.eventDate && (
-                  <p className="text-xs text-surface-500">Event: {formatDate(invoice.eventDate)}</p>
+                  <p className="text-xs text-surface-500">
+                    Event: {formatDateShort(invoice.eventDate)}
+                  </p>
                 )}
               </div>
               <Link

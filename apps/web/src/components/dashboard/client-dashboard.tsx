@@ -21,22 +21,6 @@ interface ClientDashboardProps {
   user: AuthUser;
 }
 
-const INQUIRY_STATUS_LABEL: Record<InquiryStatus, string> = {
-  [InquiryStatus.NEW]: 'New',
-  [InquiryStatus.CONTACTED]: 'Contacted',
-  [InquiryStatus.BOOKED]: 'Booked',
-  [InquiryStatus.COMPLETED]: 'Done',
-  [InquiryStatus.CANCELLED]: 'Cancelled',
-};
-
-const INQUIRY_STATUS_CLASS: Record<InquiryStatus, string> = {
-  [InquiryStatus.NEW]: 'bg-surface-100 text-surface-600',
-  [InquiryStatus.CONTACTED]: 'bg-blue-100 text-blue-700',
-  [InquiryStatus.BOOKED]: 'bg-primary-100 text-primary-700',
-  [InquiryStatus.COMPLETED]: 'bg-primary-50 text-primary-600',
-  [InquiryStatus.CANCELLED]: 'bg-surface-100 text-surface-400',
-};
-
 function OnboardingGuide({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
   const steps = [
     { num: '1', text: 'Browse vendors or equipment that match your event needs' },
@@ -76,54 +60,6 @@ function OnboardingGuide({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
   );
 }
 
-function RecentActivitySummary({
-  inquiries,
-  onViewAll,
-}: {
-  inquiries: InquiryResponse[];
-  onViewAll: () => void;
-}) {
-  if (inquiries.length === 0) return null;
-
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base">Recent Bookings</CardTitle>
-          <button
-            onClick={onViewAll}
-            className="text-xs font-medium text-primary-600 hover:text-primary-700"
-          >
-            View all →
-          </button>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-2 pt-0">
-        {inquiries.map((inq) => (
-          <div
-            key={inq.id}
-            className="flex items-center justify-between gap-2 rounded-lg bg-surface-50 px-3 py-2"
-          >
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-surface-800">
-                {inq.listingTitle ?? inq.vendorName ?? 'Enquiry'}
-              </p>
-              {inq.vendorName && inq.listingTitle && (
-                <p className="truncate text-xs text-surface-500">{inq.vendorName}</p>
-              )}
-            </div>
-            <span
-              className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${INQUIRY_STATUS_CLASS[inq.status as InquiryStatus] ?? 'bg-surface-100 text-surface-600'}`}
-            >
-              {INQUIRY_STATUS_LABEL[inq.status as InquiryStatus] ?? inq.status}
-            </span>
-          </div>
-        ))}
-      </CardContent>
-    </Card>
-  );
-}
-
 function HomeOverview({
   user,
   recentInquiries,
@@ -157,14 +93,7 @@ function HomeOverview({
         </div>
       )}
 
-      {recentInquiries.length > 0 ? (
-        <RecentActivitySummary
-          inquiries={recentInquiries}
-          onViewAll={() => onNavigate('bookings')}
-        />
-      ) : (
-        <OnboardingGuide onNavigate={onNavigate} />
-      )}
+      {recentInquiries.length === 0 && <OnboardingGuide onNavigate={onNavigate} />}
 
       <div className="grid grid-cols-2 gap-3">
         {(
@@ -199,7 +128,16 @@ function HomeOverview({
         </div>
       )}
 
-      <Card>
+      <div className="relative my-2">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-surface-200" />
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-surface-50 px-3 text-xs text-surface-400">For vendors</span>
+        </div>
+      </div>
+
+      <Card className="border-surface-200 bg-surface-50">
         <CardHeader>
           <CardTitle className="text-base">Become a Vendor</CardTitle>
         </CardHeader>
@@ -208,7 +146,9 @@ function HomeOverview({
             List your business on EventTrust and get discovered by clients in Lagos.
           </p>
           <Link href="/vendor/signup">
-            <Button className="w-full">Create Vendor Profile</Button>
+            <Button variant="outline" className="w-full">
+              Create Vendor Profile
+            </Button>
           </Link>
         </CardContent>
       </Card>
@@ -228,16 +168,19 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
   const [recentInquiries, setRecentInquiries] = useState<InquiryResponse[]>([]);
 
   useEffect(() => {
-    apiClient.get<{ data: InquiryResponse[] }>('/inquiries').then((res) => {
-      if (res.success && res.data) {
-        setRecentInquiries(res.data.data.slice(0, 3));
-      }
-    }).catch(() => {});
+    apiClient
+      .get<{ data: InquiryResponse[] }>('/inquiries')
+      .then((res) => {
+        if (res.success && res.data) {
+          setRecentInquiries(res.data.data.slice(0, 3));
+        }
+      })
+      .catch(() => {});
   }, []);
 
   return (
     <div className="relative">
-      <div className="pb-20 px-4">
+      <div className="pb-28 px-4">
         {activeTab === 'home' && (
           <HomeOverview
             user={user}

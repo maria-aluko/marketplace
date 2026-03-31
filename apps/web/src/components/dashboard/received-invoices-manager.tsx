@@ -7,39 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import type { InvoiceSummaryResponse } from '@eventtrust/shared';
 import { InvoiceStatus } from '@eventtrust/shared';
-
-function statusVariant(
-  status: InvoiceStatus,
-): 'default' | 'secondary' | 'verified' | 'outline' {
-  switch (status) {
-    case InvoiceStatus.CONFIRMED:
-    case InvoiceStatus.COMPLETED:
-      return 'verified';
-    case InvoiceStatus.SENT:
-    case InvoiceStatus.VIEWED:
-      return 'secondary';
-    case InvoiceStatus.CANCELLED:
-      return 'outline';
-    default:
-      return 'default';
-  }
-}
-
-function formatCurrency(kobo: number) {
-  return new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
-    minimumFractionDigits: 0,
-  }).format(kobo / 100);
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-NG', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
+import { formatNaira, formatDate, invoiceStatusVariant } from '@/lib/utils';
 
 export function ReceivedInvoicesManager() {
   const [invoices, setInvoices] = useState<InvoiceSummaryResponse[]>([]);
@@ -96,14 +64,14 @@ export function ReceivedInvoicesManager() {
               </p>
               <p className="text-xs text-surface-500">{invoice.invoiceNumber}</p>
             </div>
-            <Badge variant={statusVariant(invoice.status as InvoiceStatus)}>
+            <Badge variant={invoiceStatusVariant(invoice.status as InvoiceStatus)}>
               {invoice.status}
             </Badge>
           </div>
 
           <div className="flex items-center justify-between">
             <p className="text-lg font-bold text-primary-700">
-              {formatCurrency(invoice.totalKobo)}
+              {formatNaira(invoice.totalKobo)}
             </p>
             {invoice.eventDate && (
               <p className="text-xs text-surface-500">

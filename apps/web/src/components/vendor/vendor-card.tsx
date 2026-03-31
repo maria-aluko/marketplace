@@ -7,14 +7,10 @@ import { StarRating } from '@/components/ui/star-rating';
 import { ProfileCompletenessRing } from '@/components/ui/profile-completeness-ring';
 import { cloudinaryTransform } from '@/lib/cloudinary';
 import { CATEGORY_ICONS } from '@/lib/category-meta';
+import { formatPrice } from '@/lib/utils';
 
 interface VendorCardProps {
   vendor: VendorResponse;
-}
-
-function formatPrice(kobo?: number): string {
-  if (!kobo) return '';
-  return `\u20A6${(kobo / 100).toLocaleString('en-NG')}`;
 }
 
 export function VendorCard({ vendor }: VendorCardProps) {

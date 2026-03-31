@@ -3,15 +3,10 @@ import type { ListingResponse } from '@eventtrust/shared';
 import { CATEGORY_LABELS } from '@eventtrust/shared';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/ui/star-rating';
-import { cn } from '@/lib/utils';
+import { cn, formatPrice } from '@/lib/utils';
 
 interface ListingCardProps {
   listing: ListingResponse;
-}
-
-function formatPrice(kobo?: number): string {
-  if (!kobo) return '';
-  return `\u20A6${(kobo / 100).toLocaleString('en-NG')}`;
 }
 
 export function ListingCard({ listing }: ListingCardProps) {

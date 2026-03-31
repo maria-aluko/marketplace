@@ -6,6 +6,12 @@ import { MessageCircle, Copy, CheckCheck } from 'lucide-react';
 import type { InquiryResponse, InvoiceResponse, InvoiceSummaryResponse } from '@eventtrust/shared';
 import { InvoiceStatus } from '@eventtrust/shared';
 import { apiClient } from '@/lib/api-client';
+import {
+  formatNaira,
+  formatDate,
+  invoiceStatusChipClass,
+  invoiceStatusLabel,
+} from '@/lib/utils';
 
 export type VendorDealStage = 'new' | 'invoiced' | 'confirmed' | 'done' | 'cancelled';
 
@@ -13,48 +19,6 @@ export interface VendorDeal {
   inquiry: InquiryResponse;
   invoice?: InvoiceSummaryResponse;
   stage: VendorDealStage;
-}
-
-export function formatNaira(kobo: number) {
-  return `₦${(kobo / 100).toLocaleString('en-NG')}`;
-}
-
-export function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-NG', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
-export function invoiceStatusChipClass(status: InvoiceStatus): string {
-  switch (status) {
-    case InvoiceStatus.DRAFT:
-      return 'bg-surface-100 text-surface-500';
-    case InvoiceStatus.SENT:
-      return 'bg-celebration-100 text-celebration-700';
-    case InvoiceStatus.VIEWED:
-      return 'bg-celebration-200 text-celebration-800';
-    case InvoiceStatus.CONFIRMED:
-      return 'bg-primary-100 text-primary-700 font-semibold';
-    case InvoiceStatus.COMPLETED:
-      return 'bg-primary-50 text-primary-600';
-    case InvoiceStatus.CANCELLED:
-      return 'bg-surface-100 text-surface-400 line-through';
-    default:
-      return 'bg-surface-100 text-surface-500';
-  }
-}
-
-export function invoiceStatusLabel(status: InvoiceStatus): string {
-  switch (status) {
-    case InvoiceStatus.CONFIRMED:
-      return '✓ Confirmed';
-    case InvoiceStatus.COMPLETED:
-      return '✓ Completed';
-    default:
-      return status.charAt(0) + status.slice(1).toLowerCase();
-  }
 }
 
 function CopyButton({ text }: { text: string }) {
