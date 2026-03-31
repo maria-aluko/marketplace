@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { MessageCircle, Copy, CheckCheck } from 'lucide-react';
-import type { InquiryResponse, InvoiceSummaryResponse } from '@eventtrust/shared';
+import type { InquiryResponse, InvoiceResponse, InvoiceSummaryResponse } from '@eventtrust/shared';
 import { InvoiceStatus } from '@eventtrust/shared';
+import { apiClient } from '@/lib/api-client';
 
 export type VendorDealStage = 'new' | 'invoiced' | 'confirmed' | 'done' | 'cancelled';
 
@@ -105,16 +106,31 @@ function CopyPhone({ text }: { text: string }) {
 export function VendorDealCard({
   deal,
   onCreateInvoice,
+  onInvoiceSent,
   webUrl,
 }: {
   deal: VendorDeal;
   onCreateInvoice: (inquiry: InquiryResponse) => void;
+  onInvoiceSent?: (invoiceId: string) => void;
   webUrl: string;
 }) {
   const { inquiry, invoice, stage } = deal;
   const isConfirmed = stage === 'confirmed' || stage === 'done';
   const isCancelled = stage === 'cancelled';
   const waPhone = inquiry.clientPhone?.replace('+', '');
+  const [sending, setSending] = useState(false);
+
+  const handleSendAndWhatsApp = async () => {
+    if (!invoice) return;
+    setSending(true);
+    const res = await apiClient.post<{ data: InvoiceResponse }>(`/invoices/${invoice.id}/send`);
+    setSending(false);
+    if (!res.success) return;
+    onInvoiceSent?.(invoice.id);
+    const phone = inquiry.clientPhone?.replace('+', '');
+    const msg = `Hi ${inquiry.clientName}! Your invoice is ready. Total: ${formatNaira(invoice.totalKobo)}. View and confirm: ${webUrl}/invoices/${invoice.id}`;
+    window.open(`https://wa.me/${phone ?? ''}?text=${encodeURIComponent(msg)}`, '_blank');
+  };
 
   const STAGE_CHIP: Record<VendorDealStage, string> = {
     new: 'bg-surface-100 text-surface-600',
@@ -202,16 +218,41 @@ export function VendorDealCard({
       )}
 
       {!isCancelled && (
-        <div className="flex items-center gap-3 pt-1">
+        <div className="flex items-center gap-3 pt-1 flex-wrap">
           {invoice ? (
             <>
+              {invoice.status === InvoiceStatus.DRAFT && (
+                <button
+                  onClick={handleSendAndWhatsApp}
+                  disabled={sending}
+                  className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 hover:bg-green-100 disabled:opacity-60"
+                >
+                  <MessageCircle className="h-3 w-3" />
+                  {sending ? 'Sending...' : 'Send via WhatsApp'}
+                </button>
+              )}
+              {(invoice.status === InvoiceStatus.SENT || invoice.status === InvoiceStatus.VIEWED) && (
+                <a
+                  href={`https://wa.me/${inquiry.clientPhone?.replace('+', '') ?? ''}?text=${encodeURIComponent(
+                    `Hi ${inquiry.clientName}! Your invoice is ready. Total: ${formatNaira(invoice.totalKobo)}. View: ${webUrl}/invoices/${invoice.id}`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 hover:bg-green-100"
+                >
+                  <MessageCircle className="h-3 w-3" />
+                  Share on WhatsApp
+                </a>
+              )}
               <Link
                 href={`/invoices/${invoice.id}?from=vendor`}
                 className="text-xs text-primary-600 hover:text-primary-800"
               >
                 View Invoice
               </Link>
-              <CopyButton text={`${webUrl}/invoices/${invoice.id}`} />
+              {invoice.status !== InvoiceStatus.DRAFT && (
+                <CopyButton text={`${webUrl}/invoices/${invoice.id}`} />
+              )}
             </>
           ) : (
             <button

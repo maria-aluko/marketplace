@@ -118,7 +118,7 @@ function statusVariant(status: InvoiceStatus) {
 export function InvoiceView({ invoice: initialInvoice, vendorName }: InvoiceViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const [invoice, setInvoice] = useState(initialInvoice);
   const [confirming, setConfirming] = useState(false);
   const [confirmed, setConfirmed] = useState(
@@ -134,6 +134,26 @@ export function InvoiceView({ invoice: initialInvoice, vendorName }: InvoiceView
   const isVendorOwner = !!user?.vendorId && user.vendorId === invoice.vendorId;
   const fromVendor = searchParams.get('from') === 'vendor';
 
+  if (!isLoading && !isVendorOwner && invoice.status === InvoiceStatus.DRAFT) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-8">
+        <button
+          onClick={() => fromVendor ? router.push('/dashboard?tab=bookings') : router.back()}
+          className="mb-4 flex items-center gap-1 text-sm text-surface-500 hover:text-surface-700"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </button>
+        <div className="rounded-lg border border-surface-200 bg-surface-50 p-8 text-center space-y-2">
+          <p className="font-semibold text-surface-800">Invoice Not Available</p>
+          <p className="text-sm text-surface-500">
+            This invoice hasn&apos;t been sent yet. Contact your vendor for the latest quote.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const canConfirm =
     invoice.status === InvoiceStatus.SENT || invoice.status === InvoiceStatus.VIEWED;
 
@@ -141,7 +161,7 @@ export function InvoiceView({ invoice: initialInvoice, vendorName }: InvoiceView
     setConfirming(true);
     setError(null);
 
-    const res = await apiClient.post<{ data: InvoiceResponse }>(`/invoices/${invoice.id}/confirm`);
+    const res = await apiClient.post<{ data: InvoiceResponse }>(`/invoices/${invoice.id}/confirm?token=${invoice.confirmToken}`);
     setConfirming(false);
 
     if (!res.success || !res.data) {
@@ -214,7 +234,7 @@ export function InvoiceView({ invoice: initialInvoice, vendorName }: InvoiceView
 
       <div className="mb-4 flex justify-end print:hidden">
         <button
-          onClick={() => window.print()}
+          onClick={() => window.open(`/invoices/${invoice.id}/print`, '_blank')}
           className="inline-flex items-center gap-1.5 text-sm text-surface-500 hover:text-surface-700"
         >
           <Download className="h-4 w-4" />

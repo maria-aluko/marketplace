@@ -104,6 +104,14 @@ export function BookingsManager({ vendorId }: BookingsManagerProps) {
     }).catch(() => {});
   };
 
+  const handleInvoiceSent = (invoiceId: string) => {
+    setInvoices((prev) =>
+      prev.map((inv) =>
+        inv.id === invoiceId ? { ...inv, status: InvoiceStatus.SENT } : inv,
+      ),
+    );
+  };
+
   if (loading) {
     return (
       <div className="space-y-4 py-4">
@@ -233,6 +241,7 @@ export function BookingsManager({ vendorId }: BookingsManagerProps) {
                 setSelectedInquiry(inquiry);
                 setShowGenerator(true);
               }}
+              onInvoiceSent={handleInvoiceSent}
               webUrl={webUrl}
             />
           ))
