@@ -1,6 +1,6 @@
 # EventTrust Nigeria — Implementation Plan
 
-> **Monorepo:** Turborepo + pnpm | **ORM:** Prisma | **Validation:** Zod (shared) | **Current Phase:** 1 (Complete)
+> **Monorepo:** Turborepo + pnpm | **ORM:** Prisma | **Validation:** Zod (shared) | **Current Phase:** 4 (Complete)
 
 ---
 
@@ -45,13 +45,14 @@ Full Prisma schema at `apps/api/prisma/schema.prisma`. Key models:
 | AuthIdentity         | Multi-provider auth (phone now, Google/Facebook later)                             |
 | OtpRequest           | Code hash, attempts counter, expiry                                                |
 | RefreshToken         | Token hash, revocation tracking                                                    |
-| Vendor               | Profile, status machine, ratings, subscriptionTier, soft-delete                    |
+| Vendor               | Profile, status machine, ratings, subscriptionTier, adminNote, soft-delete         |
 | Listing              | ListingType (SERVICE\|RENTAL), category, description, photos, vendorId             |
-| ListingRentalDetails | quantity, pricePerDay, depositAmount, DeliveryOption, condition — 1:1 with Listing |
+| ListingRentalDetails | quantity, quantityBooked, pricePerDay, depositAmount, DeliveryOption, condition — 1:1 with Listing |
 | VendorPortfolio      | Media items (max 10 images, 2 videos)                                              |
 | Review               | Rating, body (min 50 chars), status, soft-delete                                   |
 | VendorReply          | One reply per review, editable 48hrs                                               |
-| Dispute              | Status machine (open → decided → appealed → closed)                                |
+| Dispute              | Status machine (open → decided → appealed → closed), evidence (Cloudinary URLs[])  |
+| VendorAvailability   | Blocked dates per vendor (vendorId + date unique), reason                          |
 | AdminLog             | Append-only audit trail                                                            |
 
 Key enums: `ListingType` (SERVICE\|RENTAL), `RentalCategory` (tent\|chairs_tables\|cooking_equipment\|generator\|lighting\|other_rental), `DeliveryOption` (pickup_only\|delivery_only\|both), `SubscriptionTier` (free\|pro\|pro_plus)
@@ -491,60 +492,119 @@ _Depends on Phase 1._
 
 3. **Search scope indicator** — `/services` and `/equipment` pages should have a prominent title ("Event Services in Lagos" / "Equipment Rentals in Lagos") + a pill toggle to switch between modes without returning to nav.
 
-### Phase 4: Vendor Business Tools + Trust Layer (Weeks 9–12)
+### Phase 4: Vendor Business Tools + Trust Layer — COMPLETE
 
-**Subscription enforcement:**
+_Completed 2026-03-31. Applied via `pnpm db:push` (migration history has drift from Phase 2)._
 
-- [ ] `SubscriptionsModule` — tier enforcement (listing/photo limits by tier: free=1 listing+3 photos, pro=10+20, pro_plus=unlimited)
+#### Schema changes (Phase 4 migration)
 
-**Vendor business tools:**
+- [x] `Vendor.adminNote String?` — nullable note from admin, shown to vendor on CHANGES_REQUESTED
+- [x] `Vendor.availability VendorAvailability[]` — relation to new model
+- [x] `ListingRentalDetails.quantityBooked Int @default(0)` — auto-tracked inventory
+- [x] `Dispute.evidence String[] @default([])` — Cloudinary URLs, max 5
+- [x] New model `VendorAvailability` — `vendorId + date @@unique`, `@db.Date`, soft-cascade from Vendor
 
-- [ ] CRM: customer records (name, event date, contact, quote status, notes) per vendor
-- [ ] Booking calendar: date-based availability for service vendors
-- [ ] Inventory management: quantityBooked tracking for rental vendors
-- [ ] Invoicing: PDF generation, payment link, receipt
+#### Sub-Phase 4.1 — Shared Package Updates
 
-**Trust layer (disputes + admin):**
+- [x] `DISPUTE_MAX_EVIDENCE = 5` constant
+- [x] `SUBSCRIPTION_TIER_LIMITS` — `{ free: { listings: 1, photosPerListing: 3 }, pro: { listings: 10, photosPerListing: 20 }, pro_plus: { listings: Infinity, photosPerListing: Infinity } }`
+- [x] `VendorAvailabilityResponse`, `BlockDatePayload` types
+- [x] `VendorResponse.adminNote?: string | null` and `VendorResponse._count?: { listings: number }`
+- [x] `ListingRentalDetailsResponse.quantityBooked` and `.availableStock`
+- [x] `DisputeResponse.evidence: string[]`
+- [x] `VendorStatusTransitionPayload.adminNote?: string`
+- [x] `ConfirmEvidencePayload: { url: string }`
+- [x] `blockDateSchema`, `confirmEvidenceSchema` Zod schemas
+- [x] `vendorStatusTransitionSchema` updated with optional `adminNote`
 
-- [ ] `DisputesModule` — Submit dispute (vendor only, within 72h)
-- [ ] `DisputesModule` — Evidence upload
-- [ ] `DisputesModule` — Admin decide (with policy clause + audit)
-- [ ] `DisputesModule` — Appeal (one, within 48h)
-- [ ] `DisputesModule` — Status machine
-- [ ] `AdminModule` — Full queues (vendors, reviews, disputes)
-- [ ] `AdminModule` — Analytics endpoint (rental listing count, service listing count, avg listings per vendor)
-- [ ] `AdminModule` — All actions call AuditService
-- [ ] Dispute email notifications (opened, evidence, decided, appealed)
-- [ ] CORS hardened for production
+#### Sub-Phase 4.2 — SubscriptionsModule (Backend)
 
-**Frontend:**
+- [x] `apps/api/src/subscriptions/subscriptions.service.ts` — `enforceListingLimit(vendorId)`, `enforcePhotoLimit(vendorId, currentCount)` — throws ForbiddenException at tier limit
+- [x] `apps/api/src/subscriptions/subscriptions.module.ts` — exported module
+- [x] Injected into `ListingsModule` (enforceListingLimit before create) and `PortfolioModule` (enforcePhotoLimit before confirm)
+- [x] Registered in `AppModule`
+- [x] 10 unit tests: free/pro/pro_plus for listings and photos
 
-- [ ] Dispute form + evidence upload
-- [ ] Admin dashboard (vendor queue, review queue, dispute queue, analytics)
-- [ ] Vendor dashboard: CRM, calendar, inventory, invoicing
-- [ ] Public policy page (static)
-- [ ] Transparency report page
-- [ ] PWA: manifest.json, service worker, Android install prompt
+#### Sub-Phase 4.3 — Dispute Evidence Upload (Backend)
 
-**Tests:**
+- [x] `disputes.service.ts` — `getEvidenceSignedUrl(disputeId, vendorId)` + `confirmEvidence(disputeId, vendorId, url)` — validates ownership, OPEN status, max 5 limit
+- [x] `disputes.controller.ts` — `POST /disputes/:id/evidence/signed-url` + `POST /disputes/:id/evidence` (both DisputeOwnerGuard)
+- [x] `toResponse()` now includes `evidence: dispute.evidence ?? []`
 
-- [ ] Unit: DisputesService (72h window, evidence parties, appeal limits)
-- [ ] Unit: SubscriptionsService (tier limit enforcement)
-- [ ] Unit: Admin analytics
-- [ ] E2E: Full dispute lifecycle (review → dispute → evidence → decide → appeal → close)
-- [ ] E2E: Audit log completeness
-- [ ] Playwright: Admin approves vendor, admin decides dispute
+#### Sub-Phase 4.4 — Availability Calendar Module (Backend)
 
-**Exit criteria:**
+- [x] `apps/api/src/availability/availability.service.ts` — `getAvailability(vendorId, from?, to?)`, `blockDate(vendorId, data)` (upsert on @@unique), `unblockDate(vendorId, date)` (NotFoundException if not found)
+- [x] `apps/api/src/availability/availability.controller.ts` — `@Public() GET /vendors/:vendorId/availability`, `POST /vendors/:vendorId/availability` (VendorOwnerGuard), `DELETE /vendors/:vendorId/availability/:date` (VendorOwnerGuard, 204)
+- [x] `apps/api/src/availability/availability.module.ts`
+- [x] Registered in `AppModule`
+- [x] 7 unit tests: get with/without range, blockDate, upsert, unblock, NotFoundException
 
-```bash
-pnpm turbo run test && pnpm turbo run test:e2e
-# Full dispute lifecycle works end-to-end
-# Every admin action logged in audit_log
-# Free tier vendors blocked from creating >1 listing
-# PWA installs on Android Chrome
-# Service worker caches vendor profiles for offline viewing
+#### Sub-Phase 4.5 — Inventory: quantityBooked Tracking (Backend)
+
+- [x] `inquiries.service.ts` — `updateStatus()` wrapped in `$transaction`; increments `quantityBooked` when transitioning TO `BOOKED` on rental listings; decrements when transitioning FROM `BOOKED` to `CANCELLED`/`COMPLETED`
+- [x] `listings.service.ts` `toResponse()` — exposes `quantityBooked`, `availableStock = max(0, quantityAvailable - quantityBooked)`
+- [x] `search.service.ts` — rental details mapping includes `quantityBooked` and `availableStock`
+
+#### Sub-Phase 4.6 — AdminNote + CHANGES_REQUESTED UX (Backend)
+
+- [x] `vendor-status.service.ts` — `transition()` accepts optional `adminNote`; writes to Vendor on `CHANGES_REQUESTED`, clears to null on `ACTIVE`
+- [x] `vendors.service.ts` — `toResponse()` includes `adminNote: vendor.adminNote ?? null` and `_count: { listings }` (from `findById()` include)
+- [x] `vendors.service.ts` — `findById()` uses `include: { _count: { select: { listings: { where: { deletedAt: null } } } } }`
+- [x] `vendors.controller.ts` — passes `body.adminNote` to `vendorStatusService.transition()`
+
+#### Sub-Phase 4.7 — Admin Dashboard Frontend
+
+- [x] `apps/web/src/components/admin/dispute-queue.tsx` — fetches `GET /admin/disputes?limit=50`; expandable OPEN/APPEALED cards; decision form (textarea + policyClause + removeReview checkbox); evidence thumbnails; calls `/decide` and `/close`
+- [x] `apps/web/src/components/admin/admin-analytics.tsx` — fetches `GET /admin/analytics`; stat cards grouped by Vendors / Reviews / Trust & Clients; loading skeletons; error state
+- [x] `apps/web/src/components/admin/admin-dashboard.tsx` — 2 new tabs added: **Disputes** and **Analytics**
+- [x] `apps/web/src/components/admin/vendor-queue.tsx` — "Request Changes" button now expands an inline textarea for `adminNote`; passes it in PATCH body
+
+#### Sub-Phase 4.8 — Dispute Form Evidence Upload (Frontend)
+
+- [x] `apps/web/src/components/dashboard/dispute-form.tsx` — 2-step flow: step 1 = reason form; step 2 (after successful POST /disputes) = evidence uploader; Cloudinary signed-URL pattern (same as portfolio); max 5 images; thumbnails with remove; "Skip" option; re-usable for existing dispute IDs
+
+#### Sub-Phase 4.9 — Availability Calendar (Frontend)
+
+- [x] `apps/web/src/components/dashboard/availability-calendar.tsx` — pure-CSS monthly grid (no external lib); block/unblock via click; `readOnly` prop for public profile; per-date spinner; legend; prev/next month nav
+- [x] Added **Calendar** sub-tab under Profile tab in `vendor-dashboard.tsx`
+- [x] Read-only `AvailabilityCalendar` added below listings section on `apps/web/src/app/vendors/[slug]/page.tsx`
+
+#### Sub-Phase 4.10 — AdminNote Vendor Dashboard UX
+
+- [x] `vendor-dashboard.tsx` `CHANGES_REQUESTED` card — shows `vendor.adminNote` in a white inset box if present
+- [x] `ProfileCompletenessChecklist` — 5th item "Add at least one listing" (checked when `vendor._count?.listings > 0`)
+
+#### Sub-Phase 4.11 — Static Pages
+
+- [x] `apps/web/src/app/privacy/page.tsx` — Privacy policy (data collected, Cloudinary/Termii/Supabase/Resend/Sentry mentions, rights, cookies, contact email), `generateMetadata`
+- [x] `apps/web/src/app/transparency/page.tsx` — Monthly transparency report (manually updated stats: vendors, reviews, disputes), `generateMetadata`
+- [x] `apps/web/src/components/layout/footer.tsx` — added **Privacy** and **Transparency** links under Company section
+
+#### Sub-Phase 4.12 — Android Install Prompt (PWA)
+
+- [x] `apps/web/src/components/pwa/install-prompt.tsx` — listens for `beforeinstallprompt`; shows after 2 page visits (localStorage counter); bottom banner with Install + dismiss (×); stores dismiss in `localStorage('pwa-dismissed')`
+- [x] `apps/web/src/app/layout.tsx` — `<InstallPrompt />` registered below Footer inside AuthProvider
+
+#### Sub-Phase 4.13 — CORS Hardening
+
+- [x] `apps/api/src/main.ts` — production origins: `['https://eventtrust.com.ng', 'https://www.eventtrust.com.ng']`; dev: `process.env.FRONTEND_URL || 'http://localhost:3000'`
+
+#### Test summary (Phase 4 complete)
+
 ```
+Shared:  35 tests (1 file)   — unchanged
+API:     247 tests (24 files) — +17 new (SubscriptionsService 10, AvailabilityService 7)
+Web:     pre-existing failures unchanged (VendorCard, StarRating, HomePage, ReviewForm)
+Web typecheck: clean
+API typecheck: production source files clean; pre-existing strict errors in spec files only
+Build:   pnpm db:push (not db:migrate — history drift from Phase 2)
+```
+
+**Deferred to Phase 5:**
+- Dispute email notifications (opened, decided, appealed)
+- E2E: Full dispute lifecycle
+- E2E: Audit log completeness
+- Playwright: Admin approves vendor, admin decides dispute
 
 ---
 

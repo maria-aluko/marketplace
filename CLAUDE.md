@@ -70,7 +70,9 @@ apps/api/src/
 │   └── dto/                     # CreateServiceListingDto, CreateRentalListingDto
 ├── portfolio/        # (Phase 2) Cloudinary signed URL, upload confirmation
 ├── reviews/          # (Phase 2) Submission, scoring, replies
-├── disputes/         # (Phase 3) Dispute workflow, evidence, decisions
+├── disputes/         # (Phase 3+4) Dispute workflow, evidence upload, decisions
+├── subscriptions/    # (Phase 4) Tier enforcement — enforceListingLimit, enforcePhotoLimit
+├── availability/     # (Phase 4) Vendor date blocking — GET/POST/DELETE /vendors/:id/availability
 ├── search/           # (Phase 2) Ranked search with SQL scoring across listings
 ├── admin/            # (Phase 3) Moderation queues, analytics
 ├── notifications/    # (Phase 2) Resend email + Termii SMS (internal only)
@@ -104,11 +106,13 @@ Modules are self-contained (own controller, service, DTOs). No direct cross-modu
 
 - **Vendor status machine:** `draft → pending → active | changes_requested | suspended`. All transitions go through a single `VendorStatusService.transition()` method with mandatory audit logging.
 - **Listing ownership:** A vendor can create multiple listings (services and rentals). Each listing belongs to exactly one vendor.
-- **Rental quantity:** `quantityAvailable` tracks total stock. Future inventory management will track `quantityBooked` vs `quantityAvailable`.
+- **Rental quantity:** `quantityAvailable` tracks total stock. `quantityBooked` auto-increments when an inquiry transitions TO `BOOKED` and decrements when transitioning FROM `BOOKED` to `CANCELLED`/`COMPLETED` (inside a `$transaction`). `availableStock = max(0, quantityAvailable - quantityBooked)` exposed in responses.
 - **Listing visibility:** Only listings under `status = 'active'` vendors appear in search results.
-- **Subscription tiers:** `free | pro | pro_plus` stored on Vendor. Tier limits (listing count, photo count) enforced in `ListingsService`. Schema-ready from Phase 2; business logic in Phase 3.
+- **Subscription tiers:** `free | pro | pro_plus` stored on Vendor. Tier limits enforced by `SubscriptionsService` — `enforceListingLimit()` called in `ListingsService` before create; `enforcePhotoLimit()` called in `PortfolioService` before confirm. Limits: free={listings:1, photos:3}, pro={listings:10, photos:20}, pro_plus=Infinity.
 - **Reviews:** One per vendor per client per calendar month (loose). One per listing per client per calendar month (strict). Min 50 chars (DB constraint). Reviews can optionally target a specific listing. Vendor gets one reply per review, editable within 48hrs. Soft deletes only.
-- **Disputes:** Vendor can raise within 72hrs of review approval. Status: `open → decided → appealed → closed`. One appeal allowed.
+- **Disputes:** Vendor can raise within 72hrs of review approval. Status: `open → decided → appealed → closed`. One appeal allowed. Evidence files (Cloudinary URLs, max 5) can be attached via `POST /disputes/:id/evidence` (two-step: signed-url then confirm).
+- **adminNote:** Admin can attach a note when setting vendor to `changes_requested`. Cleared automatically when vendor transitions to `active`. Shown to vendor in CHANGES_REQUESTED status card.
+- **Vendor availability:** Vendors block/unblock dates via `POST|DELETE /vendors/:vendorId/availability`. Stored in `VendorAvailability` table (vendorId + date unique). Public `GET /vendors/:vendorId/availability?from=&to=` returns blocked dates for a range. Read-only calendar shown on public vendor profile.
 - **Search ranking (ORDER BY in SQL):** `avg_rating * 0.5 + (LEAST(review_count, 50)/50 * 0.3) + (profile_complete_score * 0.1) + (recency_score * 0.1)`. Only `status = 'active'` vendors shown.
 - **Phone numbers:** Always E.164 format (`+234XXXXXXXXXX`), validated via Zod schema in `@eventtrust/shared`.
 - **OTP rate limit:** Max 3 requests per phone per 10 minutes. Max 5 verify attempts per OTP.
@@ -117,10 +121,11 @@ Modules are self-contained (own controller, service, DTOs). No direct cross-modu
 
 Prisma ORM connecting to Supabase Postgres. Schema at `apps/api/prisma/schema.prisma`.
 
-Key tables: `users`, `auth_identities`, `vendors`, `listings`, `listing_rental_details`, `vendor_portfolio`, `otp_requests`, `refresh_tokens`, `reviews`, `vendor_replies`, `disputes`, `admin_log`.
+Key tables: `users`, `auth_identities`, `vendors`, `listings`, `listing_rental_details`, `vendor_portfolio`, `otp_requests`, `refresh_tokens`, `reviews`, `vendor_replies`, `disputes`, `vendor_availability`, `admin_log`.
 
 - `listings` — polymorphic listing (type: SERVICE | RENTAL), owned by a Vendor
-- `listing_rental_details` — rental-specific fields (quantity, pricePerDay, depositAmount, deliveryOption, condition) — 1:1 with Listing
+- `listing_rental_details` — rental-specific fields (quantity, `quantity_booked`, pricePerDay, depositAmount, deliveryOption, condition) — 1:1 with Listing
+- `vendor_availability` — blocked dates per vendor (`vendor_id + date` unique, `@db.Date`); managed via AvailabilityModule
 
 - Soft-delete middleware (Prisma client extension) on: User, Vendor, Review
 - `admin_log` is append-only — never update or delete rows
@@ -161,10 +166,21 @@ Key tables: `users`, `auth_identities`, `vendors`, `listings`, `listing_rental_d
 - **Pipeline stage labels** — `ClientDealCard` in `ActivityManager` shows "Enquired / Invoiced / Confirmed / Done" text labels below the 4-dot `PipelineProgress` bar (hidden for cancelled deals).
 - Dynamic `og:image`, `og:title`, `og:description` on vendor profile and listing detail pages — use the Next.js App Router **file convention** (`opengraph-image.tsx` in the route folder) with `ImageResponse` from `next/og`. Do NOT add `images` to `generateMetadata()` manually — the file-based image takes precedence.
 - WhatsApp sharing is the primary discovery channel — every listing card and page must have a `ShareButton`
+- **Vendor profile public page** (`/vendors/[slug]`) shows a read-only `AvailabilityCalendar` below the listings section. Pass `readOnly` prop.
+- **Vendor dashboard Profile tab** has 5 sub-tabs: Details, Portfolio, Reviews, Calendar, Branding. Calendar tab renders `AvailabilityCalendar` (writable, no `readOnly` prop).
+- **Dispute form** is a 2-step flow: step 1 = reason textarea; step 2 (after successful create) = evidence uploader with Cloudinary signed-URL pattern. Appeals skip evidence step.
+- **Admin dashboard** has 5 tabs: Vendor Approvals, Vendor Reviews, Client Reviews, Disputes, Analytics.
+- **Vendor queue "Request Changes"** expands an inline textarea for `adminNote` before submitting. Pass `adminNote` in the PATCH body.
+- **CHANGES_REQUESTED status card** shows `vendor.adminNote` in an inset box when present.
+- **DRAFT completeness checklist** has 5 items — 5th is "Add at least one listing" checked via `vendor._count?.listings > 0`.
+- **PWA install prompt** (`components/pwa/install-prompt.tsx`) shows after 2 page visits; stored in `localStorage('pwa-dismissed')`. Registered in `layout.tsx`.
+- **Static pages:** `/privacy` and `/transparency` are server components with `generateMetadata`. Footer links to both.
 
 ### Portfolio Upload Flow
 
 NestJS never handles binary files. Flow: frontend requests signed Cloudinary URL from NestJS → frontend uploads directly to Cloudinary → frontend confirms upload back to NestJS → NestJS stores media_url in DB. Max 10 images or 2 videos per vendor.
+
+This same 3-step pattern is used for **dispute evidence upload**: `POST /disputes/:id/evidence/signed-url` → XHR to Cloudinary → `POST /disputes/:id/evidence` with `{ url }`. Max 5 images per dispute.
 
 ## Code Examples
 
